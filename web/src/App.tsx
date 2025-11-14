@@ -5,6 +5,7 @@ import { Terminal } from './components/Terminal';
 import { APILog } from './components/APILog';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { SoundToggle } from './components/settings/SoundToggle';
+import { ConnectionStatus } from './components/ConnectionStatus';
 import { useSSE } from './lib/useSSE';
 
 /**
@@ -20,6 +21,7 @@ function App() {
 
   return (
     <>
+      <ConnectionStatus />
       <SplitView
         left={
           <LeftPanel
