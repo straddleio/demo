@@ -2,6 +2,21 @@ import { create } from 'zustand';
 import type { Customer, Paykey, Charge } from './api';
 
 /**
+ * Helper function for UUID generation with fallback
+ */
+const uuid = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older browsers
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+/**
  * Terminal output line
  */
 export interface TerminalLine {
@@ -53,13 +68,13 @@ export const useDemoStore = create<DemoState>((set) => ({
   charge: null,
   terminalHistory: [
     {
-      id: crypto.randomUUID(),
+      id: uuid(),
       text: 'STRADDLE DEMO TERMINAL v1.0',
       type: 'success',
       timestamp: new Date(),
     },
     {
-      id: crypto.randomUUID(),
+      id: uuid(),
       text: 'Type /help for available commands',
       type: 'info',
       timestamp: new Date(),
@@ -80,7 +95,7 @@ export const useDemoStore = create<DemoState>((set) => ({
         ...state.terminalHistory,
         {
           ...line,
-          id: crypto.randomUUID(),
+          id: uuid(),
           timestamp: new Date(),
         },
       ],
@@ -90,7 +105,7 @@ export const useDemoStore = create<DemoState>((set) => ({
     set({
       terminalHistory: [
         {
-          id: crypto.randomUUID(),
+          id: uuid(),
           text: 'Terminal cleared',
           type: 'info',
           timestamp: new Date(),
@@ -108,5 +123,14 @@ export const useDemoStore = create<DemoState>((set) => ({
       paykey: null,
       charge: null,
       isExecuting: false,
+      terminalHistory: [
+        {
+          id: uuid(),
+          text: 'State reset. Type /help for available commands',
+          type: 'info',
+          timestamp: new Date(),
+        },
+      ],
+      connectionError: null,
     }),
 }));
