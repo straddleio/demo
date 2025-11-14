@@ -82,7 +82,9 @@ export const PaykeyCard: React.FC = () => {
             <span className="text-secondary font-pixel text-xs">$</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-neutral-100 font-body font-bold truncate">{paykey.institution || 'Unknown Bank'}</p>
+            <p className="text-sm text-neutral-100 font-body font-bold truncate">
+              {(typeof paykey.institution === 'string' ? paykey.institution : paykey.institution?.name) || 'Unknown Bank'}
+            </p>
             <p className="text-xs text-neutral-400 font-body">
               {paykey.account_type ? paykey.account_type.charAt(0).toUpperCase() + paykey.account_type.slice(1) : 'Account'} ••••{paykey.last4 || '0000'}
             </p>
