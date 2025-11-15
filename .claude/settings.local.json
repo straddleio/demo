@@ -37,7 +37,12 @@
       "Skill(superpowers:subagent-driven-development)",
       "Bash(git ls-tree:*)",
       "Bash(cat:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(powershell -Command:*)",
+      "Bash([ -d ~/.config/superpowers/skills ])",
+      "Bash(echo:*)",
+      "Bash(test:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
