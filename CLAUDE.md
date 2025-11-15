@@ -273,6 +273,50 @@ Default test data template:
   - Auto-generates unique email with timestamp
   - Shows verification status and risk score
 
+### KYC Customer Request Feature
+
+**Terminal Command:**
+```
+/customer-KYC
+```
+
+Creates a test customer with full compliance profile and address data to demonstrate KYC validation flow.
+
+**Pre-populated Data:**
+- Name: Jane Doe
+- Email: jane.doe@example.com
+- Phone: +12025551234
+- Address: 1600 Pennsylvania Avenue NW, Washington, DC 20500
+- SSN: 123-45-6789
+- DOB: 1990-01-15
+
+**KYC Review Data:**
+The command creates a customer and immediately fetches review data including:
+- KYC validation results (field-by-field validation)
+- Address watchlist matches
+- Risk codes and correlation IDs
+
+**Display Components:**
+
+1. **KYCValidationCard** (`web/src/components/dashboard/KYCValidationCard.tsx`)
+   - Shows KYC decision (ACCEPT/REJECT/REVIEW) with color-coded background
+   - Lists validated fields with checkmarks
+   - Shows fields that failed validation
+   - Displays risk codes if present
+   - Expandable/collapsible interface
+
+2. **AddressWatchlistCard** (`web/src/components/dashboard/AddressWatchlistCard.tsx`)
+   - Shows count of watchlist matches
+   - Lists match details (list name, matched fields, correlation)
+   - Color-coded (yellow for matches, green for clear)
+   - Expandable/collapsible interface
+
+3. **Enhanced CustomerCard** (`web/src/components/dashboard/CustomerCard.tsx`)
+   - Full multi-line address display with MapPin icon
+   - Enhanced compliance profile with Shield and Calendar icons
+   - Masked SSN (shows last 4 digits)
+   - Formatted DOB display
+
 **Paykey Commands**:
 - `/create-paykey [plaid|bank] [--outcome active|inactive|rejected]` - Link bank account
   - `plaid` - Uses Plaid processor token (requires PLAID_PROCESSOR_TOKEN env var)

@@ -8,6 +8,32 @@ All notable changes and development progress for the Straddle NerdCon Demo proje
 
 ---
 
+## [Unreleased] - 2025-11-15
+
+### Added
+- **KYC Customer Request Feature**
+  - New `/customer-KYC` terminal command for testing KYC validation flow
+  - `KYCValidationCard` component for detailed KYC validation display
+  - `AddressWatchlistCard` component for address watchlist match display
+  - Enhanced address display with full multi-line formatting
+  - Enhanced compliance profile display with icons and masked data
+  - Manual test documentation (`docs/MANUAL_TEST_KYC_CUSTOMER.md`)
+
+### Changed
+- Updated `CustomerCard` to use new KYC and AddressWatchlist card components
+- Enhanced address and compliance profile sections with better visual formatting
+
+### Technical Details
+- Pre-populates test customer "Jane Doe" with:
+  - Full address (1600 Pennsylvania Avenue NW, Washington, DC 20500)
+  - Compliance profile (SSN: 123-45-6789, DOB: 1990-01-15)
+  - Email and phone
+- Automatically fetches and displays KYC review data
+- Color-coded decision indicators (green/yellow/red for ACCEPT/REVIEW/REJECT)
+- Real-time updates via SSE
+
+---
+
 ## Completed Work
 
 ### Phase 1: Infrastructure & Setup ✅
