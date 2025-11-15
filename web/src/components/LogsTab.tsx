@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/components/ui/utils';
 import { useDemoStore } from '@/lib/state';
 
@@ -27,6 +27,26 @@ export const LogsTab: React.FC = () => {
   const customer = useDemoStore((state) => state.customer);
   const paykey = useDemoStore((state) => state.paykey);
   const charge = useDemoStore((state) => state.charge);
+
+  // Memoize filtered log stream for performance
+  const filteredLogStream = useMemo(() => {
+    return logStream.filter((entry) => {
+      // Only show webhooks for current resources
+      if (entry.type === 'webhook') {
+        const resourceId = entry.webhookPayload?.data?.id;
+        if (!resourceId) return false;
+
+        return (
+          resourceId === customer?.id ||
+          resourceId === paykey?.id ||
+          resourceId === charge?.id
+        );
+      }
+
+      // Show all Straddle request/response entries
+      return true;
+    });
+  }, [logStream, customer?.id, paykey?.id, charge?.id]);
 
   useEffect(() => {
     const fetchStream = async () => {
@@ -96,24 +116,7 @@ export const LogsTab: React.FC = () => {
           {logStream.length === 0 ? (
             <div className="text-neutral-600">No log entries yet...</div>
           ) : (
-            logStream
-              // Filter: Only show webhooks for current resources, or non-webhook entries
-              .filter((entry) => {
-                if (entry.type !== 'webhook') {
-                  return true; // Show all non-webhook entries (requests/responses)
-                }
-
-                // For webhooks, only show if they match current resource IDs
-                const resourceId = entry.webhookPayload?.data?.id;
-                if (!resourceId) return false; // Skip webhooks without resource ID
-
-                return (
-                  resourceId === customer?.id ||
-                  resourceId === paykey?.id ||
-                  resourceId === charge?.id
-                );
-              })
-              .map((entry) => (
+            filteredLogStream.map((entry) => (
                 <div
                   key={entry.id}
                   onClick={() => setSelectedEntry(entry)}
