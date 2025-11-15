@@ -65,14 +65,13 @@ export function tracingMiddleware(req: Request, res: Response, next: NextFunctio
   // Log request completion
   res.on('finish', () => {
     const duration = Date.now() - req.startTime;
+    const fullPath = req.originalUrl || req.url;
 
     // Only log API routes (skip static assets, health checks, logs endpoint itself, etc.)
-    if (req.path.startsWith('/api/') &&
-        req.path !== '/api/events/stream' &&
-        req.path !== '/api/logs' &&
-        req.path !== '/api/log-stream') {
-      console.log(`[TRACE] Logging request: ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
-
+    if (fullPath.startsWith('/api/') &&
+        fullPath !== '/api/events/stream' &&
+        fullPath !== '/api/logs' &&
+        fullPath !== '/api/log-stream') {
       try {
         // Log to request logs (for Light Logs panel)
         logRequest({
@@ -80,7 +79,7 @@ export function tracingMiddleware(req: Request, res: Response, next: NextFunctio
           correlationId: req.correlationId,
           idempotencyKey: req.idempotencyKey,
           method: req.method,
-          path: req.path,
+          path: fullPath,
           statusCode: res.statusCode,
           duration,
           timestamp: new Date().toISOString(),
@@ -90,8 +89,6 @@ export function tracingMiddleware(req: Request, res: Response, next: NextFunctio
 
         // REMOVED: Response log stream entries (duplicate of Straddle SDK logs)
         // Only logRequest() above remains to populate API logs in terminal
-
-        console.log(`[DEBUG] Request logged successfully`);
       } catch (error) {
         console.error(`[ERROR] Failed to log request:`, error);
       }

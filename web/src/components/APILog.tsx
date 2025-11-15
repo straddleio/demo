@@ -1,46 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/components/ui/utils';
-
-interface APILogEntry {
-  id: string;
-  method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
-  path: string;
-  status: number;
-  timing: number; // milliseconds
-  requestId?: string;
-  correlationId?: string;
-  idempotencyKey?: string;
-  response?: any;
-}
+import { useDemoStore, type APILogEntry } from '@/lib/state';
 
 /**
  * API Request Log with expandable entries
- * Shows smart defaults: method, path, status, timing, key headers
- * Click to expand for full response JSON
- *
- * Phase 3A: Static placeholder data
- * Phase 3B: Will populate with real API calls
+ * Shows: method, path, status, timing
+ * Expandable: request/response in split code boxes
+ * Hidden by default: request ID, idempotency key
  */
 export const APILog: React.FC = () => {
-  // Placeholder data for demo
-  const [entries] = useState<APILogEntry[]>([
-    {
-      id: '1',
-      method: 'POST',
-      path: '/api/customers',
-      status: 201,
-      timing: 245,
-      requestId: 'req_abc123',
-      idempotencyKey: 'idem_xyz789',
-      response: { id: 'cust_xxx', verification_status: 'verified', risk_score: 0.12 },
-    },
-  ]);
-
+  const apiLogs = useDemoStore((state) => state.apiLogs);
+  const setApiLogs = useDemoStore((state) => state.setApiLogs);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Fetch logs from backend on mount and periodically
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/logs');
+        if (response.ok) {
+          const logs = await response.json();
+          setApiLogs(logs);
+        }
+      } catch (error) {
+        console.error('Failed to fetch API logs:', error);
+      }
+    };
+
+    // Initial fetch
+    fetchLogs();
+
+    // Poll every 2 seconds
+    const interval = setInterval(fetchLogs, 2000);
+
+    return () => clearInterval(interval);
+  }, [setApiLogs]);
 
   const getStatusColor = (status: number) => {
     if (status >= 200 && status < 300) return 'text-primary';
-    if (status >= 400 && status < 500) return 'text-accent';
+    if (status >= 400 && status < 500) return 'text-gold';
     if (status >= 500) return 'text-accent';
     return 'text-neutral-400';
   };
@@ -86,63 +84,90 @@ export const APILog: React.FC = () => {
       </div>
 
       {/* Log Entries */}
-      <div className="flex-1 overflow-y-auto scrollbar-retro space-y-3 relative z-10">
-        {entries.length === 0 ? (
+      <div className="flex-1 overflow-y-auto scrollbar-retro space-y-2 relative z-10">
+        {apiLogs.length === 0 ? (
           <p className="text-xs text-neutral-500 font-body">No requests yet...</p>
         ) : (
-          entries.map((entry) => (
+          apiLogs.map((entry) => (
             <div
-              key={entry.id}
-              className="border border-secondary/30 bg-background-card/50 p-3 rounded-pixel hover:border-secondary/60 transition-colors"
+              key={entry.requestId}
+              className="border border-secondary/30 bg-background-card/50 rounded-pixel hover:border-secondary/60 transition-colors"
             >
-              {/* Request Line */}
-              <div className="flex items-center gap-2 mb-2">
+              {/* Compact Request Line */}
+              <div className="flex items-center gap-2 p-2">
                 <span className={cn('font-pixel text-xs font-bold', getMethodColor(entry.method))}>
                   {entry.method}
                 </span>
                 <span className="text-neutral-300 font-body text-xs flex-1 truncate">
                   {entry.path}
                 </span>
-                <span className={cn('font-body text-xs font-bold', getStatusColor(entry.status))}>
-                  {entry.status}
+                <span className={cn('font-body text-xs font-bold', getStatusColor(entry.statusCode))}>
+                  {entry.statusCode}
                 </span>
-                <span className="text-neutral-500 font-body text-xs">{entry.timing}ms</span>
+                <span className="text-neutral-500 font-body text-xs">{entry.duration}ms</span>
+
+                {/* Expand/Collapse Button */}
+                <button
+                  onClick={() => setExpandedId(expandedId === entry.requestId ? null : entry.requestId)}
+                  className="text-xs text-primary hover:text-primary/80 font-body"
+                >
+                  {expandedId === entry.requestId ? '▼' : '▶'}
+                </button>
               </div>
 
-              {/* Headers (Smart Defaults) */}
-              {(entry.requestId || entry.idempotencyKey) && (
-                <div className="space-y-1 mb-2 text-xs font-body">
-                  {entry.requestId && (
+              {/* Expanded View: Split Request/Response */}
+              {expandedId === entry.requestId && (
+                <div className="border-t border-secondary/20 p-3 space-y-3">
+                  {/* Metadata (shown when expanded) */}
+                  <div className="space-y-1 text-xs font-body pb-2 border-b border-primary/10">
                     <div className="flex gap-2">
-                      <span className="text-neutral-500">Request-Id:</span>
-                      <span className="text-neutral-300 font-mono">{entry.requestId}</span>
+                      <span className="text-neutral-500 w-28">Request-Id:</span>
+                      <span className="text-neutral-300 font-mono text-[10px]">{entry.requestId}</span>
                     </div>
-                  )}
-                  {entry.idempotencyKey && (
-                    <div className="flex gap-2">
-                      <span className="text-neutral-500">Idempotency-Key:</span>
-                      <span className="text-neutral-300 font-mono">{entry.idempotencyKey}</span>
+                    {entry.idempotencyKey && (
+                      <div className="flex gap-2">
+                        <span className="text-neutral-500 w-28">Idempotency-Key:</span>
+                        <span className="text-neutral-300 font-mono text-[10px]">{entry.idempotencyKey}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Split Code Boxes: Request | Response */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Request Body */}
+                    <div>
+                      <div className="text-xs text-neutral-400 font-body mb-1 flex items-center gap-2">
+                        <span>Request</span>
+                        {entry.requestBody && (
+                          <span className="text-[10px] text-neutral-600">
+                            {JSON.stringify(entry.requestBody).length} chars
+                          </span>
+                        )}
+                      </div>
+                      <pre className="p-2 bg-background-dark border border-primary/20 rounded text-[10px] text-neutral-300 font-mono overflow-x-auto scrollbar-retro max-h-64">
+                        {entry.requestBody
+                          ? JSON.stringify(entry.requestBody, null, 2)
+                          : '// No request body'}
+                      </pre>
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* Response Preview / Expand Button */}
-              {entry.response && (
-                <div className="mt-2">
-                  <button
-                    onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                    className="text-xs text-primary hover:text-primary/80 font-body flex items-center gap-1"
-                  >
-                    {expandedId === entry.id ? '▼' : '▶'}
-                    {expandedId === entry.id ? 'Hide' : 'Show'} Response
-                  </button>
-
-                  {expandedId === entry.id && (
-                    <pre className="mt-2 p-2 bg-background-dark border border-primary/20 rounded text-xs text-neutral-300 font-mono overflow-x-auto scrollbar-retro">
-                      {JSON.stringify(entry.response, null, 2)}
-                    </pre>
-                  )}
+                    {/* Response Body */}
+                    <div>
+                      <div className="text-xs text-neutral-400 font-body mb-1 flex items-center gap-2">
+                        <span>Response</span>
+                        {entry.responseBody && (
+                          <span className="text-[10px] text-neutral-600">
+                            {JSON.stringify(entry.responseBody).length} chars
+                          </span>
+                        )}
+                      </div>
+                      <pre className="p-2 bg-background-dark border border-primary/20 rounded text-[10px] text-neutral-300 font-mono overflow-x-auto scrollbar-retro max-h-64">
+                        {entry.responseBody
+                          ? JSON.stringify(entry.responseBody, null, 2)
+                          : '// No response body'}
+                      </pre>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
