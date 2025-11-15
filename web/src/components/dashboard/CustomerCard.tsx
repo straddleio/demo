@@ -34,6 +34,7 @@ export const CustomerCard: React.FC = () => {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [unmaskedData, setUnmaskedData] = useState<UnmaskedCustomer | null>(null);
   const [isUnmasking, setIsUnmasking] = useState(false);
+  const [allExpanded, setAllExpanded] = useState(false);
   const customer = useDemoStore((state) => state.customer);
 
   // Extract IP address from device field if available (placeholder for now since API doesn't include device yet)
@@ -209,6 +210,17 @@ export const CustomerCard: React.FC = () => {
     setExpandedModule(expandedModule === moduleName ? null : moduleName);
   };
 
+  const toggleAllModules = () => {
+    setAllExpanded(!allExpanded);
+    setExpandedModule(null);
+  };
+
+  // Determine if a module should be expanded
+  const isModuleExpanded = (moduleName: string) => {
+    if (allExpanded) return true;
+    return expandedModule === moduleName;
+  };
+
   return (
     <RetroCard variant="cyan" className="h-full">
       <RetroCardHeader>
@@ -237,7 +249,7 @@ export const CustomerCard: React.FC = () => {
           )}
         </div>
       </RetroCardHeader>
-      <RetroCardContent className="space-y-4">
+      <RetroCardContent className="space-y-3">
         {/* Name and Email Row */}
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -251,7 +263,7 @@ export const CustomerCard: React.FC = () => {
         </div>
 
         {/* Phone and Address Row */}
-        <div className="pt-3 border-t border-primary/10">
+        <div className="pt-2 border-t border-primary/10">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <div>
@@ -268,28 +280,43 @@ export const CustomerCard: React.FC = () => {
                 </div>
               )}
             </div>
-            {customer.address && (
-              <div>
-                <p className="text-xs text-neutral-500 font-body mb-0.5">Address</p>
-                <div className="text-xs text-neutral-100 font-body">
-                  <p>{customer.address.address1}{customer.address.address2 ? `, ${customer.address.address2}` : ''}</p>
-                  <p>{customer.address.city}, {customer.address.state} {customer.address.zip}</p>
+            <div className="space-y-2">
+              {customer.address && (
+                <div>
+                  <p className="text-xs text-neutral-500 font-body mb-0.5">Address</p>
+                  <div className="text-xs text-neutral-100 font-body">
+                    <p>{customer.address.address1}{customer.address.address2 ? `, ${customer.address.address2}` : ''}</p>
+                    <p>{customer.address.city}, {customer.address.state} {customer.address.zip}</p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+              {customer.compliance_profile?.dob && (
+                <div>
+                  <p className="text-xs text-neutral-500 font-body mb-0.5">Date of Birth</p>
+                  <p className="text-xs text-neutral-100 font-body font-mono">
+                    {unmaskedData?.compliance_profile?.dob || customer.compliance_profile.dob}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Compliance Profile with Unmask */}
-        {customer.compliance_profile && (
-          <div className="pt-3 border-t border-primary/10">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-neutral-400 font-body">Compliance Information</p>
+        {/* SSN with Unmask */}
+        {customer.compliance_profile?.ssn && (
+          <div className="pt-2 border-t border-primary/10">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex-1">
+                <p className="text-xs text-neutral-500 font-body mb-0.5">SSN</p>
+                <p className="text-xs text-neutral-100 font-body font-mono">
+                  {unmaskedData?.compliance_profile?.ssn || `***-**-${customer.compliance_profile.ssn.slice(-4)}`}
+                </p>
+              </div>
               <button
                 onClick={handleUnmask}
                 disabled={isUnmasking}
                 className={cn(
-                  "px-2 py-1 text-sm font-body border rounded-pixel transition-all",
+                  "px-2 py-1 text-xs font-body border rounded-pixel transition-all flex-shrink-0 self-start",
                   unmaskedData
                     ? "border-primary/40 text-primary bg-primary/10 hover:bg-primary/20"
                     : "border-neutral-600 text-neutral-400 hover:border-primary hover:text-primary",
@@ -300,30 +327,25 @@ export const CustomerCard: React.FC = () => {
                 {unmaskedData ? 'HIDE' : 'SHOW'}
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {customer.compliance_profile.ssn && (
-                <div>
-                  <p className="text-xs text-neutral-500 font-body mb-0.5">SSN</p>
-                  <p className="text-xs text-neutral-100 font-body font-mono">
-                    {unmaskedData?.compliance_profile?.ssn || `***-**-${customer.compliance_profile.ssn.slice(-4)}`}
-                  </p>
-                </div>
-              )}
-              {customer.compliance_profile.dob && (
-                <div>
-                  <p className="text-xs text-neutral-500 font-body mb-0.5">Date of Birth</p>
-                  <p className="text-xs text-neutral-100 font-body font-mono">
-                    {unmaskedData?.compliance_profile?.dob || customer.compliance_profile.dob}
-                  </p>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
         {/* Verification Modules */}
-        <div className="pt-3 border-t border-primary/20">
-          <p className="text-xs text-neutral-400 font-body mb-3">Identity Verification</p>
+        <div className="pt-2 border-t border-primary/20">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-neutral-400 font-body">Identity Verification</p>
+            <button
+              onClick={toggleAllModules}
+              className={cn(
+                "px-2 py-1 text-xs font-body border rounded-pixel transition-all",
+                allExpanded
+                  ? "border-primary/40 text-primary bg-primary/10 hover:bg-primary/20"
+                  : "border-neutral-600 text-neutral-400 hover:border-primary hover:text-primary"
+              )}
+            >
+              {allExpanded ? 'HIDE' : 'SHOW'}
+            </button>
+          </div>
           <div className="space-y-2">
             {modules.map((module) => (
               <div key={module.name} className="border border-primary/20 rounded-pixel bg-background-dark/50">
@@ -351,14 +373,14 @@ export const CustomerCard: React.FC = () => {
                     </span>
                     {module.codes && (
                       <span className="text-xs text-neutral-500">
-                        {expandedModule === module.name ? '▼' : '▶'}
+                        {isModuleExpanded(module.name) ? '▼' : '▶'}
                       </span>
                     )}
                   </div>
                 </button>
 
                 {/* Expanded Section - Scores and R-Codes */}
-                {expandedModule === module.name && (
+                {isModuleExpanded(module.name) && (
                   <div className="border-t border-primary/10">
                     {/* Risk Score */}
                     <div className="px-3 py-2 bg-background-dark/30">
@@ -394,21 +416,21 @@ export const CustomerCard: React.FC = () => {
                 )}
               </div>
             ))}
+
+            {/* KYC Validation */}
+            {customer.review?.kyc && (
+              <KYCValidationCard customer={customer} isExpanded={allExpanded} />
+            )}
+
+            {/* Address Watchlist */}
+            {customer.review?.watch_list && (
+              <AddressWatchlistCard customer={customer} isExpanded={allExpanded} />
+            )}
           </div>
         </div>
 
-        {/* KYC Validation - New Component */}
-        {customer.review?.kyc && (
-          <KYCValidationCard customer={customer} />
-        )}
-
-        {/* Address Watchlist - New Component */}
-        {customer.review?.watch_list && (
-          <AddressWatchlistCard customer={customer} />
-        )}
-
         {/* Network Intelligence (Reputation) */}
-        <div className="pt-3 border-t border-primary/20">
+        <div className="pt-2 border-t border-primary/20">
           <p className="text-xs text-neutral-400 font-body mb-3">Network Intelligence</p>
           <div className="grid grid-cols-4 gap-3">
             <div className="text-center">
