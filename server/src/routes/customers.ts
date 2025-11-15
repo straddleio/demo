@@ -163,6 +163,7 @@ router.post('/', async (req: Request, res: Response) => {
           breakdown: {
             email: identityDetails.breakdown?.email,
             phone: identityDetails.breakdown?.phone,
+            address: identityDetails.breakdown?.address,
             fraud: identityDetails.breakdown?.fraud,
             synthetic: identityDetails.breakdown?.synthetic,
           },
@@ -427,7 +428,7 @@ router.patch('/:id/review', async (req: Request, res: Response) => {
 /**
  * GET /api/customers/:id/unmask
  * Get unmasked customer data (SSN, DOB, etc.)
- * Note: Uses custom SDK call to retrieve sensitive fields
+ * Calls Straddle /customers/:id/unmask endpoint
  */
 router.get('/:id/unmask', async (req: Request, res: Response) => {
   try {
@@ -436,14 +437,14 @@ router.get('/:id/unmask', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
       type: 'straddle-req',
       method: 'GET',
-      path: `/customers/${req.params.id}?show_sensitive=true`,
+      path: `/customers/${req.params.id}/unmask`,
       requestId: req.requestId,
     });
 
     const startTime = Date.now();
 
-    // Use custom GET request with show_sensitive parameter
-    const unmaskResponse = await straddleClient.get(`/customers/${req.params.id}?show_sensitive=true`);
+    // Use unmask endpoint
+    const unmaskResponse = await straddleClient.get(`/customers/${req.params.id}/unmask`);
     const duration = Date.now() - startTime;
 
     // Log inbound Straddle response to stream
@@ -460,7 +461,7 @@ router.get('/:id/unmask', async (req: Request, res: Response) => {
     logStraddleCall(
       req.requestId,
       req.correlationId,
-      `customers/${req.params.id}?show_sensitive=true`,
+      `customers/${req.params.id}/unmask`,
       'GET',
       200,
       duration,
