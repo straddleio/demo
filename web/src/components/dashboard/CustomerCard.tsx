@@ -346,7 +346,9 @@ export const CustomerCard: React.FC = () => {
               {allExpanded ? 'HIDE' : 'SHOW'}
             </button>
           </div>
-          <div className="space-y-2">
+
+          {/* 2x3 Grid: Email/Phone, Reputation/Fraud, Address/KYC */}
+          <div className="grid grid-cols-2 gap-2 mb-2">
             {modules.map((module) => (
               <div key={module.name} className="border border-primary/20 rounded-pixel bg-background-dark/50">
                 {/* Module Header - Clickable */}
@@ -421,12 +423,12 @@ export const CustomerCard: React.FC = () => {
             {customer.review?.kyc && (
               <KYCValidationCard customer={customer} isExpanded={allExpanded} />
             )}
-
-            {/* Address Watchlist */}
-            {customer.review?.watch_list && (
-              <AddressWatchlistCard customer={customer} isExpanded={allExpanded} />
-            )}
           </div>
+
+          {/* Address Watchlist - Full Width Row */}
+          {customer.review?.watch_list && (
+            <AddressWatchlistCard customer={customer} isExpanded={allExpanded} />
+          )}
         </div>
 
         {/* Network Intelligence (Reputation) */}
