@@ -136,7 +136,8 @@ export const CustomerCard: React.FC = () => {
       });
     }
 
-    // Address module
+    // Address module - only displays if customer.review.breakdown.address exists
+    // This requires /customer-KYC command or customer creation with full address validation
     if (breakdown.address) {
       modules.push({
         name: 'Address',
