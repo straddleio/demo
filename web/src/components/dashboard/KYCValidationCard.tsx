@@ -17,6 +17,13 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }
   // Normalize decision to uppercase to fix case mismatch bug
   const decision = (kyc.decision || '').toUpperCase();
 
+  // Map decision labels to match Email/Phone pattern
+  const getDecisionLabel = (decision: string) => {
+    if (decision === 'ACCEPT') return 'PASS';
+    if (decision === 'REVIEW') return 'REVIEW';
+    return 'FAIL';
+  };
+
   const validationFields = [
     { key: 'address', label: 'Address' },
     { key: 'city', label: 'City' },
@@ -45,7 +52,7 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }
         className="w-full px-3 py-2 flex items-center justify-between hover:bg-primary/5"
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-body text-neutral-200">KYC Validation</span>
+          <span className="text-xs font-body text-neutral-200">KYC</span>
         </div>
         <div className="flex items-center gap-3">
           <span className={cn(
@@ -53,7 +60,7 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }
             decision === 'ACCEPT' ? 'text-green-500' :
             decision === 'REVIEW' ? 'text-gold' : 'text-accent'
           )}>
-            {decision}
+            {getDecisionLabel(decision)}
           </span>
           <span className="text-xs text-neutral-500">
             {isExpanded ? '▼' : '▶'}
@@ -86,7 +93,7 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }
 
             {/* Failed/Missing Fields */}
             {failedFields.length > 0 && (
-              <div className="mb-3">
+              <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-neutral-500 font-body">Not Validated</span>
                   <span className="text-xs text-accent font-pixel">
@@ -98,20 +105,6 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }
                     <div key={field.key} className="flex items-center gap-1.5">
                       <span className="text-neutral-600 text-xs">✗</span>
                       <span className="text-xs text-neutral-500 font-body">{field.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Risk Codes */}
-            {kyc.codes && kyc.codes.length > 0 && (
-              <div>
-                <span className="text-xs text-neutral-500 font-body block mb-2">Risk Codes</span>
-                <div className="space-y-1">
-                  {kyc.codes.map((code, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <span className="text-xs text-accent font-mono flex-shrink-0">{code}</span>
                     </div>
                   ))}
                 </div>

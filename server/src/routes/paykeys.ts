@@ -57,17 +57,22 @@ router.get('/:id', async (req: Request, res: Response) => {
       paykey: paykeyData.paykey || '', // The actual token to use in charges
       customer_id: paykeyData.customer_id,
       status: paykeyData.status,
-      institution: paykeyData.institution ? {
-        name: paykeyData.institution.name || 'Unknown',
-        logo: paykeyData.institution.logo
-      } : undefined,
-      ownership_verified: paykeyData.ownership_verified || false,
+      label: paykeyData.label, // Use API-provided label
+      institution_name: paykeyData.institution_name || 'Unknown Bank',
+      source: paykeyData.source,
       balance: paykeyData.balance ? {
-        available: paykeyData.balance.available || 0,
-        currency: paykeyData.balance.currency || 'USD'
+        status: paykeyData.balance.status,
+        account_balance: paykeyData.balance.account_balance || 0, // In dollars
+        updated_at: paykeyData.balance.updated_at,
       } : undefined,
-      account_type: paykeyData.account_type,
-      linked_at: paykeyData.created_at || new Date().toISOString(),
+      bank_data: paykeyData.bank_data ? {
+        account_number: paykeyData.bank_data.account_number,
+        account_type: paykeyData.bank_data.account_type,
+        routing_number: paykeyData.bank_data.routing_number,
+      } : undefined,
+      created_at: paykeyData.created_at || new Date().toISOString(),
+      updated_at: paykeyData.updated_at,
+      ownership_verified: paykeyData.ownership_verified || false,
     };
 
     res.json(demoPaykey);

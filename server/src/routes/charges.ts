@@ -102,19 +102,20 @@ router.post('/', async (req: Request, res: Response) => {
     console.log('Straddle charge response (create):', JSON.stringify(charge, null, 2));
 
     // Map to demo charge format (Straddle wraps response in .data)
+    const chargeResponse = charge.data as any;
     const demoCharge: DemoCharge = {
-      id: charge.data.id,
+      id: chargeResponse.id,
       customer_id: undefined,  // Charges are linked via paykey, not customer_id
-      paykey: charge.data.paykey || '',
-      amount: charge.data.amount,
-      currency: charge.data.currency,
-      status: charge.data.status,
-      payment_date: charge.data.payment_date,
-      created_at: charge.data.created_at || new Date().toISOString(),
-      scheduled_at: (charge.data as any).scheduled_at || undefined,
-      completed_at: (charge.data as any).completed_at || undefined,
-      failure_reason: (charge.data as any).failure_reason || undefined,
-      status_history: charge.data.status_history?.map((h: any) => ({
+      paykey: chargeResponse.paykey || '',
+      amount: chargeResponse.amount,
+      currency: chargeResponse.currency,
+      status: chargeResponse.status,
+      payment_date: chargeResponse.payment_date,
+      created_at: chargeResponse.created_at || new Date().toISOString(),
+      scheduled_at: chargeResponse.scheduled_at || undefined,
+      completed_at: chargeResponse.completed_at || undefined,
+      failure_reason: chargeResponse.failure_reason || undefined,
+      status_history: chargeResponse.status_history?.map((h: any) => ({
         status: h.status,
         timestamp: h.changed_at, // Map changed_at to timestamp
         reason: h.reason,
@@ -122,6 +123,8 @@ router.post('/', async (req: Request, res: Response) => {
         source: h.source,
       })),
       sandbox_outcome: outcome,
+      payment_rail: chargeResponse.payment_rail,
+      consent_type: chargeResponse.consent_type,
     };
 
     // Update demo state
@@ -182,25 +185,28 @@ router.get('/:id', async (req: Request, res: Response) => {
     console.log('Straddle charge response (get):', JSON.stringify(charge, null, 2));
 
     // Map to demo charge format (Straddle wraps response in .data)
+    const chargeResponse = charge.data as any;
     const demoCharge: DemoCharge = {
-      id: charge.data.id,
+      id: chargeResponse.id,
       customer_id: undefined,  // Charges are linked via paykey, not customer_id
-      paykey: charge.data.paykey || '',
-      amount: charge.data.amount,
-      currency: charge.data.currency,
-      status: charge.data.status,
-      payment_date: charge.data.payment_date,
-      created_at: charge.data.created_at || new Date().toISOString(),
-      scheduled_at: (charge.data as any).scheduled_at || undefined,
-      completed_at: (charge.data as any).completed_at || undefined,
-      failure_reason: (charge.data as any).failure_reason || undefined,
-      status_history: charge.data.status_history?.map((h: any) => ({
+      paykey: chargeResponse.paykey || '',
+      amount: chargeResponse.amount,
+      currency: chargeResponse.currency,
+      status: chargeResponse.status,
+      payment_date: chargeResponse.payment_date,
+      created_at: chargeResponse.created_at || new Date().toISOString(),
+      scheduled_at: chargeResponse.scheduled_at || undefined,
+      completed_at: chargeResponse.completed_at || undefined,
+      failure_reason: chargeResponse.failure_reason || undefined,
+      status_history: chargeResponse.status_history?.map((h: any) => ({
         status: h.status,
         timestamp: h.changed_at, // Map changed_at to timestamp
         reason: h.reason,
         message: h.message, // Include the message!
         source: h.source,
       })),
+      payment_rail: chargeResponse.payment_rail,
+      consent_type: chargeResponse.consent_type,
     };
 
     return res.json(demoCharge);

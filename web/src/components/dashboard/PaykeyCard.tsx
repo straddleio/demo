@@ -36,10 +36,20 @@ export const PaykeyCard: React.FC = () => {
 
   // Extract data from paykey with fallbacks
   const customerName = customer?.name || 'Unknown';
-  const source: 'plaid' | 'bank_account' = 'bank_account'; // TODO: Track in API response
+  const source: 'plaid' | 'bank_account' = paykey.source === 'plaid' ? 'plaid' : 'bank_account';
   const waldoConfidence = paykey.ownership?.waldo_confidence || 'unknown';
-  const balance = paykey.balance?.available ? paykey.balance.available / 100 : 0;
-  const ownershipSignals = ['Name match', 'Balance verified', 'No fraud flags']; // TODO: Extract from API
+  const balance = paykey.balance?.account_balance ? paykey.balance.account_balance / 100 : 0; // Convert cents to dollars
+
+  // Build ownership signals dynamically
+  const ownershipSignals: string[] = [];
+  if (paykey.balance?.status === 'completed') ownershipSignals.push('Balance verified');
+  if (paykey.status === 'active') ownershipSignals.push('Account active');
+  if (paykey.ownership_verified) ownershipSignals.push('Ownership verified');
+
+  // Extract last 4 digits from masked account number
+  const last4 = paykey.bank_data?.account_number
+    ? paykey.bank_data.account_number.slice(-4)
+    : paykey.last4 || '0000';
 
   const statusColors = {
     active: 'primary',
@@ -83,10 +93,14 @@ export const PaykeyCard: React.FC = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm text-neutral-100 font-body font-bold truncate">
-              {(typeof paykey.institution === 'string' ? paykey.institution : paykey.institution?.name) || 'Unknown Bank'}
+              {paykey.institution_name || paykey.label || 'Unknown Bank'}
             </p>
             <p className="text-xs text-neutral-400 font-body">
-              {paykey.account_type ? paykey.account_type.charAt(0).toUpperCase() + paykey.account_type.slice(1) : 'Account'} ••••{paykey.last4 || '0000'}
+              {paykey.bank_data?.account_type
+                ? paykey.bank_data.account_type.charAt(0).toUpperCase() + paykey.bank_data.account_type.slice(1)
+                : paykey.account_type
+                ? paykey.account_type.charAt(0).toUpperCase() + paykey.account_type.slice(1)
+                : 'Account'} ••••{last4}
             </p>
             <p className="text-xs text-secondary font-body mt-0.5">
               via {sourceLabels[source]}
@@ -116,6 +130,11 @@ export const PaykeyCard: React.FC = () => {
             <p className="text-sm text-neutral-100 font-body font-bold">
               ${balance.toFixed(2)}
             </p>
+            {paykey.balance?.updated_at && (
+              <p className="text-xs text-neutral-500 font-body mt-0.5">
+                {new Date(paykey.balance.updated_at).toLocaleDateString()}
+              </p>
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-xs text-neutral-400 font-body mb-1">Paykey</p>

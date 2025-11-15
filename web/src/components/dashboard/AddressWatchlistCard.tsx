@@ -23,15 +23,15 @@ export const AddressWatchlistCard: React.FC<AddressWatchlistCardProps> = ({ cust
         className="w-full px-3 py-2 flex items-center justify-between hover:bg-primary/5"
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-body text-neutral-200">Address Watchlist</span>
+          <span className="text-xs font-body text-neutral-200">Watchlist</span>
           {hasMatches && watchlist.matches && (
-            <span className="text-xs text-accent">• {watchlist.matches.length} matches</span>
+            <span className="text-xs text-neutral-400">• {watchlist.matches.length} matches</span>
           )}
         </div>
         <div className="flex items-center gap-3">
           <span className={cn(
             'text-xs font-pixel',
-            hasMatches ? 'text-accent' : 'text-green-500'
+            hasMatches ? 'text-gold' : 'text-green-500'
           )}>
             {hasMatches ? 'FLAGGED' : 'CLEAR'}
           </span>
@@ -49,12 +49,30 @@ export const AddressWatchlistCard: React.FC<AddressWatchlistCardProps> = ({ cust
                 {watchlist.matches.map((match, idx) => (
                   <div key={idx} className="border border-primary/20 rounded-pixel p-2 bg-background-dark/20">
                     <div className="flex items-start justify-between mb-2">
-                      <span className="text-xs font-pixel text-accent">{match.list_name}</span>
-                      {match.correlation && (
-                        <span className="text-xs text-neutral-500 font-mono">
-                          {match.correlation}
-                        </span>
-                      )}
+                      <span className="text-xs font-body text-neutral-200">{match.list_name}</span>
+                      <div className="flex flex-col items-end gap-1">
+                        {match.correlation && (
+                          <span className="text-xs text-neutral-500 font-mono">
+                            {match.correlation}
+                          </span>
+                        )}
+                        {match.urls && match.urls.length > 0 && (
+                          <div className="flex flex-col items-end gap-1">
+                            {match.urls.map((url, urlIdx) => (
+                              <a
+                                key={urlIdx}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/30 text-primary text-xs font-body rounded-pixel hover:bg-primary/20 hover:border-primary/50 transition-all"
+                              >
+                                <span>View Source</span>
+                                <span className="text-[10px]">↗</span>
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {match.match_fields && match.match_fields.length > 0 && (
@@ -66,7 +84,7 @@ export const AddressWatchlistCard: React.FC<AddressWatchlistCardProps> = ({ cust
                           {match.match_fields.map((field, fieldIdx) => (
                             <span
                               key={fieldIdx}
-                              className="px-2 py-0.5 bg-accent/10 border border-accent/30 text-accent text-xs font-mono rounded-pixel"
+                              className="px-2 py-0.5 bg-primary/10 border border-primary/20 text-neutral-300 text-xs font-mono rounded-pixel"
                             >
                               {field}
                             </span>

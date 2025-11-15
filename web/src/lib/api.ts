@@ -81,6 +81,13 @@ export interface Customer {
         correlation_score?: number;
         correlation?: string;
       };
+      address?: {
+        decision: string;
+        codes?: string[];
+        risk_score?: number;
+        correlation_score?: number;
+        correlation?: string;
+      };
       fraud?: {
         decision: string;
         codes?: string[];
@@ -167,13 +174,26 @@ export interface Paykey {
   paykey: string; // Token for charges
   customer_id: string;
   status: string;
-  institution?: string | { name: string; logo?: string }; // Support both formats
-  account_type?: string;
-  last4?: string; // Last 4 digits of account
+  label?: string; // Pre-formatted label from API
+  institution_name?: string; // Bank name as flat string
+  source?: string; // Source tracking (bank_account, plaid, etc.)
   balance?: {
-    available: number;
-    currency: string; // Not 'current'
+    status?: string; // Balance fetch status
+    account_balance?: number; // Balance in dollars (not cents)
+    updated_at?: string; // Last balance update timestamp
   };
+  bank_data?: {
+    account_number?: string; // Masked account number
+    account_type?: string;
+    routing_number?: string;
+  };
+  created_at?: string;
+  updated_at?: string;
+  ownership_verified?: boolean;
+  // Legacy fields for backward compatibility
+  account_type?: string; // Deprecated: use bank_data.account_type
+  last4?: string; // Deprecated: extract from bank_data.account_number
+  institution?: string | { name: string; logo?: string }; // Deprecated: use institution_name
   ownership?: {
     waldo_confidence?: string;
   };
@@ -208,15 +228,20 @@ export interface Charge {
   id: string;
   amount: number;
   currency: string;
-  description: string;
+  description?: string;
   status: string;
   paykey: string;
   payment_rail?: string;
+  consent_type?: string;
   balance_check_result?: string;
   failure_reason?: string;
+  payment_date?: string;
   status_history?: Array<{
     status: string;
     timestamp: string;
+    reason?: string;
+    message?: string;
+    source?: string;
   }>;
 }
 

@@ -243,7 +243,7 @@ async function handleCreatePaykey(args: string[]): Promise<CommandResult> {
 
     return {
       success: true,
-      message: `✓ Paykey created: ${paykey.id}\n  Status: ${paykey.status}\n  Institution: ${paykey.institution || 'N/A'}\n  Balance: $${((paykey.balance?.available || 0) / 100).toFixed(2)}`,
+      message: `✓ Paykey created: ${paykey.id}\n  Status: ${paykey.status}\n  Institution: ${paykey.institution_name || paykey.label || 'N/A'}\n  Balance: $${((paykey.balance?.account_balance || 0) / 100).toFixed(2)}`,
       data: paykey,
     };
   } catch (error) {

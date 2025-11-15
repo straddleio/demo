@@ -88,9 +88,9 @@ export const APILog: React.FC = () => {
         {apiLogs.length === 0 ? (
           <p className="text-xs text-neutral-500 font-body">No requests yet...</p>
         ) : (
-          apiLogs.map((entry) => (
+          apiLogs.map((entry, index) => (
             <div
-              key={entry.requestId}
+              key={`${entry.requestId}-${entry.method}-${entry.path}-${entry.timestamp}-${index}`}
               className="border border-secondary/30 bg-background-card/50 rounded-pixel hover:border-secondary/60 transition-colors"
             >
               {/* Compact Request Line */}

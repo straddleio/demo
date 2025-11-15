@@ -201,17 +201,23 @@ export interface DemoPaykey {
   paykey: string; // The actual paykey token to use in charges
   customer_id: string;
   status: string;
-  institution?: {
-    name: string;
-    logo?: string;
-  };
-  ownership_verified?: boolean;
+  label?: string; // Human-readable label from API (e.g., "Chase Bank ****1234")
+  institution_name?: string; // Bank name only
+  source?: string; // Track source (bank_account, plaid, etc.)
   balance?: {
-    available: number;
-    currency: string;
+    status?: string; // Balance fetch status (pending, completed, failed)
+    account_balance?: number; // Balance in dollars (not cents)
+    updated_at?: string; // When balance was last updated
   };
-  account_type?: string;
-  linked_at: string;
+  bank_data?: {
+    account_number?: string; // Masked account number
+    account_type?: string;
+    routing_number?: string;
+  };
+  created_at: string; // Timestamp of creation
+  updated_at?: string; // Last update timestamp
+  // Legacy fields for backward compatibility
+  ownership_verified?: boolean;
 }
 
 export interface DemoCharge {
@@ -228,6 +234,8 @@ export interface DemoCharge {
   failure_reason?: string;
   status_history?: ChargeStatusHistory[];
   sandbox_outcome?: string;
+  payment_rail?: string;
+  consent_type?: string;
 }
 
 export interface ChargeStatusHistory {

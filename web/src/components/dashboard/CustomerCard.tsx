@@ -7,7 +7,6 @@ import {
   RetroBadge,
 } from '@/components/ui/retro-components';
 import { cn } from '@/components/ui/utils';
-import { NerdIcons } from '@/lib/nerd-icons';
 import { useGeolocation } from '@/lib/useGeolocation';
 import { useDemoStore } from '@/lib/state';
 import { KYCValidationCard } from './KYCValidationCard';
@@ -32,6 +31,8 @@ interface VerificationModule {
  */
 export const CustomerCard: React.FC = () => {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [unmaskedData, setUnmaskedData] = useState<any>(null);
+  const [isUnmasking, setIsUnmasking] = useState(false);
   const customer = useDemoStore((state) => state.customer);
 
   // Extract IP address from device field if available (placeholder for now since API doesn't include device yet)
@@ -51,11 +52,45 @@ export const CustomerCard: React.FC = () => {
     }
   }, [customer?.verification_status]);
 
+  // Reset unmasked data when customer changes
+  useEffect(() => {
+    setUnmaskedData(null);
+  }, [customer?.id]);
+
+  // Toggle unmask customer data
+  const handleUnmask = async () => {
+    if (isUnmasking) return;
+
+    // If already unmasked, hide it
+    if (unmaskedData) {
+      setUnmaskedData(null);
+      return;
+    }
+
+    // Otherwise, fetch unmasked data
+    if (!customer?.id) return;
+
+    setIsUnmasking(true);
+    try {
+      const response = await fetch(`http://localhost:3001/api/customers/${customer.id}/unmask`);
+      if (response.ok) {
+        const data = await response.json();
+        setUnmaskedData(data);
+      } else {
+        console.error('Failed to unmask customer data');
+      }
+    } catch (error) {
+      console.error('Error unmasking customer data:', error);
+    } finally {
+      setIsUnmasking(false);
+    }
+  };
+
   if (!customer) {
     return (
       <RetroCard variant="cyan" className="h-full">
         <RetroCardHeader>
-          <RetroCardTitle>Customer Identity</RetroCardTitle>
+          <RetroCardTitle>Customer</RetroCardTitle>
         </RetroCardHeader>
         <RetroCardContent>
           <p className="text-neutral-400 text-sm">No customer created yet. Run /create-customer</p>
@@ -97,6 +132,20 @@ export const CustomerCard: React.FC = () => {
                      breakdown.phone.correlation === 'medium_confidence' ? 'Partial' : undefined,
         correlationScore: breakdown.phone.correlation_score,
         codes: breakdown.phone.codes,
+        messages: messages || {},
+      });
+    }
+
+    // Address module
+    if (breakdown.address) {
+      modules.push({
+        name: 'Address',
+        decision: breakdown.address.decision as any,
+        riskScore: breakdown.address.risk_score || 0,
+        correlation: breakdown.address.correlation === 'high_confidence' ? 'Match' :
+                     breakdown.address.correlation === 'medium_confidence' ? 'Partial' : undefined,
+        correlationScore: breakdown.address.correlation_score,
+        codes: breakdown.address.codes,
         messages: messages || {},
       });
     }
@@ -155,7 +204,7 @@ export const CustomerCard: React.FC = () => {
   const getDecisionLabel = (decision: 'accept' | 'review' | 'reject') => {
     if (decision === 'accept') return 'PASS';
     if (decision === 'review') return 'REVIEW';
-    return 'REJECT';
+    return 'FAIL';
   };
 
   const toggleModule = (moduleName: string) => {
@@ -166,7 +215,7 @@ export const CustomerCard: React.FC = () => {
     <RetroCard variant="cyan" className="h-full">
       <RetroCardHeader>
         <div className="flex items-start justify-between gap-2">
-          <RetroCardTitle className="flex-shrink">Customer Identity</RetroCardTitle>
+          <RetroCardTitle className="flex-shrink">Customer</RetroCardTitle>
           {status === 'review' ? (
             <button
               onClick={() => {
@@ -191,83 +240,88 @@ export const CustomerCard: React.FC = () => {
         </div>
       </RetroCardHeader>
       <RetroCardContent className="space-y-4">
-        {/* Basic Info */}
-        <div className="space-y-2">
+        {/* Name and Email Row */}
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-neutral-400 font-body mb-1">Name</p>
             <p className="text-sm text-neutral-100 font-body">{customer.name}</p>
           </div>
-
-          {/* Address - Enhanced */}
-          {customer.address && (
-            <div className="pt-2 border-t border-primary/10">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs text-primary">{NerdIcons.mapPin}</span>
-                <p className="text-xs text-neutral-400 font-body">Address</p>
-              </div>
-              <div className="text-xs text-neutral-100 font-body ml-5 space-y-0.5">
-                <p>{customer.address.address1}</p>
-                {customer.address.address2 && <p>{customer.address.address2}</p>}
-                <p>{customer.address.city}, {customer.address.state} {customer.address.zip}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Live Geolocation */}
-          <div className="pt-2 border-t border-primary/10">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs text-primary animate-pulse">{NerdIcons.globe}</span>
-              <p className="text-xs text-neutral-400 font-body">Live Geolocation</p>
-            </div>
-            {!geo.loading && !geo.error && geo.city && (
-              <p className="text-sm text-primary font-body font-bold">
-                {geo.city}, {geo.region} ({geo.countryCode})
-              </p>
-            )}
-            {geo.loading && (
-              <p className="text-xs text-neutral-500 font-body">Detecting location...</p>
-            )}
-            {geo.error && (
-              <p className="text-xs text-neutral-500 font-body">{geo.error}</p>
-            )}
+          <div>
+            <p className="text-xs text-neutral-400 font-body mb-1">Email</p>
+            <p className="text-xs text-neutral-100 font-body truncate">{customer.email}</p>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="min-w-0">
-              <p className="text-xs text-neutral-400 font-body mb-1">Email</p>
-              <p className="text-xs text-neutral-100 font-body truncate">{customer.email}</p>
-            </div>
-            <div>
-              <p className="text-xs text-neutral-400 font-body mb-1">Phone</p>
-              <p className="text-xs text-neutral-100 font-body">{customer.phone}</p>
-            </div>
-          </div>
-
-          {/* Compliance Profile - Enhanced */}
-          {customer.compliance_profile && (
-            <div className="pt-2 border-t border-primary/10">
-              <p className="text-xs text-neutral-400 font-body mb-2">Compliance Information</p>
-              <div className="space-y-2">
-                {customer.compliance_profile.ssn && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-primary">{NerdIcons.shield}</span>
-                    <span className="text-xs text-neutral-100 font-body">
-                      SSN: <span className="font-mono">***-**-{customer.compliance_profile.ssn.slice(-4)}</span>
-                    </span>
-                  </div>
-                )}
-                {customer.compliance_profile.dob && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-primary">{NerdIcons.calendar}</span>
-                    <span className="text-xs text-neutral-100 font-body">
-                      DOB: <span className="font-mono">{customer.compliance_profile.dob}</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Phone and Address Row */}
+        <div className="pt-3 border-t border-primary/10">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <div>
+                <p className="text-xs text-neutral-500 font-body mb-0.5">Phone</p>
+                <p className="text-xs text-neutral-100 font-body">{customer.phone}</p>
+              </div>
+              {/* Live Geolocation Indicator */}
+              {!geo.loading && !geo.error && geo.city && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                  <span className="text-xs text-neutral-400 font-body">
+                    Live: {geo.city}, {geo.countryCode}
+                  </span>
+                </div>
+              )}
+            </div>
+            {customer.address && (
+              <div>
+                <p className="text-xs text-neutral-500 font-body mb-0.5">Address</p>
+                <div className="text-xs text-neutral-100 font-body">
+                  <p>{customer.address.address1}{customer.address.address2 ? `, ${customer.address.address2}` : ''}</p>
+                  <p>{customer.address.city}, {customer.address.state} {customer.address.zip}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Compliance Profile with Unmask */}
+        {customer.compliance_profile && (
+          <div className="pt-3 border-t border-primary/10">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-neutral-400 font-body">Compliance Information</p>
+              <button
+                onClick={handleUnmask}
+                disabled={isUnmasking}
+                className={cn(
+                  "px-2 py-1 text-sm font-body border rounded-pixel transition-all",
+                  unmaskedData
+                    ? "border-primary/40 text-primary bg-primary/10 hover:bg-primary/20"
+                    : "border-neutral-600 text-neutral-400 hover:border-primary hover:text-primary",
+                  isUnmasking && "opacity-50 cursor-not-allowed"
+                )}
+                title={unmaskedData ? "Hide sensitive data" : "Show unmasked data"}
+              >
+                {unmaskedData ? 'HIDE' : 'SHOW'}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {customer.compliance_profile.ssn && (
+                <div>
+                  <p className="text-xs text-neutral-500 font-body mb-0.5">SSN</p>
+                  <p className="text-xs text-neutral-100 font-body font-mono">
+                    {unmaskedData?.compliance_profile?.ssn || `***-**-${customer.compliance_profile.ssn.slice(-4)}`}
+                  </p>
+                </div>
+              )}
+              {customer.compliance_profile.dob && (
+                <div>
+                  <p className="text-xs text-neutral-500 font-body mb-0.5">Date of Birth</p>
+                  <p className="text-xs text-neutral-100 font-body font-mono">
+                    {unmaskedData?.compliance_profile?.dob || customer.compliance_profile.dob}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Verification Modules */}
         <div className="pt-3 border-t border-primary/20">

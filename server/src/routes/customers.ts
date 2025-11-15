@@ -112,7 +112,47 @@ router.post('/', async (req: Request, res: Response) => {
     // Fetch review data to get detailed risk breakdown
     let reviewData: CustomerReview | undefined;
     try {
+      console.log('[POST /customers] Fetching review data internally for customer:', customer.data.id);
+
+      // Log outbound Straddle request to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-req',
+        method: 'GET',
+        path: `/customers/${customer.data.id}/review`,
+        requestId: req.requestId,
+      });
+
+      const reviewStartTime = Date.now();
       const review = await straddleClient.customers.review.get(customer.data.id);
+      const reviewDuration = Date.now() - reviewStartTime;
+
+      console.log(`[POST /customers] Review fetch completed in ${reviewDuration}ms`);
+
+      // Log inbound Straddle response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode: 200,
+        responseBody: review.data,
+        duration: reviewDuration,
+        requestId: req.requestId,
+      });
+
+      // Log Straddle API call (Terminal API Log Panel)
+      logStraddleCall(
+        req.requestId,
+        req.correlationId,
+        `customers/${customer.data.id}/review`,
+        'GET',
+        200,
+        reviewDuration,
+        undefined,
+        review.data
+      );
+
+      console.log('[POST /customers] Logged review call to Terminal API Log');
+
       const identityDetails = (review.data as any).identity_details;
 
       if (identityDetails) {
@@ -268,6 +308,15 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.get('/:id/review', async (req: Request, res: Response) => {
   try {
+    console.log('========================================');
+    console.log('[GET /customers/:id/review] ENDPOINT CALLED!');
+    console.log('Customer ID:', req.params.id);
+    console.log('Request ID:', req.requestId);
+    console.log('Origin:', req.headers.origin);
+    console.log('Referer:', req.headers.referer);
+    console.log('User-Agent:', req.headers['user-agent']);
+    console.log('========================================');
+
     // Log outbound Straddle request to stream
     addLogEntry({
       timestamp: new Date().toISOString(),
@@ -280,6 +329,8 @@ router.get('/:id/review', async (req: Request, res: Response) => {
     const startTime = Date.now();
     const review = await straddleClient.customers.review.get(req.params.id);
     const duration = Date.now() - startTime;
+
+    console.log(`[GET /customers/:id/review] Review fetch completed in ${duration}ms`);
 
     // Log inbound Straddle response to stream
     addLogEntry({
@@ -369,6 +420,60 @@ router.patch('/:id/review', async (req: Request, res: Response) => {
     console.error('Error updating customer review:', error);
     return res.status(error.status || 500).json({
       error: error.message || 'Failed to update customer review',
+    });
+  }
+});
+
+/**
+ * GET /api/customers/:id/unmask
+ * Get unmasked customer data (SSN, DOB, etc.)
+ * Note: Uses custom SDK call to retrieve sensitive fields
+ */
+router.get('/:id/unmask', async (req: Request, res: Response) => {
+  try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'GET',
+      path: `/customers/${req.params.id}?show_sensitive=true`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
+
+    // Use custom GET request with show_sensitive parameter
+    const unmaskResponse = await straddleClient.get(`/customers/${req.params.id}?show_sensitive=true`);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: unmaskResponse,
+      duration,
+      requestId: req.requestId,
+    });
+
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `customers/${req.params.id}?show_sensitive=true`,
+      'GET',
+      200,
+      duration,
+      undefined,
+      unmaskResponse
+    );
+
+    // SDK custom requests don't wrap in .data
+    res.json(unmaskResponse);
+  } catch (error: any) {
+    console.error('Error unmasking customer:', error);
+    res.status(error.status || 500).json({
+      error: error.message || 'Failed to unmask customer',
     });
   }
 });

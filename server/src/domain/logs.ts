@@ -62,7 +62,7 @@ export function logStraddleCall(
     requestId,
     correlationId,
     method,
-    path: `/straddle/${endpoint}`,
+    path: `/${endpoint}`,
     statusCode,
     duration,
     timestamp: new Date().toISOString(),

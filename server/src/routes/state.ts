@@ -43,9 +43,14 @@ router.get('/logs', (_req: Request, res: Response) => {
 /**
  * GET /api/log-stream
  * Get chronological log stream (for Logs Tab)
+ * Filtered to show only Straddle API interactions
  */
 router.get('/log-stream', (_req: Request, res: Response) => {
-  const stream = getLogStream();
+  const stream = getLogStream().filter(entry =>
+    entry.type === 'straddle-req' ||
+    entry.type === 'straddle-res' ||
+    entry.type === 'webhook'
+  );
   res.json(stream);
 });
 
