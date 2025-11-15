@@ -4,11 +4,15 @@ import { cn } from '@/components/ui/utils';
 
 interface KYCValidationCardProps {
   customer: Customer;
+  isExpanded?: boolean;
 }
 
-export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }) => {
+export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, isExpanded: parentExpanded = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const kyc = customer.review?.kyc;
+
+  // Use parent expansion state if provided
+  const expanded = parentExpanded || isExpanded;
 
   if (!kyc) {
     return null;
@@ -63,12 +67,12 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }
             {getDecisionLabel(decision)}
           </span>
           <span className="text-xs text-neutral-500">
-            {isExpanded ? '▼' : '▶'}
+            {expanded ? '▼' : '▶'}
           </span>
         </div>
       </button>
 
-      {isExpanded && (
+      {expanded && (
         <div className="border-t border-primary/10">
           <div className="px-3 py-2 bg-background-dark/30">
             {/* Validated Fields */}
