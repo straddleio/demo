@@ -12,6 +12,39 @@ export const APILog: React.FC = () => {
   const apiLogs = useDemoStore((state) => state.apiLogs);
   const setApiLogs = useDemoStore((state) => state.setApiLogs);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [autoExpandTimeout, setAutoExpandTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // Auto-expand most recent log entry
+  useEffect(() => {
+    if (apiLogs.length === 0) return;
+
+    const latestIndex = apiLogs.length - 1;
+
+    // Clear any pending timeout
+    if (autoExpandTimeout) {
+      clearTimeout(autoExpandTimeout);
+    }
+
+    // Expand latest immediately
+    setExpandedId(latestIndex);
+
+    // After 3 seconds, keep it expanded (user can manually collapse)
+    // This gives buffer for rapid sequences - only latest stays expanded
+    const timeout = setTimeout(() => {
+      // Check if this is still the latest
+      const currentLatest = useDemoStore.getState().apiLogs.length - 1;
+      if (latestIndex !== currentLatest) {
+        // A newer request came in, this will be collapsed by the new one
+        setExpandedId(currentLatest);
+      }
+    }, 3000);
+
+    setAutoExpandTimeout(timeout);
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [apiLogs.length]); // Only trigger on new logs
 
   // Fetch logs from backend on mount and periodically
   useEffect(() => {
