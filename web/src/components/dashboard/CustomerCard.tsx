@@ -243,11 +243,11 @@ export const CustomerCard: React.FC = () => {
         {/* Name and Email Row */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <p className="text-xs text-neutral-400 font-body mb-1">Name</p>
+            <p className="text-xs text-neutral-400 font-body mb-0.5">Name</p>
             <p className="text-sm text-neutral-100 font-body">{customer.name}</p>
           </div>
           <div>
-            <p className="text-xs text-neutral-400 font-body mb-1">Email</p>
+            <p className="text-xs text-neutral-400 font-body mb-0.5">Email</p>
             <p className="text-xs text-neutral-100 font-body truncate">{customer.email}</p>
           </div>
         </div>
