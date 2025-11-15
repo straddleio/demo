@@ -11,7 +11,7 @@ import { useDemoStore } from '@/lib/state';
 export const APILog: React.FC = () => {
   const apiLogs = useDemoStore((state) => state.apiLogs);
   const setApiLogs = useDemoStore((state) => state.setApiLogs);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   // Fetch logs from backend on mount and periodically
   useEffect(() => {
@@ -90,7 +90,7 @@ export const APILog: React.FC = () => {
         ) : (
           apiLogs.map((entry, index) => (
             <div
-              key={`${entry.requestId}-${entry.method}-${entry.path}-${entry.timestamp}-${index}`}
+              key={`api-log-${index}-${entry.timestamp}`}
               className="border border-secondary/30 bg-background-card/50 rounded-pixel hover:border-secondary/60 transition-colors"
             >
               {/* Compact Request Line */}
@@ -108,15 +108,15 @@ export const APILog: React.FC = () => {
 
                 {/* Expand/Collapse Button */}
                 <button
-                  onClick={() => setExpandedId(expandedId === entry.requestId ? null : entry.requestId)}
+                  onClick={() => setExpandedId(expandedId === index ? null : index)}
                   className="text-xs text-primary hover:text-primary/80 font-body"
                 >
-                  {expandedId === entry.requestId ? '▼' : '▶'}
+                  {expandedId === index ? '▼' : '▶'}
                 </button>
               </div>
 
               {/* Expanded View: Split Request/Response */}
-              {expandedId === entry.requestId && (
+              {expandedId === index && (
                 <div className="border-t border-secondary/20 p-3 space-y-3">
                   {/* Metadata (shown when expanded) */}
                   <div className="space-y-1 text-xs font-body pb-2 border-b border-primary/10">
