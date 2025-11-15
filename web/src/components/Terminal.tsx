@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { RetroHeading } from '@/components/ui/retro-components';
 import { useDemoStore } from '@/lib/state';
-import { executeCommand } from '@/lib/commands';
+import { executeCommand, AVAILABLE_COMMANDS } from '@/lib/commands';
 
 /**
  * Terminal component for command input/output
@@ -64,10 +64,43 @@ export const Terminal: React.FC = () => {
   };
 
   /**
-   * Handle arrow key navigation through history
+   * Handle arrow key navigation through history and Tab autocomplete
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowUp') {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+
+      const currentInput = input.trim();
+      if (!currentInput) {
+        // Show all commands if nothing typed
+        setInput('/');
+        return;
+      }
+
+      // Find matching commands
+      const matches = AVAILABLE_COMMANDS.filter(cmd =>
+        cmd.toLowerCase().startsWith(currentInput.toLowerCase())
+      );
+
+      if (matches.length === 1) {
+        // Exact match - autocomplete
+        setInput(matches[0] + ' ');
+      } else if (matches.length > 1) {
+        // Multiple matches - find common prefix
+        const commonPrefix = matches.reduce((prefix, cmd) => {
+          let i = 0;
+          while (i < prefix.length && i < cmd.length &&
+                 prefix[i].toLowerCase() === cmd[i].toLowerCase()) {
+            i++;
+          }
+          return prefix.slice(0, i);
+        }, matches[0]);
+
+        if (commonPrefix.length > currentInput.length) {
+          setInput(commonPrefix);
+        }
+      }
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (commandHistory.length === 0) return;
 

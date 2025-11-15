@@ -11,6 +11,21 @@ export interface CommandResult {
 }
 
 /**
+ * Available terminal commands for autocomplete
+ */
+export const AVAILABLE_COMMANDS = [
+  '/help',
+  '/customer-create',
+  '/customer-KYC',
+  '/create-paykey',
+  '/create-charge',
+  '/demo',
+  '/info',
+  '/reset',
+  '/clear',
+];
+
+/**
  * Parse and execute terminal command
  */
 export async function executeCommand(input: string): Promise<CommandResult> {
@@ -32,7 +47,7 @@ export async function executeCommand(input: string): Promise<CommandResult> {
   switch (command) {
     case 'help':
       return handleHelp();
-    case 'create-customer':
+    case 'customer-create':
       return handleCreateCustomer(args);
     case 'customer-kyc':
       return handleCustomerKYC();
@@ -62,7 +77,7 @@ export async function executeCommand(input: string): Promise<CommandResult> {
 function handleHelp(): CommandResult {
   const helpText = `
 Available Commands:
-  /create-customer [--outcome verified|review|rejected]
+  /customer-create [--outcome verified|review|rejected]
     Create a new customer with identity verification
 
   /customer-KYC
@@ -94,7 +109,7 @@ Available Commands:
 }
 
 /**
- * /create-customer - Create customer
+ * /customer-create - Create customer
  */
 async function handleCreateCustomer(args: string[]): Promise<CommandResult> {
   try {
@@ -202,7 +217,7 @@ async function handleCreatePaykey(args: string[]): Promise<CommandResult> {
     if (!customer) {
       return {
         success: false,
-        message: '✗ No customer found. Run /create-customer first.',
+        message: '✗ No customer found. Run /customer-create first.',
       };
     }
 
