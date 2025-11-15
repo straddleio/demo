@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { RetroHeading } from '@/components/ui/retro-components';
+import { cn } from '@/components/ui/utils';
 import { useDemoStore } from '@/lib/state';
 import { executeCommand, AVAILABLE_COMMANDS } from '@/lib/commands';
 
@@ -123,6 +124,41 @@ export const Terminal: React.FC = () => {
   };
 
   /**
+   * Format terminal output with proper nesting and structure
+   * Inspired by modern terminal emulators (alacritty, kitty)
+   */
+  const formatTerminalText = (text: string): React.ReactNode => {
+    const lines = text.split('\n');
+
+    return lines.map((line, i) => {
+      // Detect indentation level
+      const indent = line.match(/^(\s+)/)?.[1].length || 0;
+      const paddingLeft = indent * 0.5; // 0.5rem per 2 spaces
+
+      // Detect list items
+      const isBullet = /^\s*[•\-\*]\s/.test(line);
+      const isNumbered = /^\s*\d+[\.\)]\s/.test(line);
+
+      // Detect key-value pairs
+      const isKeyValue = /^\s*[A-Za-z\s]+:\s/.test(line);
+
+      return (
+        <div
+          key={i}
+          style={{ paddingLeft: `${paddingLeft}rem` }}
+          className={cn(
+            isBullet && "before:content-['▸'] before:mr-1 before:text-primary/60",
+            isNumbered && "font-mono",
+            isKeyValue && "font-body text-neutral-300"
+          )}
+        >
+          {line.trim()}
+        </div>
+      );
+    });
+  };
+
+  /**
    * Get CSS class for line type
    */
   const getLineClass = (type: string): string => {
@@ -156,9 +192,7 @@ export const Terminal: React.FC = () => {
       >
         {terminalHistory.map((line) => (
           <div key={line.id} className={getLineClass(line.type)}>
-            {line.text.split('\n').map((textLine, i) => (
-              <div key={i}>{textLine}</div>
-            ))}
+            {formatTerminalText(line.text)}
           </div>
         ))}
         {isExecuting && <div className="text-primary animate-pulse">Processing...</div>}
