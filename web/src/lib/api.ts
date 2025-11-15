@@ -161,6 +161,27 @@ export async function getCustomer(customerId: string): Promise<Customer> {
 }
 
 /**
+ * Get unmasked customer data (SSN, DOB, etc.)
+ * Note: Requires show_sensitive=true permission on API key
+ */
+export interface UnmaskedCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  compliance_profile?: {
+    ssn?: string; // Unmasked: XXX-XX-XXXX
+    dob?: string; // Unmasked: YYYY-MM-DD
+  };
+  // Include other fields that might be returned
+  [key: string]: any;
+}
+
+export async function unmaskCustomer(customerId: string): Promise<UnmaskedCustomer> {
+  return apiFetch<UnmaskedCustomer>(`/customers/${customerId}/unmask`);
+}
+
+/**
  * Paykey/Bridge API
  */
 export interface CreatePaykeyRequest {

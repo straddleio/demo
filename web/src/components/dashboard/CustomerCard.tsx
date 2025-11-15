@@ -9,6 +9,7 @@ import {
 import { cn } from '@/components/ui/utils';
 import { useGeolocation } from '@/lib/useGeolocation';
 import { useDemoStore } from '@/lib/state';
+import { unmaskCustomer, type UnmaskedCustomer } from '@/lib/api';
 import { KYCValidationCard } from './KYCValidationCard';
 import { AddressWatchlistCard } from './AddressWatchlistCard';
 
@@ -31,7 +32,7 @@ interface VerificationModule {
  */
 export const CustomerCard: React.FC = () => {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
-  const [unmaskedData, setUnmaskedData] = useState<any>(null);
+  const [unmaskedData, setUnmaskedData] = useState<UnmaskedCustomer | null>(null);
   const [isUnmasking, setIsUnmasking] = useState(false);
   const customer = useDemoStore((state) => state.customer);
 
@@ -72,15 +73,11 @@ export const CustomerCard: React.FC = () => {
 
     setIsUnmasking(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/customers/${customer.id}/unmask`);
-      if (response.ok) {
-        const data = await response.json();
-        setUnmaskedData(data);
-      } else {
-        console.error('Failed to unmask customer data');
-      }
+      const data = await unmaskCustomer(customer.id);
+      setUnmaskedData(data);
     } catch (error) {
       console.error('Error unmasking customer data:', error);
+      // TODO: Show user-friendly error message
     } finally {
       setIsUnmasking(false);
     }
