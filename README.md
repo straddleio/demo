@@ -1,18 +1,27 @@
 # Straddle NerdCon Demo
 
-**Status:** ✅ Production Ready | **Phase:** 4/4 Complete | **Build:** Passing
+Interactive demo showcasing **modern ACH payments** with real-time identity verification, instant account connectivity, and payment processing visibility.
 
-Live demo application showcasing Straddle's unified fintech platform with real-time identity verification, account connectivity, and payment processing.
+Built with Straddle's unified fintech platform to demonstrate how cryptographically-linked paykeys deliver instant rail speed with card-level reliability.
 
-## Project Structure
+![Demo Screenshot](./design/screenshot.png)
 
-```
-.
-├── server/          # Node.js/Express backend with Straddle SDK
-├── web/             # React/Vite frontend with retro gaming UI
-├── design/          # Retro 8-bit design system assets
-└── DEVELOPMENT-PLAN.md   # Detailed implementation roadmap
-```
+## What This Demo Does
+
+Experience the future of ACH payments through a retro-styled split-screen interface:
+
+- **Left Panel**: CLI-style terminal with interactive commands + real-time API request log
+- **Right Panel**: Live dashboard showing customer verification, bank linking, and payment status
+- **Real Data**: All API calls use Straddle's sandbox environment (no mocking)
+- **Instant Updates**: Server-Sent Events (SSE) provide real-time status changes
+
+### The Problem We're Solving
+
+Traditional ACH runs on 1970s infrastructure—systematic delays, zero visibility, too much fraud. New instant rails lack the controls needed to scale safely.
+
+### Straddle's Approach
+
+Cryptographically-linked tokens ("paykeys") that marry identity to open banking, delivering instant rail speed with card-level reliability.
 
 ## Quick Start
 
@@ -20,17 +29,19 @@ Live demo application showcasing Straddle's unified fintech platform with real-t
 
 - Node.js ≥ 18.0.0
 - npm ≥ 9.0.0
-- Straddle sandbox API key ([get one here](https://dashboard.straddle.com))
+- Straddle sandbox API key ([sign up here](https://dashboard.straddle.com))
 
 ### Installation
 
-1. **Clone and install dependencies**
+**1. Clone and install**
 
 ```bash
+git clone https://github.com/hello-keith/nerdcon.git
+cd nerdcon
 npm install
 ```
 
-2. **Configure environment variables**
+**2. Configure your API key**
 
 ```bash
 cd server
@@ -40,148 +51,173 @@ cp .env.example .env
 Edit `server/.env` and add your Straddle API key:
 
 ```env
-STRADDLE_API_KEY=sk_sandbox_your_key_here
+STRADDLE_API_KEY=your_sandbox_key_here
 STRADDLE_ENV=sandbox
 PORT=4000
 CORS_ORIGIN=http://localhost:5173
 ```
 
-3. **Start the development servers**
+**3. Start the demo**
 
 ```bash
-# From project root - runs both server and web
 npm run dev
+```
 
-# Or run individually:
-npm run dev:server  # Backend on http://localhost:4000
-npm run dev:web     # Frontend on http://localhost:5173
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+## Using the Demo
+
+### Terminal Commands
+
+Type these commands in the browser terminal:
+
+| Command | Description |
+|---------|-------------|
+| `/demo` | Run complete flow (customer → bank → payment) |
+| `/create-customer` | Create and verify a customer identity |
+| `/customer-KYC` | Create customer with full KYC validation |
+| `/create-paykey` | Link a bank account |
+| `/create-charge` | Process a payment |
+| `/info` | Show current demo state |
+| `/reset` | Clear all data and start fresh |
+| `/help` | Show all available commands |
+
+### Example Session
+
+```
+> /demo
+Creating verified customer...
+✓ Customer created: Alberta Bobbeth Charleson
+✓ Identity verified (risk score: 12)
+✓ Bank account linked: Chase Bank ****1234
+✓ Payment processed: $50.00 (PAID)
+
+Demo complete! Watch the dashboard for real-time updates.
 ```
 
 ## Architecture
 
-**Data Flow**: Browser UI → Demo Server (Express) → Straddle Sandbox API
+This demo uses real Straddle API calls in sandbox mode—no mocks, just deterministic outcomes via `sandbox_outcome` parameters.
 
-**Key Principle**: All Straddle API calls use the real sandbox API via `@straddlecom/straddle` Node SDK. No mocking - only `sandbox_outcome` for deterministic simulation.
+### Tech Stack
 
-### Backend Stack
+**Backend**:
+- Node.js 18+ with TypeScript
+- Express.js REST API
+- [@straddlecom/straddle](https://www.npmjs.com/package/@straddlecom/straddle) - Official Straddle SDK
+- Server-Sent Events for real-time updates
 
-- **Node.js** ≥18 with TypeScript
-- **Express** for REST endpoints
-- **@straddlecom/straddle** v0.2.1 - Official Straddle SDK
-- **uuid** - Request tracing headers
-- **dotenv** - Environment configuration
+**Frontend**:
+- React 18 + TypeScript
+- Vite for fast dev server and builds
+- Tailwind CSS with custom retro 8-bit theme
+- Zustand for state management
 
-### Frontend Stack
+**Design**:
+- Retro gaming aesthetic (cyan neon, scanlines, CRT effects)
+- Split-screen layout optimized for live demos
+- Real-time API request visualization
 
-- **React 18** + TypeScript + Vite
-- **Tailwind CSS** with retro 8-bit gaming theme
-- **Zustand** - State management
-- **EventSource** - SSE for real-time webhook updates
+### Project Structure
 
-### Design System
+```
+nerdcon/
+├── server/          # Express backend with Straddle SDK
+│   └── src/
+│       ├── routes/  # API endpoints (customers, paykeys, charges)
+│       └── domain/  # State management and types
+├── web/             # React frontend
+│   └── src/
+│       ├── components/  # Terminal, dashboard cards, UI
+│       └── lib/         # Commands, state, API client
+└── design/          # Design system and assets
+```
 
-Retro 8-bit gaming aesthetic with:
-- **Colors**: Cyan (#00FFFF), Blue (#0066FF), Magenta (#FF0099), Gold (#FFC300)
-- **Effects**: Neon glow, pixel borders, scanlines, CRT distortion, glitch text
-- **Components**: Pre-built in `/design/` directory
+## API Integration
+
+This demo showcases Straddle's core APIs:
+
+### Customer Identity Verification
+
+```typescript
+const customer = await straddle.customers.create({
+  name: "Alberta Bobbeth Charleson",
+  type: "individual",
+  email: "alberta@example.com",
+  phone: "+12125550123",
+  device: { ip_address: "192.168.1.1" },
+  config: { sandbox_outcome: "verified" }
+});
+```
+
+### Bank Account Linking (Paykeys)
+
+```typescript
+const paykey = await straddle.bridge.link.bankAccount({
+  customer_id: "customer_id",
+  account_number: "123456789",
+  routing_number: "021000021",
+  account_type: "checking",
+  config: { sandbox_outcome: "active" }
+});
+```
+
+### Payment Processing
+
+```typescript
+const charge = await straddle.charges.create({
+  paykey: "paykey_token",
+  amount: 5000,  // $50.00 in cents
+  description: "Payment",
+  currency: "USD",
+  consent_type: "internet",
+  payment_date: "2024-01-15",
+  config: { sandbox_outcome: "paid" }
+});
+```
 
 ## Development
 
 ### Available Scripts
 
-**Root level:**
-- `npm run dev` - Start both server and web in parallel
-- `npm run build` - Build both workspaces
-- `npm run lint` - Lint all workspaces
-- `npm run format` - Format code with Prettier
-
-**Server workspace:**
-- `npm run dev:server` - Start server with hot reload
-- `npm run build:server` - Build TypeScript to dist/
-- `npm run type-check` - Type check without emitting
-
-**Web workspace:**
-- `npm run dev:web` - Start Vite dev server
-- `npm run build:web` - Production build
-- `npm run preview` - Preview production build
-
-### Project Status
-
-**Phase 1: Monorepo Infrastructure Setup** ✅ COMPLETE
-- [x] Monorepo structure with workspaces
-- [x] Backend scaffold with Straddle SDK
-- [x] Frontend scaffold with Vite + React
-- [x] Shared tooling (ESLint, Prettier, TypeScript)
-
-**Phase 2: Backend - Straddle SDK Integration** ✅ COMPLETE
-- [ ] SDK client setup with request tracing
-- [ ] Data models for Customer, Paykey, Charge
-- [ ] Core API routes
-- [ ] Real-time updates via SSE
-
-**Phase 3: Frontend - Retro UI** ✅ COMPLETE
-- [ ] Split-screen layout
-- [ ] Terminal component with command parser
-- [ ] API request log display
-- [ ] Dashboard cards (Customer, Paykey, Charge, Pizza Tracker)
-
-**Phase 4: Integration & Polish** ✅ COMPLETE
-- [ ] Connect frontend to backend
-- [ ] Demo orchestration (`/demo` command)
-- [ ] Visual polish and animations
-- [ ] Error handling
-
-See [DEVELOPMENT-PLAN.md](./DEVELOPMENT-PLAN.md) for detailed roadmap.
-
-## Straddle SDK Integration
-
-### Client Initialization
-
-```typescript
-import Straddle from '@straddlecom/straddle';
-
-const client = new Straddle({
-  apiKey: process.env.STRADDLE_API_KEY,
-  environment: 'sandbox'
-});
+```bash
+npm run dev          # Start both server and web
+npm run build        # Build production bundles
+npm run type-check   # TypeScript validation
+npm run lint         # ESLint checking
+npm run format       # Prettier formatting
 ```
 
-### Sandbox Simulation
+### Environment Variables
 
-Use `config.sandbox_outcome` for deterministic behavior:
+Only the backend requires configuration:
 
-**Customers**: `verified`, `review`, `rejected`
-**Paykeys**: `active`, `inactive`, `rejected`
-**Charges**: `paid`, `failed`, `reversed_insufficient_funds`, `on_hold_daily_limit`, `cancelled_for_fraud_risk`
-
-Example:
-```typescript
-const customer = await client.customers.create({
-  name: 'Alberta Bobbeth Charleson',
-  type: 'individual',
-  email: 'alberta@example.com',
-  phone: '+12125550123',
-  device: { ip_address: '192.168.1.1' },
-  config: { sandbox_outcome: 'verified' }
-});
+```env
+STRADDLE_API_KEY     # Your Straddle sandbox API key (required)
+STRADDLE_ENV         # "sandbox" or "production" (default: sandbox)
+PORT                 # Backend port (default: 4000)
+CORS_ORIGIN          # Frontend URL (default: http://localhost:5173)
 ```
+
+The frontend has no environment variables—all API calls proxy through the backend for security.
 
 ## Resources
 
-- **Straddle Documentation**: https://docs.straddle.com/
-- **Node SDK**: https://github.com/straddleio/straddle-node
-- **MCP Server**: https://docs.straddle.com/mcp
-- **API Overview**: https://docs.straddle.com/llms.txt
-- **Project Guide**: [CLAUDE.md](./CLAUDE.md)
-
-## Demo Concept
-
-**The Problem**: ACH runs on 1970s infrastructure with systematic delays, zero visibility, and too much fraud. New instant rails lack the controls needed to scale safely.
-
-**Straddle's Solution**: Cryptographically-linked tokens ("paykeys") that marry identity to open banking, delivering instant rail speed with card-level reliability.
-
-**This Demo**: Split-screen interface with CLI-style terminal and real-time dashboard showing customer identity verification, account connectivity, and payment processing with instant visibility.
+- **Straddle Documentation**: [docs.straddle.com](https://docs.straddle.com/)
+- **API Reference**: [docs.straddle.com/llms.txt](https://docs.straddle.com/llms.txt)
+- **Node SDK**: [github.com/straddleio/straddle-node](https://github.com/straddleio/straddle-node)
+- **Developer Guide**: See [CLAUDE.md](./CLAUDE.md) for implementation details
 
 ## License
 
-Private - Fintech NerdCon Demo
+MIT License - See [LICENSE](./LICENSE) for details.
+
+## Questions?
+
+- Check the [Developer Guide](./CLAUDE.md) for technical details
+- Visit [docs.straddle.com](https://docs.straddle.com/) for API documentation
+- Explore the code—it's designed to be readable and educational!
+
+---
+
+Built with ⚡ by the Straddle team for Fintech NerdCon
