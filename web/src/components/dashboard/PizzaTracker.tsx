@@ -50,12 +50,8 @@ export const PizzaTracker: React.FC = () => {
     },
   ];
 
-  const statusHistory: StatusHistoryEntry[] = apiHistory.map((entry) => ({
-    status: entry.status,
-    message: `Charge ${entry.status}`,
-    changed_at: entry.timestamp,
-    timestamp: entry.timestamp,
-  }));
+  // Use real messages from status_history directly (no manual mapping)
+  const statusHistory: StatusHistoryEntry[] = apiHistory;
 
   // Current status is the last entry in the history
   const currentStatus = statusHistory[statusHistory.length - 1]?.status || 'created';
@@ -145,7 +141,7 @@ export const PizzaTracker: React.FC = () => {
 
                   {/* Message */}
                   {entry.message && (
-                    <p className="text-xs text-neutral-400 font-body leading-relaxed mt-2 text-center">
+                    <p className="text-xs text-neutral-400 font-body leading-relaxed mt-2 text-center px-1 break-words">
                       {entry.message}
                     </p>
                   )}

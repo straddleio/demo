@@ -2,8 +2,29 @@ import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { stateManager } from '../domain/state.js';
 import { DemoCharge } from '../domain/types.js';
+import { addLogEntry } from '../domain/log-stream.js';
 
 const router = Router();
+
+/**
+ * Get current date in Denver/Mountain Time (America/Denver)
+ * Automatically handles MST/MDT transitions
+ */
+function getTodayInDenver(): string {
+  const now = new Date();
+
+  // Convert to Denver time using Intl.DateTimeFormat
+  const denverDate = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Denver',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(now);
+
+  // Format is MM/DD/YYYY, convert to YYYY-MM-DD
+  const [month, day, year] = denverDate.split('/');
+  return `${year}-${month}-${day}`;
+}
 
 /**
  * POST /api/charges
@@ -30,7 +51,7 @@ router.post('/', async (req: Request, res: Response) => {
       description: description || 'Demo charge payment',
       consent_type: 'internet' as const,
       device: { ip_address: req.ip || '192.168.1.1' },
-      payment_date: payment_date || new Date().toISOString().split('T')[0],
+      payment_date: payment_date || getTodayInDenver(), // Use Denver Mountain Time
       config: {
         balance_check: 'enabled' as const,
         sandbox_outcome: (outcome === 'failed'
@@ -39,8 +60,30 @@ router.post('/', async (req: Request, res: Response) => {
       },
     };
 
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: '/charges',
+      requestBody: chargeData,
+      requestId: req.requestId,
+    });
+
     // Create charge via Straddle SDK
+    const startTime = Date.now();
     const charge = await straddleClient.charges.create(chargeData);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: charge.data,
+      duration,
+      requestId: req.requestId,
+    });
 
     // Debug: Log the actual charge response
     console.log('Straddle charge response (create):', JSON.stringify(charge, null, 2));
@@ -60,8 +103,10 @@ router.post('/', async (req: Request, res: Response) => {
       failure_reason: (charge.data as any).failure_reason || undefined,
       status_history: charge.data.status_history?.map((h: any) => ({
         status: h.status,
-        timestamp: h.timestamp,
+        timestamp: h.changed_at, // Map changed_at to timestamp
         reason: h.reason,
+        message: h.message, // Include the message!
+        source: h.source,
       })),
       sandbox_outcome: outcome,
     };
@@ -85,7 +130,28 @@ router.post('/', async (req: Request, res: Response) => {
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'GET',
+      path: `/charges/${req.params.id}`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
     const charge = await straddleClient.charges.get(req.params.id);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: charge.data,
+      duration,
+      requestId: req.requestId,
+    });
 
     // Debug: Log the actual charge response
     console.log('Straddle charge response (get):', JSON.stringify(charge, null, 2));
@@ -105,8 +171,10 @@ router.get('/:id', async (req: Request, res: Response) => {
       failure_reason: (charge.data as any).failure_reason || undefined,
       status_history: charge.data.status_history?.map((h: any) => ({
         status: h.status,
-        timestamp: h.timestamp,
+        timestamp: h.changed_at, // Map changed_at to timestamp
         reason: h.reason,
+        message: h.message, // Include the message!
+        source: h.source,
       })),
     };
 
@@ -125,7 +193,28 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/:id/cancel', async (req: Request, res: Response) => {
   try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: `/charges/${req.params.id}/cancel`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
     const charge = await straddleClient.charges.cancel(req.params.id);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: charge.data,
+      duration,
+      requestId: req.requestId,
+    });
 
     // Straddle wraps response in .data
     res.json(charge.data);
@@ -143,7 +232,28 @@ router.post('/:id/cancel', async (req: Request, res: Response) => {
  */
 router.post('/:id/hold', async (req: Request, res: Response) => {
   try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: `/charges/${req.params.id}/hold`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
     const charge = await straddleClient.charges.hold(req.params.id);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: charge.data,
+      duration,
+      requestId: req.requestId,
+    });
 
     // Straddle wraps response in .data
     res.json(charge.data);
@@ -161,7 +271,28 @@ router.post('/:id/hold', async (req: Request, res: Response) => {
  */
 router.post('/:id/release', async (req: Request, res: Response) => {
   try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: `/charges/${req.params.id}/release`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
     const charge = await straddleClient.charges.release(req.params.id);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: charge.data,
+      duration,
+      requestId: req.requestId,
+    });
 
     // Straddle wraps response in .data
     res.json(charge.data);

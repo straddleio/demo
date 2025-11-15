@@ -61,6 +61,8 @@ export interface ChargeStatusHistory {
   status: string;
   timestamp: string;
   reason?: string;
+  message?: string;
+  source?: string;
 }
 
 /**
