@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { stateManager } from '../domain/state.js';
-import { DemoCustomer, CustomerOutcome, CustomerReview } from '../domain/types.js';
+import { DemoCustomer, CustomerOutcome, CustomerReview, validateKYCCustomerRequest } from '../domain/types.js';
 import { addLogEntry } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 
@@ -14,6 +14,28 @@ const router = Router();
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, first_name, last_name, type, email, phone, outcome, address, compliance_profile } = req.body;
+
+    // Validate KYC customer request if compliance_profile is provided
+    if (compliance_profile && address) {
+      const validationResult = validateKYCCustomerRequest(req.body);
+      if (!validationResult.isValid) {
+        addLogEntry({
+          timestamp: new Date().toISOString(),
+          type: 'response',
+          statusCode: 400,
+          responseBody: {
+            error: 'KYC validation failed',
+            details: validationResult.errors
+          },
+          requestId: req.requestId,
+        });
+
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.errors
+        });
+      }
+    }
 
     // Generate unique email if not provided
     const uniqueEmail = email || `customer.${Date.now()}@example.com`;
@@ -124,10 +146,10 @@ router.post('/', async (req: Request, res: Response) => {
     // Update demo state
     stateManager.setCustomer(demoCustomer);
 
-    res.status(201).json(demoCustomer);
+    return res.status(201).json(demoCustomer);
   } catch (error: any) {
     console.error('Error creating customer:', error);
-    res.status(error.status || 500).json({
+    return res.status(error.status || 500).json({
       error: error.message || 'Failed to create customer',
       details: error.error || null,
     });

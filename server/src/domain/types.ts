@@ -108,6 +108,94 @@ export interface CustomerReview {
   };
 }
 
+/**
+ * Request payload for creating a KYC customer
+ */
+export interface KYCCustomerRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  address: {
+    address1: string;
+    address2?: string;
+    city: string;
+    state: string;
+    zip: string;
+  };
+  compliance_profile: {
+    ssn: string;
+    dob: string;  // Format: YYYY-MM-DD
+  };
+}
+
+/**
+ * Validation result for KYC request
+ */
+export interface KYCValidationResult {
+  isValid: boolean;
+  errors: Array<{
+    field: string;
+    message: string;
+  }>;
+}
+
+/**
+ * Helper to validate KYC customer request
+ */
+export function validateKYCCustomerRequest(data: any): KYCValidationResult {
+  const errors: Array<{ field: string; message: string }> = [];
+
+  // Required fields
+  if (!data.first_name || typeof data.first_name !== 'string') {
+    errors.push({ field: 'first_name', message: 'First name is required' });
+  }
+  if (!data.last_name || typeof data.last_name !== 'string') {
+    errors.push({ field: 'last_name', message: 'Last name is required' });
+  }
+  if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    errors.push({ field: 'email', message: 'Valid email is required' });
+  }
+  if (!data.phone || !/^\+?[1-9]\d{10,14}$/.test(data.phone)) {
+    errors.push({ field: 'phone', message: 'Valid phone number is required (E.164 format)' });
+  }
+
+  // Address validation
+  if (!data.address) {
+    errors.push({ field: 'address', message: 'Address is required' });
+  } else {
+    if (!data.address.address1) {
+      errors.push({ field: 'address.address1', message: 'Address line 1 is required' });
+    }
+    if (!data.address.city) {
+      errors.push({ field: 'address.city', message: 'City is required' });
+    }
+    if (!data.address.state || data.address.state.length !== 2) {
+      errors.push({ field: 'address.state', message: 'Valid 2-letter state code is required' });
+    }
+    if (!data.address.zip || !/^\d{5}(-\d{4})?$/.test(data.address.zip)) {
+      errors.push({ field: 'address.zip', message: 'Valid ZIP code is required' });
+    }
+  }
+
+  // Compliance profile validation
+  if (!data.compliance_profile) {
+    errors.push({ field: 'compliance_profile', message: 'Compliance profile is required' });
+  } else {
+    if (!data.compliance_profile.ssn || !/^\d{3}-\d{2}-\d{4}$/.test(data.compliance_profile.ssn)) {
+      errors.push({ field: 'compliance_profile.ssn', message: 'Valid SSN format required (XXX-XX-XXXX)' });
+    }
+    if (!data.compliance_profile.dob || !/^\d{4}-\d{2}-\d{2}$/.test(data.compliance_profile.dob)) {
+      errors.push({ field: 'compliance_profile.dob', message: 'Valid DOB format required (YYYY-MM-DD)' });
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
 export interface DemoPaykey {
   id: string;
   paykey: string; // The actual paykey token to use in charges
