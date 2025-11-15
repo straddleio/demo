@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { logRequest } from '../domain/logs.js';
 
 // Extend Express Request type to include tracing IDs
 declare global {
@@ -40,60 +39,10 @@ export function tracingMiddleware(req: Request, res: Response, next: NextFunctio
     res.setHeader('Idempotency-Key', req.idempotencyKey);
   }
 
-  // Intercept response methods to capture body
-  const originalJson = res.json.bind(res);
-  const originalSend = res.send.bind(res);
-  let responseBody: any;
-
-  res.json = function(body: any) {
-    responseBody = body;
-    return originalJson(body);
-  };
-
-  res.send = function(body: any) {
-    try {
-      responseBody = typeof body === 'string' ? JSON.parse(body) : body;
-    } catch {
-      responseBody = body;
-    }
-    return originalSend(body);
-  };
-
-  // REMOVED: Application-level request log entries (duplicate of Straddle SDK logs)
-  // Only logRequest() calls remain to populate API logs in terminal
-
-  // Log request completion
-  res.on('finish', () => {
-    const duration = Date.now() - req.startTime;
-    const fullPath = req.originalUrl || req.url;
-
-    // Only log API routes (skip static assets, health checks, logs endpoint itself, etc.)
-    if (fullPath.startsWith('/api/') &&
-        fullPath !== '/api/events/stream' &&
-        fullPath !== '/api/logs' &&
-        fullPath !== '/api/log-stream') {
-      try {
-        // Log to request logs (for Light Logs panel)
-        logRequest({
-          requestId: req.requestId,
-          correlationId: req.correlationId,
-          idempotencyKey: req.idempotencyKey,
-          method: req.method,
-          path: fullPath,
-          statusCode: res.statusCode,
-          duration,
-          timestamp: new Date().toISOString(),
-          requestBody: req.body,
-          responseBody,
-        });
-
-        // REMOVED: Response log stream entries (duplicate of Straddle SDK logs)
-        // Only logRequest() above remains to populate API logs in terminal
-      } catch (error) {
-        console.error(`[ERROR] Failed to log request:`, error);
-      }
-    }
-  });
+  // REMOVED: Response body interception (no longer needed)
+  // REMOVED: Application-level request logging
+  // Terminal API logs now show ONLY Straddle API requests
+  // These are logged via logStraddleCall() in route handlers
 
   next();
 }

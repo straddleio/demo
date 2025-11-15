@@ -5,12 +5,15 @@
 export interface RequestLog {
   requestId: string;
   correlationId: string;
+  idempotencyKey?: string;
   method: string;
   path: string;
   statusCode: number;
   duration: number;
   timestamp: string;
   straddleEndpoint?: string; // For Straddle API calls
+  requestBody?: any;
+  responseBody?: any;
 }
 
 const requestLogs: RequestLog[] = [];
@@ -51,7 +54,9 @@ export function logStraddleCall(
   endpoint: string,
   method: string,
   statusCode: number,
-  duration: number
+  duration: number,
+  requestBody?: any,
+  responseBody?: any
 ): void {
   logRequest({
     requestId,
@@ -62,5 +67,7 @@ export function logStraddleCall(
     duration,
     timestamp: new Date().toISOString(),
     straddleEndpoint: endpoint,
+    requestBody,
+    responseBody,
   });
 }

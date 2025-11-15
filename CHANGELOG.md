@@ -103,15 +103,26 @@ Complete redesign and enhancement of the logging system to provide better visibi
 - ✅ Added SDK logging to all bridge endpoints (bank-account, plaid)
 - ✅ Complete visibility into all Straddle API interactions
 
+**6. Terminal API Logs Filtering (2025-11-15)**:
+- ✅ Removed application-level request logging from terminal API logs
+- ✅ Terminal API logs now show ONLY Straddle API requests (not /api/* requests)
+- ✅ Added `logStraddleCall()` to all customer endpoints (create, get, review, review decision, refresh-review)
+- ✅ Added `logStraddleCall()` to all charge endpoints (create, get, cancel, hold, release)
+- ✅ Added `logStraddleCall()` to all bridge endpoints (bank-account, plaid)
+- ✅ Added `logStraddleCall()` to all paykey endpoints (get, cancel)
+- ✅ Clean separation: Terminal shows Straddle API calls, Logs Tab shows detailed stream (req/res/webhook)
+- ✅ All logs include endpoint name, method, status code, and duration
+
 **Files Modified**:
-- `web/src/components/LogsTab.tsx` - Filtering and type updates
-- `server/src/middleware/tracing.ts` - Duplicate removal and path fix
-- `web/src/components/APILog.tsx` - Polling and display logic
-- `server/src/routes/charges.ts` - Status history message mapping
-- `web/src/components/dashboard/PizzaTracker.tsx` - Real message display
-- `server/src/domain/types.ts` - Status history interface updates
-- `server/src/routes/bridge.ts` - SDK logging added
-- `server/src/routes/paykeys.ts` - SDK logging added
+- `server/src/middleware/tracing.ts` - Removed application-level logging, kept only tracing headers
+- `server/src/routes/customers.ts` - Added logStraddleCall() to 5 endpoints
+- `server/src/routes/charges.ts` - Added logStraddleCall() to 5 endpoints
+- `server/src/routes/bridge.ts` - Added logStraddleCall() to 2 endpoints
+- `server/src/routes/paykeys.ts` - Added logStraddleCall() to 2 endpoints
+- `web/src/components/LogsTab.tsx` - Filtering and type updates (previous session)
+- `web/src/components/APILog.tsx` - Polling and display logic (previous session)
+- `web/src/components/dashboard/PizzaTracker.tsx` - Real message display (previous session)
+- `server/src/domain/types.ts` - Status history interface updates (previous session)
 
 **Testing**: All improvements verified working together with comprehensive manual testing (see `TASK5_VERIFICATION_REPORT.md`)
 
@@ -311,6 +322,78 @@ Current implementation is **demo-ready** but would need the following for produc
 ---
 
 ## Changelog History
+
+### 2025-11-15 - Session 5 (CustomerCard Enhancements & UI Refinements)
+
+**Phase 7: Extended Customer Data Fields**
+- **Personal Information Fields**: Added address, SSN (last 4), DOB display to CustomerCard
+- **KYC Validation Section**: New section showing validation results for address, city, dob, email, first_name, last_name, phone, ssn, state, zip with checkmark/X icons
+- **Watchlist Section**: Added expandable watchlist section with match count badge, correlation level, list name, and matched fields display
+- **ACH Returns Tracking**: Added ACH returns to Network Intelligence grid (4 columns: ACH Fraud, ACH Returns, Card Fraud, Disputes)
+- **Backend Type Updates**: Updated DemoCustomer and CustomerReview interfaces to include address, compliance_profile, kyc, and watchlist fields
+- **Auto-Map New Fields**: Modified customers.ts to map address, compliance_profile, kyc from API responses
+- Files modified:
+  - `server/src/domain/types.ts` - Added address, compliance_profile, kyc, watchlist types
+  - `server/src/routes/customers.ts` - Map new fields from API
+  - `web/src/lib/api.ts` - Synced Customer interface with backend
+  - `web/src/components/dashboard/CustomerCard.tsx` - Added UI sections for new data
+
+**Phase 8: Interactive Status & Module Display**
+- **Synthetic Module Removed**: Excluded synthetic module from verification display (data still fetched but filtered out)
+- **Review Status Button**: Status badge becomes interactive pulsing button when status is "review"
+  - Pulsing animation with `animate-pulse` class
+  - Hover effects with background/border transitions
+  - Click handler placeholder for review workflow
+  - Gold color scheme matching review status
+- **Sound Cue Placeholder**: Added useEffect hook that triggers when verification_status changes to "review"
+  - Console log placeholder for future audio alert integration
+  - Ready for `/sounds/review-alert.mp3` file
+- **Module Decision Labels**: Changed module decisions from numeric scores to semantic labels:
+  - `accept` → **PASS** (green: `text-green-500`)
+  - `review` → **REVIEW** (gold: `text-gold`)
+  - `reject` → **REJECT** (red: `text-accent`)
+- **Collapsed State Cleanup**: Removed risk scores and risk icons from collapsed module view
+- **Expanded State Enhancement**: Added tasteful scores section with dark background:
+  - Risk Score with color coding
+  - Shows 3 decimal places for precision
+  - Removed correlation score display (cleaner focus)
+- **Updated Risk Score Thresholds**:
+  - Green (`text-green-500`): Risk score < 0.75
+  - Yellow (`text-gold`): Risk score 0.75 - 0.90
+  - Red (`text-accent`): Risk score > 0.90
+- **Watchlist Expandable**: Converted watchlist to fully expandable section with toggle button
+- Files modified:
+  - `web/src/components/dashboard/CustomerCard.tsx` - All UI enhancements
+- All type checking passes
+- Integration verified with test customer creation
+
+### 2025-11-15 - Session 4 (Terminal API Logs & Real Customer Data)
+
+**Phase 6, Task 6: Terminal API Logs Filtering**
+- **Terminal API Logs**: Filter to show ONLY Straddle API requests
+- **Application Logs Removed**: Removed /api/* request logging from terminal
+- **Customer Review Logging**: Added logging to all customer review endpoints
+- **Complete Coverage**: All 14 Straddle API endpoints now logged to terminal
+- **Request/Response Bodies**: Updated logStraddleCall() to include full request and response data
+- **Clean Separation**: Terminal shows Straddle calls, Logs Tab shows detailed stream
+- **Testing**: Verified both Terminal API logs and Developer Logs Tab work correctly
+- 5 files modified, ~100 net additions
+
+**Phase 6, Task 7: Real Customer Review Data Integration**
+- **Auto-Fetch Review Data**: POST /customers now automatically fetches review data after creation
+- **Data Model Updates**: Updated CustomerReview interface to match full Straddle API structure
+- **Real Risk Scores**: CustomerCard now displays actual API risk scores (not hardcoded)
+- **Module Breakdown**: All verification modules (Email, Phone, Fraud, Synthetic, Reputation) show real data
+- **Reputation Intelligence**: Network Intelligence section displays real fraud/dispute insights
+- **Type Safety**: Full TypeScript synchronization between backend and frontend
+- **Testing**: Verified reputation score matches API (0.344 vs previous hardcoded 0.189)
+- Files modified:
+  - `server/src/domain/types.ts` - Comprehensive CustomerReview interface
+  - `server/src/routes/customers.ts` - Auto-fetch review on creation
+  - `web/src/lib/api.ts` - Frontend Customer interface with review field
+  - `web/src/components/dashboard/CustomerCard.tsx` - Dynamic module rendering
+- All type checking passes
+- Integration fully verified with test customer creation
 
 ### 2025-11-15 - Session 3 (Logging System Overhaul)
 - **Logs Tab Filtering**: Filter webhooks by current resource IDs

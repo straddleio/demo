@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { DemoPaykey } from '../domain/types.js';
+import { addLogEntry } from '../domain/log-stream.js';
+import { logStraddleCall } from '../domain/logs.js';
 
 const router = Router();
 
@@ -10,7 +12,40 @@ const router = Router();
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'GET',
+      path: `/paykeys/${req.params.id}`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
     const paykey = await straddleClient.paykeys.get(req.params.id);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: paykey.data,
+      duration,
+      requestId: req.requestId,
+    });
+
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `paykeys/${req.params.id}`,
+      'GET',
+      200,
+      duration,
+      undefined,
+      paykey.data
+    );
 
     // Debug: Log the actual paykey response
     console.log('Straddle paykey response (get):', JSON.stringify(paykey, null, 2));
@@ -50,7 +85,40 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/:id/cancel', async (req: Request, res: Response) => {
   try {
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: `/paykeys/${req.params.id}/cancel`,
+      requestId: req.requestId,
+    });
+
+    const startTime = Date.now();
     const paykey = await straddleClient.paykeys.cancel(req.params.id);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: paykey.data,
+      duration,
+      requestId: req.requestId,
+    });
+
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `paykeys/${req.params.id}/cancel`,
+      'POST',
+      200,
+      duration,
+      undefined,
+      paykey.data
+    );
 
     // Straddle wraps response in .data
     res.json(paykey.data);

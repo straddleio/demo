@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import type { DemoCustomer } from '../../../../server/src/domain/types';
+import type { Customer } from '@/lib/api';
 import { NerdIcons } from '@/lib/nerd-icons';
 import { cn } from '@/components/ui/utils';
 
 interface KYCValidationCardProps {
-  customer: DemoCustomer;
+  customer: Customer;
 }
 
 export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer }) => {

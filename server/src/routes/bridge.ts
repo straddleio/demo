@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { stateManager } from '../domain/state.js';
 import { DemoPaykey } from '../domain/types.js';
+import { addLogEntry } from '../domain/log-stream.js';
+import { logStraddleCall } from '../domain/logs.js';
 
 const router = Router();
 
@@ -29,8 +31,42 @@ router.post('/bank-account', async (req: Request, res: Response) => {
       },
     };
 
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: '/bridge/link/bank-account',
+      requestBody: linkData,
+      requestId: req.requestId,
+    });
+
     // Link bank account via Straddle SDK
+    const startTime = Date.now();
     const paykey = await straddleClient.bridge.link.bankAccount(linkData);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: paykey.data,
+      duration,
+      requestId: req.requestId,
+    });
+
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      'bridge/link/bank-account',
+      'POST',
+      200,
+      duration,
+      linkData,
+      paykey.data
+    );
 
     // Debug: Log the actual paykey response
     console.log('Straddle paykey response (bank_account):', JSON.stringify(paykey, null, 2));
@@ -83,11 +119,47 @@ router.post('/plaid', async (req: Request, res: Response) => {
       });
     }
 
-    // Link via Plaid
-    const paykey = await straddleClient.bridge.link.plaid({
+    const linkData = {
       customer_id,
       plaid_token,
+    };
+
+    // Log outbound Straddle request to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-req',
+      method: 'POST',
+      path: '/bridge/link/plaid',
+      requestBody: linkData,
+      requestId: req.requestId,
     });
+
+    // Link via Plaid
+    const startTime = Date.now();
+    const paykey = await straddleClient.bridge.link.plaid(linkData);
+    const duration = Date.now() - startTime;
+
+    // Log inbound Straddle response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode: 200,
+      responseBody: paykey.data,
+      duration,
+      requestId: req.requestId,
+    });
+
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      'bridge/link/plaid',
+      'POST',
+      200,
+      duration,
+      linkData,
+      paykey.data
+    );
 
     // Debug: Log the actual paykey response
     console.log('Straddle paykey response (plaid):', JSON.stringify(paykey, null, 2));

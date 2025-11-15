@@ -51,11 +51,94 @@ export interface Customer {
   phone: string;
   verification_status: string;
   risk_score?: number;
-  modules?: {
-    identity_verification?: { status: string };
-    device_fingerprinting?: { status: string };
-    email_verification?: { status: string };
-    phone_verification?: { status: string };
+  address?: {
+    address1: string;
+    address2?: string;
+    city: string;
+    state: string;
+    zip: string;
+  };
+  compliance_profile?: {
+    ssn?: string; // Masked format: ***-**-****
+    dob?: string; // Masked format: ****-**-**
+  };
+  review?: {
+    review_id: string;
+    decision: string;
+    messages?: Record<string, string>;
+    breakdown: {
+      email?: {
+        decision: string;
+        codes?: string[];
+        risk_score?: number;
+        correlation_score?: number;
+        correlation?: string;
+      };
+      phone?: {
+        decision: string;
+        codes?: string[];
+        risk_score?: number;
+        correlation_score?: number;
+        correlation?: string;
+      };
+      fraud?: {
+        decision: string;
+        codes?: string[];
+        risk_score?: number;
+      };
+      synthetic?: {
+        decision: string;
+        codes?: string[];
+        risk_score?: number;
+      };
+    };
+    kyc?: {
+      decision: string;
+      codes?: string[];
+      validations?: {
+        address?: boolean;
+        city?: boolean;
+        dob?: boolean;
+        email?: boolean;
+        first_name?: boolean;
+        last_name?: boolean;
+        phone?: boolean;
+        ssn?: boolean;
+        state?: boolean;
+        zip?: boolean;
+      };
+    };
+    reputation?: {
+      decision: string;
+      codes?: string[];
+      risk_score?: number;
+      insights?: {
+        ach_fraud_transactions_count?: number;
+        ach_fraud_transactions_total_amount?: number;
+        ach_returned_transactions_count?: number;
+        ach_returned_transactions_total_amount?: number;
+        card_fraud_transactions_count?: number;
+        card_fraud_transactions_total_amount?: number;
+        card_disputed_transactions_count?: number;
+        card_disputed_transactions_total_amount?: number;
+        [key: string]: any;
+      };
+    };
+    network_alerts?: {
+      decision: string;
+      codes?: string[];
+      alerts?: any[];
+    };
+    watch_list?: {
+      decision: string;
+      codes?: string[];
+      matches?: Array<{
+        correlation: string;
+        list_name: string;
+        match_fields: string[];
+        urls: string[];
+      }>;
+    };
   };
 }
 

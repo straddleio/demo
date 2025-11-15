@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { stateManager } from '../domain/state.js';
 import { getRequestLogs, clearRequestLogs } from '../domain/logs.js';
+import { getLogStream, clearLogStream } from '../domain/log-stream.js';
 import { eventBroadcaster } from '../domain/events.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,6 +23,7 @@ router.get('/state', (_req: Request, res: Response) => {
 router.post('/reset', (_req: Request, res: Response) => {
   stateManager.reset();
   clearRequestLogs();
+  clearLogStream();
 
   // Broadcast reset event to connected clients
   eventBroadcaster.broadcast('state:reset', {});
@@ -31,11 +33,20 @@ router.post('/reset', (_req: Request, res: Response) => {
 
 /**
  * GET /api/logs
- * Get API request logs
+ * Get API request logs (for Light Logs panel)
  */
 router.get('/logs', (_req: Request, res: Response) => {
   const logs = getRequestLogs();
   res.json(logs);
+});
+
+/**
+ * GET /api/log-stream
+ * Get chronological log stream (for Logs Tab)
+ */
+router.get('/log-stream', (_req: Request, res: Response) => {
+  const stream = getLogStream();
+  res.json(stream);
 });
 
 /**

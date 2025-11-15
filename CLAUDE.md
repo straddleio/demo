@@ -4,20 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **live demo application** for Fintech NerdCon showcasing Straddle's unified fintech platform. The demo features a split-screen web app with a CLI-style terminal interface and real-time dashboard showing customer identity verification, account connectivity, and payment processing.
+This is a **production-ready live demo application** for Fintech NerdCon showcasing Straddle's unified fintech platform. The demo features a split-screen web app with a CLI-style terminal interface and real-time dashboard showing customer identity verification, account connectivity, and payment processing.
 
-**Critical Constraint**: All Straddle API calls MUST use the real sandbox API via the `@straddlecom/straddle` Node SDK. No mocking or fake responses - only `sandbox_outcome` for simulation.
+**Status**: Backend ✅ Complete | Frontend ✅ Complete | Build ✅ Passing
+
+**Critical Constraint**: All Straddle API calls MUST use the real sandbox API via the `@straddlecom/straddle` Node SDK. No mocking or fake responses - only `sandbox_outcome` for deterministic simulation.
+
+**📋 For Recent Changes & Known Issues**: See [CHANGELOG.md](./CHANGELOG.md) for detailed project history, completed work, known issues, and remaining tasks.
 
 ## Architecture
 
-**Monorepo Structure** (planned):
+**Monorepo Structure**:
 ```
-server/     # Node/Express/TypeScript backend with Straddle SDK
-web/        # React/TypeScript/Vite frontend with retro gaming UI
-design/     # Retro 8-bit gaming design system assets
+server/     # Node/Express/TypeScript backend with Straddle SDK (✅ Complete)
+web/        # React/TypeScript/Vite frontend with retro gaming UI (✅ Complete)
+design/     # Retro 8-bit gaming design system assets (✅ Available)
 ```
 
-**Data Flow**: Browser UI → Demo Server (Express) → Straddle Sandbox API
+**Data Flow**: Browser Terminal → Express API → Straddle SDK → Sandbox API → Webhooks → SSE → Dashboard Updates
 
 **Critical Security Rule**: API keys ONLY in server environment. Never in frontend code or VITE_ variables.
 
@@ -117,27 +121,64 @@ const paykey = await client.paykeys.get('paykey_id');
 - Sandbox Testing: https://docs.straddle.io/guides/resources/sandbox-paybybank
 - Webhooks: https://docs.straddle.io/webhooks/overview/events
 
-## Development Setup
+## Development Commands
 
-### Server (not yet implemented)
+### Running the Application
+
+**Start both server and web** (recommended):
 ```bash
-cd server
-npm install
-cp .env.example .env  # Add your STRADDLE_API_KEY
-npm run dev           # Start on port 4000
+npm run dev
 ```
 
-Required environment variables:
-- `STRADDLE_API_KEY` - Sandbox API key (required)
-- `STRADDLE_ENV` - Default: `sandbox`
-- `PLAID_PROCESSOR_TOKEN` - Optional for one-click demo
-
-### Web (not yet implemented)
+**Start server only**:
 ```bash
-cd web
-npm install
-npm run dev  # Vite dev server
+npm run dev:server          # Runs on http://localhost:4000
 ```
+
+**Start web only**:
+```bash
+npm run dev:web             # Runs on http://localhost:5173
+```
+
+### Building
+
+**Build everything**:
+```bash
+npm run build               # Builds both workspaces
+```
+
+**Build server**:
+```bash
+npm run build:server        # TypeScript → dist/
+```
+
+**Build web**:
+```bash
+npm run build:web           # Vite production build
+npm run preview             # Preview production build
+```
+
+### Type Checking and Linting
+
+```bash
+npm run type-check          # Type check all workspaces
+npm run lint                # Lint all workspaces
+npm run format              # Format with Prettier
+```
+
+### Environment Setup
+
+**Server** (`server/.env`):
+```bash
+STRADDLE_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...  # Required: JWT token from Straddle dashboard
+STRADDLE_ENV=sandbox        # Required: sandbox or production
+PORT=4000                   # Default: 4000
+CORS_ORIGIN=http://localhost:5173  # Default: http://localhost:5173
+NGROK_URL=https://your-id.ngrok-free.dev  # Optional: for webhook testing
+PLAID_PROCESSOR_TOKEN=processor-sandbox-xxx  # Optional: for Plaid demo path
+```
+
+**Web** has no environment variables (all API calls go through backend)
 
 ## Key Technical Decisions
 
@@ -224,90 +265,276 @@ Default test data template:
 - Charge card (amount, status, sandbox_outcome)
 - Pizza Tracker (charge lifecycle: created → scheduled → pending → paid)
 
-### Terminal Commands
+### Terminal Commands (✅ Implemented)
 
-- `/create-customer [--outcome <value>]`
-- `/review-customer`
-- `/verify-customer`
-- `/create-paykey [plaid|bank] [--outcome <value>]`
-- `/review-paykey`
-- `/create-charge [--amount <cents>] [--outcome <value>]`
-- `/track-charge`
-- `/demo` - Full happy-path orchestration
-- `/outcomes` - List supported sandbox outcomes
-- `/info` - Show current state
-- `/reset` - Clear demo state
-- `/clear` - Clear terminal scrollback
+**Customer Commands**:
+- `/create-customer [--outcome verified|review|rejected]` - Create customer with identity verification
+  - Default outcome: `verified`
+  - Auto-generates unique email with timestamp
+  - Shows verification status and risk score
+
+**Paykey Commands**:
+- `/create-paykey [plaid|bank] [--outcome active|inactive|rejected]` - Link bank account
+  - `plaid` - Uses Plaid processor token (requires PLAID_PROCESSOR_TOKEN env var)
+  - `bank` - Uses hardcoded routing/account numbers for sandbox
+  - Default outcome: `active`
+  - Requires customer to exist first
+
+**Charge Commands**:
+- `/create-charge [--amount <cents>] [--outcome paid|failed|reversed_insufficient_funds]` - Create payment
+  - Default amount: 5000 (cents = $50.00)
+  - Default outcome: `paid`
+  - Requires both customer and paykey to exist
+  - Shows charge lifecycle in PizzaTracker
+
+**Demo & Utility**:
+- `/demo` - Run full happy-path flow (customer → paykey → charge)
+  - Creates verified customer
+  - Links active bank account
+  - Creates paid charge
+  - Shows real-time updates
+- `/info` - Display current demo state (customer/paykey/charge IDs)
+- `/reset` - Clear all demo state and reset dashboard
+- `/clear` - Clear terminal scrollback only
+- `/help` - Show available commands
+
+**Implementation**: See `web/src/lib/commands.ts` (412 lines) for command parser and execution logic.
+
+## Common Issues & Troubleshooting
+
+### TypeScript Errors
+
+**Issue**: "Property 'X' does not exist on type 'Y'"
+**Cause**: SDK responses wrap data in `.data` object
+**Solution**: Always access `response.data.field` not `response.field`
+
+**Issue**: "Type 'X | undefined' is not assignable to type 'X'"
+**Cause**: Optional fields from SDK responses
+**Solution**: Use optional chaining `?.` or null checks before accessing nested fields
+
+**Issue**: "Method 'bank_account' does not exist"
+**Cause**: SDK uses camelCase, not snake_case
+**Solution**: Use `bankAccount`, not `bank_account`
+
+### Runtime Errors
+
+**Issue**: "Invalid paykey token" when creating charge
+**Cause**: Using the resource `id` instead of the `paykey` token
+**Solution**: Use `paykeyResponse.data.paykey` (the token), not `paykeyResponse.data.id`
+
+**Issue**: "Customer email already exists"
+**Cause**: Reusing the same email in sandbox
+**Solution**: Auto-generate emails with timestamp: `` `user.${Date.now()}@example.com` ``
+
+**Issue**: "Missing required field: payment_date"
+**Cause**: Charge creation requires payment_date
+**Solution**: Always include `payment_date` in YYYY-MM-DD format (use helper: `new Date().toISOString().split('T')[0]`)
+
+### Connection Issues
+
+**Issue**: SSE connection shows "Disconnected"
+**Cause**: Server not running or CORS misconfigured
+**Solution**: Ensure server is running on port 4000 and `CORS_ORIGIN=http://localhost:5173`
+
+**Issue**: API requests fail with CORS error
+**Cause**: Frontend running on different port than configured
+**Solution**: Check `server/.env` has correct `CORS_ORIGIN`
+
+### Build Issues
+
+**Issue**: `npm run build` fails with module resolution errors
+**Cause**: Missing `.js` extensions in imports (ESM requirement)
+**Solution**: All server imports must include `.js` extension: `import { x } from './file.js'`
+
+**Issue**: Vite build fails with type errors
+**Cause**: Unused imports or missing type definitions
+**Solution**: Run `npm run type-check` in web workspace to identify issues
 
 ## Working with Claude Code
 
 ### Development Approach
 
-1. **Start with a plan**: Before coding, restate understanding and propose implementation phases. Wait for confirmation.
+**The project is complete.** When working with this codebase:
 
-2. **Work incrementally**:
-   - Phase 1: Server scaffold (config, SDK client, tracing middleware)
-   - Phase 2: Core routes (customers, bridge, paykeys, charges)
-   - Phase 3: Webhooks and SSE streaming
-   - Phase 4: Frontend layout and terminal
-   - Phase 5: Dashboard cards and pizza tracker
+1. **Read NEXT_STEPS.md first** - Contains critical lessons learned and current status
 
-3. **Keep responsibilities separate**:
-   - Server: All Straddle API calls, state management, webhooks
-   - Frontend: UI only, calls `/api/*` endpoints
-   - Never leak API keys to client
+2. **Never modify backend routes** - They are production-ready and fully tested. If adding features, create new routes.
 
-4. **No mocking**: Use real Straddle sandbox API. If env missing, fail with clear setup instructions.
+3. **Understand the data flow**:
+   - Terminal command → `commands.ts` parser → `fetch()` to backend
+   - Backend route → Straddle SDK → Response
+   - Backend emits event → SSE → Frontend state update → Dashboard re-render
 
-5. **Use Straddle MCP if available**: Check for the Straddle MCP server (https://docs.straddle.com/mcp) which provides direct API access and can be used alongside the SDK for reference and testing.
+4. **Test changes immediately**:
+   - Backend: Use curl to test API endpoints
+   - Frontend: Run `/demo` command to verify full flow
+   - Check browser console for errors
+   - Watch API log for request/response details
 
-6. **Ask when unclear**: If SDK methods are uncertain or UI details ambiguous, ask rather than assume.
+5. **Common modification scenarios**:
+   - **New terminal command**: Add to `web/src/lib/commands.ts`, update help text
+   - **New API endpoint**: Create route in `server/src/routes/`, wire in `index.ts`
+   - **New dashboard field**: Update card component, ensure state includes the field
+   - **New sandbox outcome**: Add to command parser outcomes, update help text
+
+6. **Keep security in mind**:
+   - API keys ONLY in server environment
+   - Never log sensitive data (full tokens, account numbers)
+   - Validate all user input in terminal commands
 
 7. **Optimize for live demo**:
-   - Prefer simple, deterministic flows
-   - Add minimal logging for debugging
-   - Avoid complex dependencies that might fail on stage
+   - Prefer deterministic sandbox outcomes
+   - Add helpful error messages in terminal
+   - Test full `/demo` flow before presenting
 
-### File Structure to Create
+### Actual File Structure (✅ Implemented)
 
 ```
 server/src/
-  index.ts              # Express app entry
-  config.ts             # Load env variables
-  sdk.ts                # Straddle client factory
+  index.ts              # ✅ Express app entry with SSE subscription
+  config.ts             # ✅ Environment configuration loader
+  sdk.ts                # ✅ Straddle client factory
   middleware/
-    tracing.ts          # Request-Id, Correlation-Id, Idempotency-Key
+    tracing.ts          # ✅ Request-Id, Correlation-Id, Idempotency-Key middleware
   domain/
-    state.ts            # In-memory demo state
-    sandbox.ts          # Sandbox outcome presets
-    logs.ts             # Request/response log storage
-    events.ts           # SSE broadcaster
+    state.ts            # ✅ In-memory state with EventEmitter
+    types.ts            # ✅ TypeScript type definitions
+    logs.ts             # ✅ Request/response logging
+    events.ts           # ✅ SSE broadcaster for real-time updates
   routes/
-    customers.ts
-    bridge.ts
-    paykeys.ts
-    charges.ts
-    webhooks.ts
-    logs.ts
+    customers.ts        # ✅ Customer creation, review, verification
+    bridge.ts           # ✅ Bank account linking (Plaid & manual)
+    paykeys.ts          # ✅ Paykey management
+    charges.ts          # ✅ Charge creation and lifecycle
+    webhooks.ts         # ✅ Straddle webhook receiver
+    state.ts            # ✅ State management (get/reset/logs/SSE stream)
 
 web/src/
-  main.tsx
-  App.tsx
+  main.tsx             # ✅ React entry point
+  App.tsx              # ✅ Main app with SSE hook
   layout/
-    SplitView.tsx
+    SplitView.tsx      # ✅ 40% left / 60% right split
+    LeftPanel.tsx      # ✅ Terminal + API log (15/85 split)
+    RightPanel.tsx     # ✅ Dashboard container
   components/
-    Terminal.tsx
-    RequestLog.tsx
+    Terminal.tsx       # ✅ Interactive terminal with command history
+    APILog.tsx         # ✅ Request log with NerdCon logo background
+    ConnectionStatus.tsx  # ✅ SSE connection indicator
     dashboard/
-      CustomerCard.tsx
-      PaykeyCard.tsx
-      ChargeCard.tsx
-      PizzaTracker.tsx
+      DashboardView.tsx    # ✅ Main dashboard layout
+      CustomerCard.tsx     # ✅ Identity verification, geolocation
+      PaykeyCard.tsx       # ✅ Bank info, WALDO, ownership
+      ChargeCard.tsx       # ✅ Amount, payment rail, balance
+      PizzaTracker.tsx     # ✅ Horizontal charge lifecycle
+    ui/
+      ChargeStatusIcon.tsx # ✅ Status icon component
+      retro-components.tsx # ✅ Design system components
   lib/
-    api.ts              # HTTP client for server
-    commands.ts         # Terminal command parser
-    state.ts            # Local UI state
+    api.ts             # ✅ HTTP client (not implemented - using fetch directly)
+    commands.ts        # ✅ Terminal command parser (412 lines)
+    state.ts           # ✅ Zustand state management (157 lines)
+    useSSE.ts          # ✅ SSE connection hook (118 lines)
+    useGeolocation.ts  # ✅ IP geolocation lookup
+    nerd-icons.ts      # ✅ Icon mapping helpers
 ```
+
+## Critical SDK Implementation Details
+
+### SDK Response Structure ⚠️ MUST READ
+
+**ALL Straddle SDK responses wrap data in a `.data` object:**
+
+```typescript
+const customer = await straddleClient.customers.create({...});
+
+// ❌ WRONG:
+const id = customer.id;
+
+// ✅ CORRECT:
+const id = customer.data.id;
+```
+
+This applies to ALL SDK methods: `customers.*`, `paykeys.*`, `charges.*`, `bridge.link.*`, etc.
+
+### Paykey vs Paykey ID ⚠️ CRITICAL
+
+The bridge response includes TWO important fields:
+
+```typescript
+const paykeyResponse = await straddleClient.bridge.link.bankAccount({...});
+
+{
+  data: {
+    id: "019a80be-b183-...",           // Resource ID (for GET /paykeys/:id)
+    paykey: "758c519d.02.2c16f91...",  // TOKEN (for charges.create)
+    customer_id: "...",
+    status: "active"
+  }
+}
+```
+
+**When creating charges, use the `paykey` TOKEN, not the `id`:**
+
+```typescript
+// ✅ CORRECT:
+await straddleClient.charges.create({
+  paykey: paykeyResponse.data.paykey,  // Use the TOKEN
+  amount: 5000,
+  description: "Payment",
+  // ...
+});
+
+// ❌ WRONG:
+await straddleClient.charges.create({
+  paykey: paykeyResponse.data.id,  // This will fail!
+  // ...
+});
+```
+
+### SDK Method Naming
+
+SDK uses **camelCase**, not snake_case:
+
+```typescript
+// ✅ CORRECT:
+await straddleClient.bridge.link.bankAccount({...});
+
+// ❌ WRONG:
+await straddleClient.bridge.link.bank_account({...});
+```
+
+### Required Fields for Common Operations
+
+**Creating Charges**:
+- `paykey` (the token string, NOT the resource ID)
+- `amount` (in cents, integer)
+- `description` (string, cannot be empty)
+- `currency` (e.g., "USD")
+- `consent_type` ("internet" for sandbox)
+- `device.ip_address` (string)
+- `payment_date` (YYYY-MM-DD format)
+
+**Creating Customers**:
+- `name` (string)
+- `type` ("individual" or "business")
+- `email` (must be unique - use timestamp: `user.${Date.now()}@example.com`)
+- `phone` (string, E.164 format recommended)
+- `device.ip_address` (string)
+
+### Webhook Event Structure
+
+Straddle webhooks use this format:
+
+```typescript
+{
+  "event_type": "customer.event.v1",  // NOT "type"
+  "event_id": "uuid",
+  "account_id": "uuid",
+  "data": { /* resource object */ }  // Direct resource, NOT "data.object"
+}
+```
+
+Event naming: `{resource}.{action}.v1`
 
 ## Design System
 
@@ -325,14 +552,105 @@ The project uses a retro 8-bit gaming aesthetic inspired by Fintech NerdCon. Des
 
 **Effects**: Neon glow, pixel borders, scanlines, CRT distortion, glitch text, typewriter animation
 
+## Testing the Application
+
+### Quick Health Check
+
+```bash
+curl http://localhost:4000/health
+```
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-11-14T...",
+  "environment": "sandbox"
+}
+```
+
+### Manual API Testing
+
+**1. Create Customer**:
+```bash
+curl -X POST http://localhost:4000/api/customers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test.'$(date +%s)'@example.com",
+    "outcome": "verified"
+  }'
+```
+
+Response includes: `id`, `verification_status`, `risk_score`
+
+**2. Link Bank Account** (use customer_id from step 1):
+```bash
+curl -X POST http://localhost:4000/api/bridge/bank-account \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "<CUSTOMER_ID>",
+    "outcome": "active"
+  }'
+```
+
+Response includes: `id` (resource ID), `paykey` (token), `status`
+
+**3. Create Charge** (use `paykey` token from step 2):
+```bash
+curl -X POST http://localhost:4000/api/charges \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paykey": "<PAYKEY_TOKEN>",
+    "amount": 5000,
+    "description": "Test charge",
+    "outcome": "paid"
+  }'
+```
+
+**4. Check State**:
+```bash
+curl http://localhost:4000/api/state
+```
+
+**5. Reset Demo**:
+```bash
+curl -X POST http://localhost:4000/api/reset
+```
+
+### SSE Connection Test
+
+```bash
+curl -N http://localhost:4000/api/events/stream
+```
+
+You should see SSE events in format:
+```
+event: state:change
+data: {"customer":null,"paykey":null,"charge":null}
+```
+
+### Frontend Testing
+
+1. Open `http://localhost:5173` in browser
+2. Connection status should show "Connected" (green)
+3. Type `/demo` in terminal and press Enter
+4. Watch dashboard cards update in real-time
+5. Check API log for request history
+
 ## Reference Documentation
 
 For detailed implementation guidance, see:
-- `claude.md` - Original comprehensive spec
-- `straddle-nerdcon-project-plan.md` - Architecture and sequence diagrams
-- `design/README.md` - Design system usage examples
+- `NEXT_STEPS.md` - Current status, completed features, lessons learned
+- `DEVELOPMENT-PLAN.md` - Original implementation roadmap
+- `README.md` - Quick start guide
+- `design/` - Design system assets
 
-**Always reference**:
+**Straddle API Documentation**:
 - Straddle MCP: https://docs.straddle.com/mcp
 - API Overview: https://docs.straddle.com/llms.txt
 - Node SDK: https://github.com/straddleio/straddle-node
+- Customers & Identity: https://docs.straddle.io/guides/identity/customers
+- Paykeys: https://docs.straddle.io/guides/bridge/paykeys
+- Payments: https://docs.straddle.io/guides/payments/overview
+- Webhooks: https://docs.straddle.io/webhooks/overview/events

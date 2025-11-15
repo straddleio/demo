@@ -4,6 +4,7 @@ import { RightPanel } from './layout/RightPanel';
 import { Terminal } from './components/Terminal';
 import { APILog } from './components/APILog';
 import { DashboardView } from './components/dashboard/DashboardView';
+import { LogsTab } from './components/LogsTab';
 import { SoundToggle } from './components/settings/SoundToggle';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { useSSE } from './lib/useSSE';
@@ -32,6 +33,7 @@ function App() {
         right={
           <RightPanel
             demoView={<DashboardView />}
+            logsView={<LogsTab />}
           />
         }
       />

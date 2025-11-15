@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   RetroCard,
   RetroCardHeader,
@@ -7,15 +7,18 @@ import {
   RetroBadge,
 } from '@/components/ui/retro-components';
 import { cn } from '@/components/ui/utils';
-import { getRiskIcon, getDecisionIcon, NerdIcons } from '@/lib/nerd-icons';
+import { NerdIcons } from '@/lib/nerd-icons';
 import { useGeolocation } from '@/lib/useGeolocation';
 import { useDemoStore } from '@/lib/state';
+import { KYCValidationCard } from './KYCValidationCard';
+import { AddressWatchlistCard } from './AddressWatchlistCard';
 
 interface VerificationModule {
   name: string;
   decision: 'accept' | 'review' | 'reject';
   riskScore: number;
   correlation?: string; // 'Match' | 'Partial' | null
+  correlationScore?: number;
   codes?: string[];
   messages?: Record<string, string>;
 }
@@ -30,6 +33,23 @@ interface VerificationModule {
 export const CustomerCard: React.FC = () => {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const customer = useDemoStore((state) => state.customer);
+
+  // Extract IP address from device field if available (placeholder for now since API doesn't include device yet)
+  // IMPORTANT: Must be before early return to satisfy Rules of Hooks
+  const ipAddress = customer ? '192.168.1.1' : null; // TODO: Get from customer.device?.ip_address when available
+
+  // Fetch geolocation from IP address
+  // IMPORTANT: Hook must be called unconditionally (before early return)
+  const geo = useGeolocation(ipAddress);
+
+  // Sound cue placeholder for review status
+  useEffect(() => {
+    if (customer?.verification_status === 'review') {
+      // TODO: Play sound alert when customer status is "review"
+      // Example: new Audio('/sounds/review-alert.mp3').play();
+      console.log('🔔 Customer in REVIEW status - sound cue would play here');
+    }
+  }, [customer?.verification_status]);
 
   if (!customer) {
     return (
@@ -47,76 +67,76 @@ export const CustomerCard: React.FC = () => {
   // Map verification_status to status (verified, review, rejected, pending)
   const status = (customer.verification_status || 'pending') as 'verified' | 'review' | 'rejected' | 'pending';
 
-  // Extract IP address from device field if available (placeholder for now since API doesn't include device yet)
-  const ipAddress = '192.168.1.1'; // TODO: Get from customer.device?.ip_address when available
+  // Build verification modules from real review data if available
+  const modules: VerificationModule[] = [];
 
-  // Fetch geolocation from IP address
-  const geo = useGeolocation(ipAddress);
+  if (customer.review?.breakdown) {
+    const { breakdown, messages } = customer.review;
 
-  // Verification modules (from identity_details.breakdown)
-  const modules: VerificationModule[] = [
-    {
-      name: 'Email',
-      decision: 'accept',
-      riskScore: 0.01,
-      correlation: 'Match',
-      codes: ['I553', 'I556', 'I558', 'I557'],
-      messages: {
-        'I553': 'Email address is more than 2 years old',
-        'I556': 'Email address can be resolved to the individual',
-      },
-    },
-    {
-      name: 'Phone',
-      decision: 'accept',
-      riskScore: 0.01,
-      correlation: 'Match',
-      codes: ['I602', 'I622', 'I618', 'I621'],
-      messages: {
-        'I602': 'Phone number is a mobile line',
-        'I618': 'Phone number can be resolved to the individual',
-      },
-    },
-    {
-      name: 'Address',
-      decision: 'accept',
-      riskScore: 0.01,
-      correlation: 'Match',
-      codes: ['I707', 'I710', 'I708', 'I709'],
-      messages: {
-        'I707': 'Address is residential',
-        'I708': 'Address can be resolved to the individual',
-      },
-    },
-    {
-      name: 'Fraud',
-      decision: 'accept',
-      riskScore: 0.152,
-      codes: ['I553', 'I121'],
-      messages: {
-        'I121': 'Social networks match',
-      },
-    },
-    {
+    // Email module
+    if (breakdown.email) {
+      modules.push({
+        name: 'Email',
+        decision: breakdown.email.decision as any,
+        riskScore: breakdown.email.risk_score || 0,
+        correlation: breakdown.email.correlation === 'high_confidence' ? 'Match' :
+                     breakdown.email.correlation === 'medium_confidence' ? 'Partial' : undefined,
+        correlationScore: breakdown.email.correlation_score,
+        codes: breakdown.email.codes,
+        messages: messages || {},
+      });
+    }
+
+    // Phone module
+    if (breakdown.phone) {
+      modules.push({
+        name: 'Phone',
+        decision: breakdown.phone.decision as any,
+        riskScore: breakdown.phone.risk_score || 0,
+        correlation: breakdown.phone.correlation === 'high_confidence' ? 'Match' :
+                     breakdown.phone.correlation === 'medium_confidence' ? 'Partial' : undefined,
+        correlationScore: breakdown.phone.correlation_score,
+        codes: breakdown.phone.codes,
+        messages: messages || {},
+      });
+    }
+
+    // Fraud module
+    if (breakdown.fraud) {
+      modules.push({
+        name: 'Fraud',
+        decision: breakdown.fraud.decision as any,
+        riskScore: breakdown.fraud.risk_score || 0,
+        codes: breakdown.fraud.codes,
+        messages: messages || {},
+      });
+    }
+
+    // Note: Synthetic module intentionally excluded from display
+  }
+
+  // Reputation module (from reputation field)
+  if (customer.review?.reputation) {
+    modules.push({
       name: 'Reputation',
-      decision: 'accept',
-      riskScore: 0.189,
-      codes: ['R225', 'R223', 'R221'],
-      messages: {
-        'R221': 'SSN associated with input phone number could not be confirmed',
-        'R225': '4 or more different first names have been found to be inquired against the input SSN',
-      },
-    },
-  ];
+      decision: customer.review.reputation.decision as any,
+      riskScore: customer.review.reputation.risk_score || 0,
+      codes: customer.review.reputation.codes,
+      messages: customer.review.messages || {},
+    });
+  }
 
   // Reputation intelligence data (from identity_details.reputation.insights)
+  const insights = customer.review?.reputation?.insights;
   const reputationInsights = {
-    achFraudCount: 1,
-    achFraudAmount: 10000,
-    cardFraudCount: 1,
-    cardFraudAmount: 12355,
-    cardDisputeCount: 1,
-    cardDisputeAmount: 198734,
+    achFraudCount: insights?.ach_fraud_transactions_count || 0,
+    achFraudAmount: insights?.ach_fraud_transactions_total_amount || 0,
+    achReturnCount: insights?.ach_returned_transactions_count || 0,
+    achReturnAmount: insights?.ach_returned_transactions_total_amount || 0,
+    cardFraudCount: insights?.card_fraud_transactions_count || 0,
+    cardFraudAmount: insights?.card_fraud_transactions_total_amount || 0,
+    cardDisputeCount: insights?.card_disputed_transactions_count || 0,
+    cardDisputeAmount: insights?.card_disputed_transactions_total_amount || 0,
   };
 
   const statusColors = {
@@ -127,15 +147,15 @@ export const CustomerCard: React.FC = () => {
   } as const;
 
   const getRiskColor = (score: number) => {
-    if (score < 0.1) return 'text-primary'; // Green - low risk
-    if (score < 0.5) return 'text-gold'; // Yellow - medium risk
+    if (score < 0.75) return 'text-green-500'; // Green - low risk
+    if (score < 0.90) return 'text-gold'; // Yellow - medium risk
     return 'text-accent'; // Red - high risk
   };
 
-  const getModuleDecisionIcon = (decision: 'accept' | 'review' | 'reject') => {
-    if (decision === 'accept') return getDecisionIcon('verified');
-    if (decision === 'review') return getDecisionIcon('review');
-    return getDecisionIcon('rejected');
+  const getDecisionLabel = (decision: 'accept' | 'review' | 'reject') => {
+    if (decision === 'accept') return 'PASS';
+    if (decision === 'review') return 'REVIEW';
+    return 'REJECT';
   };
 
   const toggleModule = (moduleName: string) => {
@@ -147,9 +167,27 @@ export const CustomerCard: React.FC = () => {
       <RetroCardHeader>
         <div className="flex items-start justify-between gap-2">
           <RetroCardTitle className="flex-shrink">Customer Identity</RetroCardTitle>
-          <RetroBadge variant={statusColors[status]}>
-            {status.toUpperCase()}
-          </RetroBadge>
+          {status === 'review' ? (
+            <button
+              onClick={() => {
+                // TODO: Add review action handler (e.g., open review modal)
+                console.log('Review button clicked - open review workflow');
+              }}
+              className={cn(
+                'px-2 py-1 text-xs font-pixel uppercase transition-all',
+                'bg-gold/20 text-gold border border-gold/40 rounded-pixel',
+                'hover:bg-gold/30 hover:border-gold/60',
+                'animate-pulse',
+                'cursor-pointer'
+              )}
+            >
+              {status.toUpperCase()}
+            </button>
+          ) : (
+            <RetroBadge variant={statusColors[status]}>
+              {status.toUpperCase()}
+            </RetroBadge>
+          )}
         </div>
       </RetroCardHeader>
       <RetroCardContent className="space-y-4">
@@ -159,6 +197,21 @@ export const CustomerCard: React.FC = () => {
             <p className="text-xs text-neutral-400 font-body mb-1">Name</p>
             <p className="text-sm text-neutral-100 font-body">{customer.name}</p>
           </div>
+
+          {/* Address - Enhanced */}
+          {customer.address && (
+            <div className="pt-2 border-t border-primary/10">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs text-primary">{NerdIcons.mapPin}</span>
+                <p className="text-xs text-neutral-400 font-body">Address</p>
+              </div>
+              <div className="text-xs text-neutral-100 font-body ml-5 space-y-0.5">
+                <p>{customer.address.address1}</p>
+                {customer.address.address2 && <p>{customer.address.address2}</p>}
+                <p>{customer.address.city}, {customer.address.state} {customer.address.zip}</p>
+              </div>
+            </div>
+          )}
 
           {/* Live Geolocation */}
           <div className="pt-2 border-t border-primary/10">
@@ -189,6 +242,31 @@ export const CustomerCard: React.FC = () => {
               <p className="text-xs text-neutral-100 font-body">{customer.phone}</p>
             </div>
           </div>
+
+          {/* Compliance Profile - Enhanced */}
+          {customer.compliance_profile && (
+            <div className="pt-2 border-t border-primary/10">
+              <p className="text-xs text-neutral-400 font-body mb-2">Compliance Information</p>
+              <div className="space-y-2">
+                {customer.compliance_profile.ssn && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-primary">{NerdIcons.shield}</span>
+                    <span className="text-xs text-neutral-100 font-body">
+                      SSN: <span className="font-mono">***-**-{customer.compliance_profile.ssn.slice(-4)}</span>
+                    </span>
+                  </div>
+                )}
+                {customer.compliance_profile.dob && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-primary">{NerdIcons.calendar}</span>
+                    <span className="text-xs text-neutral-100 font-body">
+                      DOB: <span className="font-mono">{customer.compliance_profile.dob}</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Verification Modules */}
@@ -206,24 +284,18 @@ export const CustomerCard: React.FC = () => {
                   )}
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className={cn('text-sm', getRiskColor(module.riskScore))}>
-                      {getRiskIcon(module.riskScore)}
-                    </span>
                     <span className="text-xs font-body text-neutral-200 flex-shrink-0">{module.name}</span>
                     {module.correlation && (
                       <span className="text-xs text-primary font-body">• {module.correlation}</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className={cn('text-xs font-pixel', getRiskColor(module.riskScore))}>
-                      {module.riskScore.toFixed(2)}
-                    </span>
                     <span className={cn(
-                      'text-sm',
-                      module.decision === 'accept' ? 'text-primary' :
+                      'text-xs font-pixel',
+                      module.decision === 'accept' ? 'text-green-500' :
                       module.decision === 'review' ? 'text-gold' : 'text-accent'
                     )}>
-                      {getModuleDecisionIcon(module.decision)}
+                      {getDecisionLabel(module.decision)}
                     </span>
                     {module.codes && (
                       <span className="text-xs text-neutral-500">
@@ -233,24 +305,39 @@ export const CustomerCard: React.FC = () => {
                   </div>
                 </button>
 
-                {/* Expanded R-Codes (only show risk codes that start with R) */}
-                {expandedModule === module.name && module.codes && module.messages && (
-                  <div className="px-3 pb-2 border-t border-primary/10">
-                    <div className="pt-2 space-y-1.5">
-                      {module.codes
-                        .filter(code => code.startsWith('R')) // Only show R-codes (risk codes)
-                        .map((code) => (
-                          <div key={code} className="flex gap-2">
-                            <span className="text-xs text-accent font-mono flex-shrink-0">{code}</span>
-                            <span className="text-xs text-neutral-400 font-body">
-                              {module.messages![code] || 'Risk signal detected'}
-                            </span>
-                          </div>
-                        ))}
-                      {module.codes.filter(code => code.startsWith('R')).length === 0 && (
-                        <p className="text-xs text-neutral-500 font-body">No risk signals</p>
-                      )}
+                {/* Expanded Section - Scores and R-Codes */}
+                {expandedModule === module.name && (
+                  <div className="border-t border-primary/10">
+                    {/* Risk Score */}
+                    <div className="px-3 py-2 bg-background-dark/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-neutral-500 font-body">Risk Score</span>
+                        <span className={cn('text-sm font-pixel', getRiskColor(module.riskScore))}>
+                          {module.riskScore.toFixed(3)}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* R-Codes (only show risk codes that start with R) */}
+                    {module.codes && module.messages && (
+                      <div className="px-3 pb-2">
+                        <div className="pt-2 space-y-1.5">
+                          {module.codes
+                            .filter(code => code.startsWith('R')) // Only show R-codes (risk codes)
+                            .map((code) => (
+                              <div key={code} className="flex gap-2">
+                                <span className="text-xs text-accent font-mono flex-shrink-0">{code}</span>
+                                <span className="text-xs text-neutral-400 font-body">
+                                  {module.messages![code] || 'Risk signal detected'}
+                                </span>
+                              </div>
+                            ))}
+                          {module.codes.filter(code => code.startsWith('R')).length === 0 && (
+                            <p className="text-xs text-neutral-500 font-body">No risk signals</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -258,14 +345,29 @@ export const CustomerCard: React.FC = () => {
           </div>
         </div>
 
+        {/* KYC Validation - New Component */}
+        {customer.review?.kyc && (
+          <KYCValidationCard customer={customer} />
+        )}
+
+        {/* Address Watchlist - New Component */}
+        {customer.review?.watch_list && (
+          <AddressWatchlistCard customer={customer} />
+        )}
+
         {/* Network Intelligence (Reputation) */}
         <div className="pt-3 border-t border-primary/20">
           <p className="text-xs text-neutral-400 font-body mb-3">Network Intelligence</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             <div className="text-center">
               <p className="text-xs text-neutral-500 font-body mb-1">ACH Fraud</p>
               <p className="text-sm font-pixel text-accent">{reputationInsights.achFraudCount}</p>
               <p className="text-xs text-neutral-600 font-body">${(reputationInsights.achFraudAmount / 100).toFixed(0)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-neutral-500 font-body mb-1">ACH Returns</p>
+              <p className="text-sm font-pixel text-gold">{reputationInsights.achReturnCount}</p>
+              <p className="text-xs text-neutral-600 font-body">${(reputationInsights.achReturnAmount / 100).toFixed(0)}</p>
             </div>
             <div className="text-center">
               <p className="text-xs text-neutral-500 font-body mb-1">Card Fraud</p>

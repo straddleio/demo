@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/components/ui/utils';
-import { useDemoStore, type APILogEntry } from '@/lib/state';
+import { useDemoStore } from '@/lib/state';
 
 /**
  * API Request Log with expandable entries

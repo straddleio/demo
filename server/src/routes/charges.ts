@@ -3,6 +3,7 @@ import straddleClient from '../sdk.js';
 import { stateManager } from '../domain/state.js';
 import { DemoCharge } from '../domain/types.js';
 import { addLogEntry } from '../domain/log-stream.js';
+import { logStraddleCall } from '../domain/logs.js';
 
 const router = Router();
 
@@ -85,6 +86,18 @@ router.post('/', async (req: Request, res: Response) => {
       requestId: req.requestId,
     });
 
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      'charges',
+      'POST',
+      200,
+      duration,
+      chargeData,
+      charge.data
+    );
+
     // Debug: Log the actual charge response
     console.log('Straddle charge response (create):', JSON.stringify(charge, null, 2));
 
@@ -153,6 +166,18 @@ router.get('/:id', async (req: Request, res: Response) => {
       requestId: req.requestId,
     });
 
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `charges/${req.params.id}`,
+      'GET',
+      200,
+      duration,
+      undefined,
+      charge.data
+    );
+
     // Debug: Log the actual charge response
     console.log('Straddle charge response (get):', JSON.stringify(charge, null, 2));
 
@@ -216,6 +241,18 @@ router.post('/:id/cancel', async (req: Request, res: Response) => {
       requestId: req.requestId,
     });
 
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `charges/${req.params.id}/cancel`,
+      'POST',
+      200,
+      duration,
+      undefined,
+      charge.data
+    );
+
     // Straddle wraps response in .data
     res.json(charge.data);
   } catch (error: any) {
@@ -255,6 +292,18 @@ router.post('/:id/hold', async (req: Request, res: Response) => {
       requestId: req.requestId,
     });
 
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `charges/${req.params.id}/hold`,
+      'POST',
+      200,
+      duration,
+      undefined,
+      charge.data
+    );
+
     // Straddle wraps response in .data
     res.json(charge.data);
   } catch (error: any) {
@@ -293,6 +342,18 @@ router.post('/:id/release', async (req: Request, res: Response) => {
       duration,
       requestId: req.requestId,
     });
+
+    // Log Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `charges/${req.params.id}/release`,
+      'POST',
+      200,
+      duration,
+      undefined,
+      charge.data
+    );
 
     // Straddle wraps response in .data
     res.json(charge.data);

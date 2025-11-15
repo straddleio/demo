@@ -27,6 +27,23 @@ export interface TerminalLine {
 }
 
 /**
+ * API Log Entry
+ */
+export interface APILogEntry {
+  requestId: string;
+  correlationId: string;
+  idempotencyKey?: string;
+  method: string;
+  path: string;
+  statusCode: number;
+  duration: number;
+  timestamp: string;
+  straddleEndpoint?: string;
+  requestBody?: any;
+  responseBody?: any;
+}
+
+/**
  * Demo state
  */
 export interface DemoState {
@@ -38,6 +55,9 @@ export interface DemoState {
   // Terminal
   terminalHistory: TerminalLine[];
   isExecuting: boolean;
+
+  // API Logs
+  apiLogs: APILogEntry[];
 
   // SSE Connection
   isConnected: boolean;
@@ -51,6 +71,8 @@ export interface DemoState {
   addTerminalLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => void;
   clearTerminal: () => void;
   setExecuting: (executing: boolean) => void;
+
+  setApiLogs: (logs: APILogEntry[]) => void;
 
   setConnected: (connected: boolean) => void;
   setConnectionError: (error: string | null) => void;
@@ -81,6 +103,7 @@ export const useDemoStore = create<DemoState>((set) => ({
     },
   ],
   isExecuting: false,
+  apiLogs: [],
   isConnected: false,
   connectionError: null,
 
@@ -114,6 +137,7 @@ export const useDemoStore = create<DemoState>((set) => ({
     }),
 
   setExecuting: (isExecuting) => set({ isExecuting }),
+  setApiLogs: (apiLogs) => set({ apiLogs }),
   setConnected: (isConnected) => set({ isConnected }),
   setConnectionError: (connectionError) => set({ connectionError }),
 
@@ -123,6 +147,7 @@ export const useDemoStore = create<DemoState>((set) => ({
       paykey: null,
       charge: null,
       isExecuting: false,
+      apiLogs: [],
       terminalHistory: [
         {
           id: uuid(),

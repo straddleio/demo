@@ -52,6 +52,11 @@ export const NerdIcons = {
   // Location / geo
   pin: '◈',           // U+25C8
   globe: '◉',          // U+25C9 (alternative)
+  mapPin: '📍',       // U+1F4CD - Map pin
+
+  // Security / compliance
+  shield: '🛡',        // U+1F6E1 - Shield
+  calendar: '📅',      // U+1F4C5 - Calendar
 
   // Misc
   star: '★',           // U+2605

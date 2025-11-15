@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { eventBroadcaster } from '../domain/events.js';
 import { stateManager } from '../domain/state.js';
+import { addLogEntry } from '../domain/log-stream.js';
 
 const router = Router();
 
@@ -17,6 +18,15 @@ router.post('/straddle', async (req: Request, res: Response) => {
       event_type: webhookEvent.event_type,
       event_id: webhookEvent.event_id,
       resource_id: webhookEvent.data?.id,
+    });
+
+    // Log webhook to stream (for Logs Tab)
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'webhook',
+      eventType: webhookEvent.event_type,
+      eventId: webhookEvent.event_id,
+      webhookPayload: webhookEvent,
     });
 
     // Broadcast webhook event to connected SSE clients
@@ -53,8 +63,28 @@ router.post('/straddle', async (req: Request, res: Response) => {
         // Update charge state
         const chargeState = stateManager.getState();
         if (chargeState.charge && webhookEvent.data?.id === chargeState.charge.id) {
+          // Build new status history entry from webhook data
+          const newHistoryEntry = {
+            status: webhookEvent.data.status,
+            timestamp: webhookEvent.data.updated_at || new Date().toISOString(),
+            reason: webhookEvent.data.status_details?.reason,
+            source: webhookEvent.data.status_details?.source,
+            message: webhookEvent.data.status_details?.message,
+            changed_at: webhookEvent.data.status_details?.changed_at || webhookEvent.data.updated_at,
+          };
+
+          // Append to status_history if status changed
+          const currentHistory = chargeState.charge.status_history || [];
+          const lastStatus = currentHistory[currentHistory.length - 1]?.status;
+
+          let updatedHistory = currentHistory;
+          if (lastStatus !== webhookEvent.data.status) {
+            updatedHistory = [...currentHistory, newHistoryEntry];
+          }
+
           stateManager.updateCharge({
             status: webhookEvent.data.status,
+            status_history: updatedHistory,
             completed_at: webhookEvent.data.completed_at,
             failure_reason: webhookEvent.data.failure_reason,
           });
