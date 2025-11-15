@@ -12,6 +12,41 @@ export type CommandType =
   | 'demo'
   | 'reset';
 
+interface CommandButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary' | 'utility';
+  disabled?: boolean;
+}
+
+const CommandButton: React.FC<CommandButtonProps> = ({
+  label,
+  onClick,
+  variant = 'primary',
+  disabled = false
+}) => {
+  const variantClasses = {
+    primary: 'bg-primary/20 border-primary text-primary hover:bg-primary/30',
+    secondary: 'bg-secondary/20 border-secondary text-secondary hover:bg-secondary/30',
+    utility: 'bg-gold/20 border-gold text-gold hover:bg-gold/30',
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "w-full px-3 py-2 rounded-pixel border-2",
+        "font-pixel text-xs transition-all duration-200",
+        "hover:shadow-neon-primary disabled:opacity-50 disabled:cursor-not-allowed",
+        variantClasses[variant]
+      )}
+    >
+      {label}
+    </button>
+  );
+};
+
 interface CommandMenuProps {
   onCommandSelect: (command: CommandType) => void;
 }
@@ -20,9 +55,6 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect }) => 
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
-
-  // onCommandSelect will be used in Task 3.2 when command buttons are added
-  void onCommandSelect;
 
   return (
     <>
@@ -66,9 +98,99 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect }) => 
               COMMAND MENU
             </h2>
 
-            {/* Command categories will go here */}
+            {/* Command categories */}
             <div className="space-y-4">
-              {/* Categories added in next task */}
+              {/* CUSTOMERS */}
+              <div>
+                <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">
+                  Customers
+                </h3>
+                <div className="space-y-2">
+                  <CommandButton
+                    label="Create Customer"
+                    onClick={() => {
+                      onCommandSelect('customer-create');
+                      setIsOpen(false);
+                    }}
+                  />
+                  <CommandButton
+                    label="Customer KYC"
+                    onClick={() => {
+                      onCommandSelect('customer-kyc');
+                      setIsOpen(false);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* PAYKEYS */}
+              <div>
+                <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">
+                  Paykeys
+                </h3>
+                <div className="space-y-2">
+                  <CommandButton
+                    label="Plaid Link"
+                    onClick={() => {
+                      onCommandSelect('paykey-plaid');
+                      setIsOpen(false);
+                    }}
+                  />
+                  <CommandButton
+                    label="Bank Account"
+                    onClick={() => {
+                      onCommandSelect('paykey-bank');
+                      setIsOpen(false);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* PAYMENTS */}
+              <div>
+                <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">
+                  Payments
+                </h3>
+                <div className="space-y-2">
+                  <CommandButton
+                    label="Charge"
+                    onClick={() => {
+                      onCommandSelect('charge');
+                      setIsOpen(false);
+                    }}
+                  />
+                  <CommandButton
+                    label="Payout"
+                    onClick={() => {
+                      onCommandSelect('payout');
+                      setIsOpen(false);
+                    }}
+                    disabled
+                  />
+                </div>
+              </div>
+
+              {/* UTILITIES */}
+              <div className="pt-2 border-t border-primary/20">
+                <div className="grid grid-cols-2 gap-2">
+                  <CommandButton
+                    label="DEMO"
+                    onClick={() => {
+                      onCommandSelect('demo');
+                      setIsOpen(false);
+                    }}
+                    variant="utility"
+                  />
+                  <CommandButton
+                    label="RESET"
+                    onClick={() => {
+                      onCommandSelect('reset');
+                      setIsOpen(false);
+                    }}
+                    variant="utility"
+                  />
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
