@@ -121,6 +121,53 @@ Type these in the browser terminal at `localhost:5173`:
 
 ## Straddle SDK Integration
 
+### ⚠️ CRITICAL: Verify API Fields Before Implementation
+
+**NEVER implement code that accesses API fields without first verifying they exist in the source.**
+
+Before adding any new field to `DemoPaykey`, `DemoCustomer`, `DemoCharge`, or any type that maps Straddle API responses:
+
+1. **Check SDK Type Definitions First:**
+   ```bash
+   # Search for the field in SDK types
+   grep -r "field_name" node_modules/@straddlecom/straddle/resources/
+
+   # Example: Verify paykey fields exist
+   cat node_modules/@straddlecom/straddle/resources/paykeys.d.ts
+   ```
+
+2. **Verify in Straddle Documentation:**
+   - API docs: https://docs.straddle.io/
+   - SDK reference: Check TypeScript definitions in `node_modules/@straddlecom/straddle/`
+   - MCP server: https://docs.straddle.com/mcp
+
+3. **NEVER assume fields exist based on:**
+   - Issue descriptions or feature requests
+   - Similar fields in other APIs
+   - Logical assumptions about what "should" be there
+   - Previous versions or documentation that may be outdated
+
+4. **When in doubt:**
+   - Test the actual API response in sandbox
+   - Console.log the full response object to see what's actually returned
+   - Contact Straddle support to confirm field availability
+
+**Example of proper verification:**
+```typescript
+// ❌ WRONG: Assuming ownership.waldo_confidence exists
+const demoPaykey: DemoPaykey = {
+  ownership: paykeyData.ownership ? {
+    waldo_confidence: paykeyData.ownership.waldo_confidence || 'unknown'
+  } : undefined,
+};
+
+// ✅ CORRECT: First verify in SDK types that this field exists
+// grep "ownership" node_modules/@straddlecom/straddle/resources/paykeys.d.ts
+// If it doesn't exist, don't implement it!
+```
+
+**This rule prevents implementing features for non-existent API fields that will always return undefined.**
+
 ### Client Initialization
 
 ```typescript

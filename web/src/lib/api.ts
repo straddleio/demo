@@ -206,7 +206,7 @@ export interface Paykey {
   source?: string; // Source tracking (bank_account, plaid, etc.)
   balance?: {
     status?: string; // Balance fetch status
-    account_balance?: number; // Balance in dollars (not cents)
+    account_balance?: number; // Balance in cents (from Straddle API)
     updated_at?: string; // Last balance update timestamp
   };
   bank_data?: {
