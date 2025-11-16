@@ -150,7 +150,7 @@ router.post('/bank-account', async (req: Request, res: Response) => {
  */
 router.post('/plaid', async (req: Request, res: Response) => {
   try {
-    const { customer_id, plaid_token } = req.body;
+    const { customer_id, plaid_token, outcome } = req.body;
 
     // Validate required fields
     if (!customer_id) {
@@ -168,9 +168,21 @@ router.post('/plaid', async (req: Request, res: Response) => {
       });
     }
 
+    // Validate outcome if provided
+    if (outcome && !['active', 'inactive', 'rejected'].includes(outcome)) {
+      return res.status(400).json({
+        error: `Invalid outcome. Must be one of: active, inactive, rejected`
+      });
+    }
+
     const linkData = {
       customer_id,
       plaid_token: tokenToUse,
+      ...(outcome && {
+        config: {
+          sandbox_outcome: outcome as 'active' | 'inactive' | 'rejected'
+        }
+      })
     };
 
     // Log outbound Straddle request to stream
