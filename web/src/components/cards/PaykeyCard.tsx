@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CommandCard } from '../CommandCard';
 import { cn } from '@/components/ui/utils';
-import { API_BASE_URL } from '@/lib/api';
 
 interface PaykeyCardProps {
   isOpen: boolean;
@@ -45,23 +44,6 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
       customer_id: customerId || '',
     }));
   }, [customerId]);
-
-  // Fetch server config to populate plaid_token default
-  useEffect(() => {
-    if (type === 'plaid' && !formData.plaid_token) {
-      fetch(`${API_BASE_URL}/config`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.plaid_processor_token) {
-            setFormData((prev) => ({
-              ...prev,
-              plaid_token: data.plaid_processor_token,
-            }));
-          }
-        })
-        .catch((err) => console.error('Failed to fetch config:', err));
-    }
-  }, [type, formData.plaid_token]);
 
   const handleSubmit = (outcome: 'active' | 'inactive' | 'rejected') => {
     const payload: PaykeyFormData = {
@@ -123,6 +105,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
                 "rounded text-neutral-200 font-body text-sm",
                 "focus:border-primary focus:outline-none"
               )}
+              placeholder="Leave empty to use server default"
             />
           </div>
         ) : (
