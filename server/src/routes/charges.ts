@@ -33,7 +33,7 @@ function getTodayInDenver(): string {
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { amount, paykey, currency, payment_date, outcome, description } = req.body;
+    const { amount, paykey, currency, payment_date, outcome, description, consent_type } = req.body;
 
     // Validate required fields
     if (!paykey) {
@@ -50,7 +50,7 @@ router.post('/', async (req: Request, res: Response) => {
       currency: currency || 'USD',
       external_id, // Unique identifier for this charge
       description: description || 'Demo charge payment',
-      consent_type: 'internet' as const,
+      consent_type: consent_type || 'internet',
       device: { ip_address: req.ip || '192.168.1.1' },
       payment_date: payment_date || getTodayInDenver(), // Use Denver Mountain Time
       config: {
