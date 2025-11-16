@@ -185,7 +185,7 @@ export const Terminal: React.FC = () => {
    */
   const handlePaykeySubmit = async (
     data: PaykeyFormData,
-    outcome: 'active' | 'inactive' | 'rejected',
+    outcome: 'standard' | 'active' | 'rejected',
     method: 'plaid' | 'bank'
   ) => {
     setExecuting(true);
