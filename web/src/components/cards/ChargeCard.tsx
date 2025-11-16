@@ -142,8 +142,7 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             )}
           >
             <option value="internet">Internet</option>
-            <option value="telephone">Telephone</option>
-            <option value="written">Written</option>
+            <option value="signed">Signed</option>
           </select>
         </div>
       </div>

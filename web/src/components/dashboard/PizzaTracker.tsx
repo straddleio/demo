@@ -50,7 +50,8 @@ export const PizzaTracker: React.FC = () => {
     },
   ];
 
-  // Use real messages from status_history directly (no manual mapping)
+  // Render ALL status_history entries without filtering duplicates
+  // This ensures the complete webhook audit trail is visible
   const statusHistory: StatusHistoryEntry[] = apiHistory;
 
   // Current status is the last entry in the history
