@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { cn } from '@/components/ui/utils';
 import { useDemoStore } from '@/lib/state';
+import { API_BASE_URL } from '@/lib/api';
 
 type LogEntryType = 'straddle-req' | 'straddle-res' | 'webhook';
 
@@ -51,7 +52,7 @@ export const LogsTab: React.FC = () => {
   useEffect(() => {
     const fetchStream = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/log-stream');
+        const response = await fetch(`${API_BASE_URL}/log-stream`);
         if (response.ok) {
           const data = await response.json();
           setLogStream(data);

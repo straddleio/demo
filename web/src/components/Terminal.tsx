@@ -3,6 +3,7 @@ import { RetroHeading } from '@/components/ui/retro-components';
 import { cn } from '@/components/ui/utils';
 import { useDemoStore } from '@/lib/state';
 import { executeCommand, AVAILABLE_COMMANDS } from '@/lib/commands';
+import { API_BASE_URL } from '@/lib/api';
 import { CommandMenu, CommandType } from './CommandMenu';
 import { CustomerCard, CustomerFormData } from './cards/CustomerCard';
 import { PaykeyCard, PaykeyFormData } from './cards/PaykeyCard';
@@ -150,12 +151,12 @@ export const Terminal: React.FC = () => {
     addTerminalLine({ text: `> Creating customer (${outcome})...`, type: 'input' });
 
     try {
-      const response = await fetch('http://localhost:4000/api/customers', {
+      const response = await fetch(`${API_BASE_URL}/customers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          config: { sandbox_outcome: outcome }
+          outcome
         })
       });
 
@@ -184,23 +185,23 @@ export const Terminal: React.FC = () => {
    */
   const handlePaykeySubmit = async (
     data: PaykeyFormData,
-    outcome: 'active' | 'inactive' | 'rejected'
+    outcome: 'active' | 'inactive' | 'rejected',
+    method: 'plaid' | 'bank'
   ) => {
     setExecuting(true);
-    const type = data.plaid_token ? 'plaid' : 'bank';
-    addTerminalLine({ text: `> Creating ${type} paykey (${outcome})...`, type: 'input' });
+    addTerminalLine({ text: `> Creating ${method} paykey (${outcome})...`, type: 'input' });
 
     try {
-      const endpoint = type === 'plaid'
-        ? 'http://localhost:4000/api/bridge/plaid'
-        : 'http://localhost:4000/api/bridge/bank-account';
+      const endpoint = method === 'plaid'
+        ? `${API_BASE_URL}/bridge/plaid`
+        : `${API_BASE_URL}/bridge/bank-account`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          config: { sandbox_outcome: outcome }
+          outcome
         })
       });
 
@@ -235,17 +236,14 @@ export const Terminal: React.FC = () => {
     addTerminalLine({ text: `> Creating charge (${outcome})...`, type: 'input' });
 
     try {
-      const response = await fetch('http://localhost:4000/api/charges', {
+      const response = await fetch(`${API_BASE_URL}/charges`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
           currency: 'USD',
           device: { ip_address: '192.168.1.1' },
-          config: {
-            balance_check: 'enabled',
-            sandbox_outcome: outcome
-          }
+          outcome
         })
       });
 
@@ -334,8 +332,8 @@ export const Terminal: React.FC = () => {
       const paddingLeft = indent * 0.5; // 0.5rem per 2 spaces
 
       // Detect list items
-      const isBullet = /^\s*[•\-\*]\s/.test(line);
-      const isNumbered = /^\s*\d+[\.\)]\s/.test(line);
+      const isBullet = /^\s*[•\-*]\s/.test(line);
+      const isNumbered = /^\s*\d+[.)]\s/.test(line);
 
       // Detect key-value pairs
       const isKeyValue = /^\s*[A-Za-z_][A-Za-z0-9_\s]*:\s/.test(line);
@@ -420,6 +418,7 @@ export const Terminal: React.FC = () => {
         isOpen={selectedCommand === 'customer-create' || selectedCommand === 'customer-kyc'}
         onClose={() => setSelectedCommand(null)}
         onSubmit={handleCustomerSubmit}
+        mode={selectedCommand === 'customer-kyc' ? 'kyc' : 'create'}
       />
       <PaykeyCard
         isOpen={selectedCommand === 'paykey-plaid'}

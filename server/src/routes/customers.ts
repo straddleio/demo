@@ -359,9 +359,35 @@ router.get('/:id/review', async (req: Request, res: Response) => {
     res.json(review.data);
   } catch (error: any) {
     console.error('Error getting customer review:', error);
-    res.status(error.status || 500).json({
+
+    const statusCode = error.status || 500;
+    const errorResponse = {
       error: error.message || 'Failed to get customer review',
+      details: error.error || null,
+    };
+
+    // Log error response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode,
+      responseBody: error.error || errorResponse,
+      requestId: req.requestId,
     });
+
+    // Log failed Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      `customers/${req.params.id}/review`,
+      'GET',
+      statusCode,
+      0, // duration unknown on error
+      undefined,
+      error.error || errorResponse
+    );
+
+    res.status(statusCode).json(errorResponse);
   }
 });
 

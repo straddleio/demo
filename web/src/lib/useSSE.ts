@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDemoStore } from './state';
 import type { Customer, Paykey, Charge } from './api';
+import { API_BASE_URL } from './api';
 
 /**
  * SSE event types from backend
@@ -13,7 +14,9 @@ export interface SSEEvent {
 /**
  * Connect to SSE endpoint for real-time updates
  */
-export function useSSE(url: string = 'http://localhost:3001/api/events/stream') {
+const DEFAULT_SSE_URL = `${API_BASE_URL}/events/stream`;
+
+export function useSSE(url: string = DEFAULT_SSE_URL) {
   const setCustomer = useDemoStore((state) => state.setCustomer);
   const setPaykey = useDemoStore((state) => state.setPaykey);
   const setCharge = useDemoStore((state) => state.setCharge);

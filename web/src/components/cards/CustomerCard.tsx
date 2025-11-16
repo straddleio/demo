@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CommandCard } from '../CommandCard';
 import { cn } from '@/components/ui/utils';
 
@@ -6,6 +6,7 @@ interface CustomerCardProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CustomerFormData, outcome: 'verified' | 'review' | 'rejected') => void;
+  mode?: 'create' | 'kyc'; // 'create' = customer-create, 'kyc' = customer-kyc
 }
 
 export interface CustomerFormData {
@@ -13,13 +14,13 @@ export interface CustomerFormData {
   last_name: string;
   email: string;
   phone: string;
-  address: {
+  address?: {
     address1: string;
     city: string;
     state: string;
     zip: string;
   };
-  compliance_profile: {
+  compliance_profile?: {
     ssn: string;
     dob: string;
   };
@@ -29,27 +30,59 @@ export interface CustomerFormData {
   type: 'individual' | 'business';
 }
 
-export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState<CustomerFormData>({
-    first_name: 'Alberta',
-    last_name: 'Bobbeth Charleson',
-    email: `user.${Date.now()}@example.com`,
-    phone: '+12125550123',
-    address: {
-      address1: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-    },
-    compliance_profile: {
-      ssn: '123-45-6789',
-      dob: '1990-01-01',
-    },
-    device: {
-      ip_address: '192.168.1.1',
-    },
-    type: 'individual',
-  });
+export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onSubmit, mode = 'create' }) => {
+  // Different defaults based on mode
+  const getInitialFormData = (): CustomerFormData => {
+    if (mode === 'kyc') {
+      // Jane Doe with full KYC data (matches /customer-kyc command)
+      return {
+        first_name: 'Jane',
+        last_name: 'Doe',
+        email: `jane.doe.${Date.now()}@example.com`,
+        phone: '+12025551234',
+        address: {
+          address1: '1600 Pennsylvania Avenue NW',
+          city: 'Washington',
+          state: 'DC',
+          zip: '20500',
+        },
+        compliance_profile: {
+          ssn: '123-45-6789',
+          dob: '1990-01-15',
+        },
+        device: {
+          ip_address: '192.168.1.1',
+        },
+        type: 'individual',
+      };
+    } else {
+      // Alberta Bobbeth Charleson (matches /customer-create command)
+      // Simple customer without compliance_profile
+      return {
+        first_name: 'Alberta',
+        last_name: 'Bobbeth Charleson',
+        email: `user.${Date.now()}@example.com`,
+        phone: '+12125550123',
+        address: {
+          address1: '123 Main St',
+          city: 'New York',
+          state: 'NY',
+          zip: '10001',
+        },
+        device: {
+          ip_address: '192.168.1.1',
+        },
+        type: 'individual',
+      };
+    }
+  };
+
+  const [formData, setFormData] = useState<CustomerFormData>(getInitialFormData());
+
+  // Reset form data when mode changes
+  useEffect(() => {
+    setFormData(getInitialFormData());
+  }, [mode]);
 
   const handleSubmit = (outcome: 'verified' | 'review' | 'rejected') => {
     onSubmit(formData, outcome);
@@ -136,7 +169,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onS
           <label className="block text-xs font-pixel text-primary mb-1">Address</label>
           <input
             type="text"
-            value={formData.address.address1}
+            value={formData.address?.address1 || ''}
             onChange={(e) => updateNestedField('address', 'address1', e.target.value)}
             className={cn(
               "w-full px-2 py-1 bg-background-dark border border-primary/30",
@@ -148,7 +181,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onS
           <div className="grid grid-cols-3 gap-2">
             <input
               type="text"
-              value={formData.address.city}
+              value={formData.address?.city || ''}
               onChange={(e) => updateNestedField('address', 'city', e.target.value)}
               className={cn(
                 "w-full px-2 py-1 bg-background-dark border border-primary/30",
@@ -159,7 +192,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onS
             />
             <input
               type="text"
-              value={formData.address.state}
+              value={formData.address?.state || ''}
               onChange={(e) => updateNestedField('address', 'state', e.target.value)}
               className={cn(
                 "w-full px-2 py-1 bg-background-dark border border-primary/30",
@@ -170,7 +203,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onS
             />
             <input
               type="text"
-              value={formData.address.zip}
+              value={formData.address?.zip || ''}
               onChange={(e) => updateNestedField('address', 'zip', e.target.value)}
               className={cn(
                 "w-full px-2 py-1 bg-background-dark border border-primary/30",
@@ -182,35 +215,40 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({ isOpen, onClose, onS
           </div>
         </div>
 
-        {/* SSN */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-1">SSN</label>
-          <input
-            type="text"
-            value={formData.compliance_profile.ssn}
-            onChange={(e) => updateNestedField('compliance_profile', 'ssn', e.target.value)}
-            className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
-            )}
-          />
-        </div>
+        {/* KYC Fields - Only show in KYC mode */}
+        {mode === 'kyc' && (
+          <>
+            {/* SSN */}
+            <div>
+              <label className="block text-xs font-pixel text-primary mb-1">SSN</label>
+              <input
+                type="text"
+                value={formData.compliance_profile?.ssn || ''}
+                onChange={(e) => updateNestedField('compliance_profile', 'ssn', e.target.value)}
+                className={cn(
+                  "w-full px-2 py-1 bg-background-dark border border-primary/30",
+                  "rounded text-neutral-200 font-body text-sm",
+                  "focus:border-primary focus:outline-none"
+                )}
+              />
+            </div>
 
-        {/* DOB */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-1">Date of Birth</label>
-          <input
-            type="date"
-            value={formData.compliance_profile.dob}
-            onChange={(e) => updateNestedField('compliance_profile', 'dob', e.target.value)}
-            className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
-            )}
-          />
-        </div>
+            {/* DOB */}
+            <div>
+              <label className="block text-xs font-pixel text-primary mb-1">Date of Birth</label>
+              <input
+                type="date"
+                value={formData.compliance_profile?.dob || ''}
+                onChange={(e) => updateNestedField('compliance_profile', 'dob', e.target.value)}
+                className={cn(
+                  "w-full px-2 py-1 bg-background-dark border border-primary/30",
+                  "rounded text-neutral-200 font-body text-sm",
+                  "focus:border-primary focus:outline-none"
+                )}
+              />
+            </div>
+          </>
+        )}
 
         {/* IP Address */}
         <div>

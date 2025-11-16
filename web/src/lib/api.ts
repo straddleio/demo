@@ -1,15 +1,21 @@
 /**
  * HTTP Client for Straddle Demo Backend
- * Calls backend API at http://localhost:3001/api/*
+ * Calls backend API at `${API_BASE_URL}/api/*` where API_BASE_URL can be configured via env.
  */
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+export const API_BASE_URL = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
+
+function buildApiUrl(endpoint: string): string {
+  const normalized = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE_URL}${normalized}`;
+}
 
 /**
  * Generic fetch wrapper with error handling
  */
 async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = buildApiUrl(endpoint);
 
   try {
     const response = await fetch(url, {

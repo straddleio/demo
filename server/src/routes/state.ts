@@ -4,6 +4,7 @@ import { getRequestLogs, clearRequestLogs } from '../domain/logs.js';
 import { getLogStream, clearLogStream } from '../domain/log-stream.js';
 import { eventBroadcaster } from '../domain/events.js';
 import { v4 as uuidv4 } from 'uuid';
+import { config } from '../config.js';
 
 const router = Router();
 
@@ -100,6 +101,17 @@ router.get('/outcomes', (_req: Request, res: Response) => {
       'on_hold_daily_limit',
       'cancelled_for_fraud_risk',
     ],
+  });
+});
+
+/**
+ * GET /api/config
+ * Get public server config values (safe to expose to frontend)
+ */
+router.get('/config', (_req: Request, res: Response) => {
+  res.json({
+    plaid_processor_token: config.plaid.processorToken,
+    environment: config.straddle.environment,
   });
 });
 

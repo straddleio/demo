@@ -2,14 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
 // Extend Express Request type to include tracing IDs
-declare global {
-  namespace Express {
-    interface Request {
-      requestId: string;
-      correlationId: string;
-      idempotencyKey?: string;
-      startTime: number;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    requestId: string;
+    correlationId: string;
+    idempotencyKey?: string;
+    startTime: number;
   }
 }
 

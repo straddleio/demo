@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/components/ui/utils';
 import { useDemoStore } from '@/lib/state';
+import { API_BASE_URL } from '@/lib/api';
 
 /**
  * API Request Log with expandable entries
@@ -44,13 +45,13 @@ export const APILog: React.FC = () => {
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [apiLogs.length, autoExpandTimeout]); // Only trigger on new logs
+  }, [apiLogs.length]); // Only trigger on new logs
 
   // Fetch logs from backend on mount and periodically
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/logs');
+        const response = await fetch(`${API_BASE_URL}/logs`);
         if (response.ok) {
           const logs = await response.json();
           setApiLogs(logs);

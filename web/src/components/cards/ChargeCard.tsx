@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CommandCard } from '../CommandCard';
 import { cn } from '@/components/ui/utils';
 
@@ -39,6 +39,13 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
     payment_date: today,
     consent_type: 'internet',
   });
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      paykey: paykeyToken || '',
+    }));
+  }, [paykeyToken]);
 
   const handleSubmit = (outcome: ChargeOutcome) => {
     onSubmit(formData, outcome);

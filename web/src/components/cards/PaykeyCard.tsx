@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CommandCard } from '../CommandCard';
 import { cn } from '@/components/ui/utils';
+import { API_BASE_URL } from '@/lib/api';
 
 interface PaykeyCardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: PaykeyFormData, outcome: 'active' | 'inactive' | 'rejected') => void;
+  onSubmit: (data: PaykeyFormData, outcome: 'active' | 'inactive' | 'rejected', type: 'plaid' | 'bank') => void;
   type: 'plaid' | 'bank';
   customerId?: string;
 }
@@ -27,16 +28,52 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
   type,
   customerId
 }) => {
-  const [formData, setFormData] = useState<PaykeyFormData>({
+  const [formData, setFormData] = useState<PaykeyFormData>(() => ({
     customer_id: customerId || '',
-    plaid_token: 'test_plaid_token_sandbox',
-    account_number: '123456789',
-    routing_number: '021000021',
-    account_type: 'checking',
-  });
+    ...(type === 'plaid'
+      ? { plaid_token: '' } // Empty - will use server's PLAID_PROCESSOR_TOKEN env var
+      : {
+          account_number: '123456789',
+          routing_number: '021000021',
+          account_type: 'checking',
+        })
+  }));
+
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      customer_id: customerId || '',
+    }));
+  }, [customerId]);
+
+  // Fetch server config to populate plaid_token default
+  useEffect(() => {
+    if (type === 'plaid' && !formData.plaid_token) {
+      fetch(`${API_BASE_URL}/config`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.plaid_processor_token) {
+            setFormData((prev) => ({
+              ...prev,
+              plaid_token: data.plaid_processor_token,
+            }));
+          }
+        })
+        .catch((err) => console.error('Failed to fetch config:', err));
+    }
+  }, [type, formData.plaid_token]);
 
   const handleSubmit = (outcome: 'active' | 'inactive' | 'rejected') => {
-    onSubmit(formData, outcome);
+    const payload: PaykeyFormData = {
+      ...formData,
+      customer_id: formData.customer_id || customerId || '',
+    };
+
+    if (type === 'bank') {
+      delete (payload as any).plaid_token;
+    }
+
+    onSubmit(payload, outcome, type);
     onClose();
   };
 

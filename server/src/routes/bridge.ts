@@ -103,10 +103,35 @@ router.post('/bank-account', async (req: Request, res: Response) => {
     return res.status(201).json(demoPaykey);
   } catch (error: any) {
     console.error('Error linking bank account:', error);
-    return res.status(error.status || 500).json({
+
+    const statusCode = error.status || 500;
+    const errorResponse = {
       error: error.message || 'Failed to link bank account',
       details: error.error || null,
+    };
+
+    // Log error response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode,
+      responseBody: error.error || errorResponse,
+      requestId: req.requestId,
     });
+
+    // Log failed Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      'bridge/link/bank-account',
+      'POST',
+      statusCode,
+      0, // duration unknown on error
+      req.body,
+      error.error || errorResponse
+    );
+
+    return res.status(statusCode).json(errorResponse);
   }
 });
 
@@ -210,10 +235,35 @@ router.post('/plaid', async (req: Request, res: Response) => {
     return res.status(201).json(demoPaykey);
   } catch (error: any) {
     console.error('Error linking via Plaid:', error);
-    return res.status(error.status || 500).json({
+
+    const statusCode = error.status || 500;
+    const errorResponse = {
       error: error.message || 'Failed to link via Plaid',
       details: error.error || null,
+    };
+
+    // Log error response to stream
+    addLogEntry({
+      timestamp: new Date().toISOString(),
+      type: 'straddle-res',
+      statusCode,
+      responseBody: error.error || errorResponse,
+      requestId: req.requestId,
     });
+
+    // Log failed Straddle API call (Terminal API Log Panel)
+    logStraddleCall(
+      req.requestId,
+      req.correlationId,
+      'bridge/link/plaid',
+      'POST',
+      statusCode,
+      0, // duration unknown on error
+      req.body,
+      error.error || errorResponse
+    );
+
+    return res.status(statusCode).json(errorResponse);
   }
 });
 
