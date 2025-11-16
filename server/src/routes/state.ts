@@ -107,10 +107,12 @@ router.get('/outcomes', (_req: Request, res: Response) => {
 /**
  * GET /api/config
  * Get public server config values (safe to expose to frontend)
+ *
+ * SECURITY NOTE: Never add sensitive values here (API keys, tokens, secrets).
+ * Those should use server-side fallback logic in route handlers.
  */
 router.get('/config', (_req: Request, res: Response) => {
   res.json({
-    plaid_processor_token: config.plaid.processorToken,
     environment: config.straddle.environment,
   });
 });

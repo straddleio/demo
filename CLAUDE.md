@@ -232,6 +232,10 @@ All API calls automatically include (via `server/src/middleware/tracing.ts`):
 **Cause:** Missing `.js` extensions (ESM requirement)
 **Fix:** Server imports must include `.js`: `import { x } from './file.js'`
 
+### "plaid_token must be provided or PLAID_PROCESSOR_TOKEN must be set"
+**Cause:** Neither custom token provided nor env var configured
+**Fix:** Either set `PLAID_PROCESSOR_TOKEN` in `server/.env` or provide token in PaykeyCard form
+
 ## File Structure Reference
 
 ```
@@ -294,6 +298,7 @@ web/src/
 
 **State:**
 - `GET /api/state` - Current demo state
+- `GET /api/config` - Public config (environment only, no secrets)
 - `GET /api/logs` - Request log for UI
 - `POST /api/reset` - Clear state
 - `GET /api/events/stream` - SSE endpoint
@@ -317,6 +322,7 @@ web/src/
 ## Security Notes
 
 - **API keys ONLY in server environment** - never in frontend or `VITE_` variables
+- **Sensitive config kept server-side** - /api/config endpoint only exposes non-sensitive values (environment name, etc.). Secrets like PLAID_PROCESSOR_TOKEN use server-side fallback logic
 - **No logging of sensitive data** - tokens, account numbers are redacted in logs
 - **Input validation** - all terminal commands validate before API calls
 - **CORS configured** - only allow specified origin
