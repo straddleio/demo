@@ -110,7 +110,6 @@ router.get('/outcomes', (_req: Request, res: Response) => {
  */
 router.get('/config', (_req: Request, res: Response) => {
   res.json({
-    plaid_processor_token: config.plaid.processorToken,
     environment: config.straddle.environment,
   });
 });
