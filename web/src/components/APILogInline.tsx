@@ -136,7 +136,7 @@ export const APILogInline: React.FC<APILogInlineProps> = ({ entry }) => {
             {/* Request */}
             <div>
               <div className="text-neutral-500 font-pixel mb-1 text-[9px]">Request</div>
-              <pre className="p-2 bg-background-dark border border-primary/20 rounded font-mono overflow-x-auto scrollbar-retro max-h-48 text-[10px] leading-relaxed">
+              <pre className="p-2 bg-background-dark border border-primary/20 rounded font-mono overflow-x-auto scrollbar-retro text-[10px] leading-relaxed">
                 <code>{highlightJSON(formatJSON(entry.requestBody))}</code>
               </pre>
             </div>
@@ -144,7 +144,7 @@ export const APILogInline: React.FC<APILogInlineProps> = ({ entry }) => {
             {/* Response */}
             <div>
               <div className="text-neutral-500 font-pixel mb-1 text-[9px]">Response</div>
-              <pre className="p-2 bg-background-dark border border-secondary/20 rounded font-mono overflow-x-auto scrollbar-retro max-h-48 text-[10px] leading-relaxed">
+              <pre className="p-2 bg-background-dark border border-secondary/20 rounded font-mono overflow-x-auto scrollbar-retro text-[10px] leading-relaxed">
                 <code>{highlightJSON(formatJSON(entry.responseBody))}</code>
               </pre>
             </div>

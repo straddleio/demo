@@ -42,6 +42,7 @@ export const Terminal: React.FC = () => {
   const customer = useDemoStore((state) => state.customer);
   const paykey = useDemoStore((state) => state.paykey);
   const apiLogs = useDemoStore((state) => state.apiLogs);
+  const associateAPILogsWithCommand = useDemoStore((state) => state.associateAPILogsWithCommand);
 
   // Auto-scroll to bottom when new lines added
   useEffect(() => {
@@ -50,43 +51,41 @@ export const Terminal: React.FC = () => {
     }
   }, [terminalHistory]);
 
+  // Track the last command ID for associating API logs
+  const [lastCommandId, setLastCommandId] = useState<string | null>(null);
+
   // Associate API logs with terminal lines
   useEffect(() => {
-    if (apiLogs.length === 0) {
+    if (apiLogs.length === 0 || !lastCommandId) {
       return;
     }
 
-    // Find the most recent input line and attach any new API logs
-    let lastInputIndex = -1;
-    for (let i = terminalHistory.length - 1; i >= 0; i--) {
-      if (terminalHistory[i].type === 'input') {
-        lastInputIndex = i;
-        break;
-      }
-    }
-    if (lastInputIndex === -1) {
+    // Find the terminal line with this command ID
+    const commandLine = terminalHistory.find((line) => line.id === lastCommandId);
+    if (!commandLine) {
       return;
     }
 
-    const lastInputLine = terminalHistory[lastInputIndex];
-
-    // Get API logs that occurred after this command (within last 5 seconds)
-    const commandTime = lastInputLine.timestamp.getTime();
+    // Get API logs that occurred after this command (within last 10 seconds)
+    const commandTime = commandLine.timestamp.getTime();
     const relevantLogs = apiLogs.filter((log) => {
       const logTime = new Date(log.timestamp).getTime();
-      return logTime >= commandTime && logTime < commandTime + 5000;
+      return logTime >= commandTime && logTime < commandTime + 10000;
     });
 
-    if (relevantLogs.length > 0 && !lastInputLine.apiLogs) {
-      // Update the terminal line to include these logs
-      const updatedHistory = [...terminalHistory];
-      updatedHistory[lastInputIndex] = {
-        ...lastInputLine,
-        apiLogs: relevantLogs,
-      };
-      // Note: This will require a new state setter - see next step
+    if (
+      relevantLogs.length > 0 &&
+      (!commandLine.apiLogs || commandLine.apiLogs.length < relevantLogs.length)
+    ) {
+      // Only new logs that aren't already associated
+      const existingLogIds = new Set((commandLine.apiLogs || []).map((log) => log.requestId));
+      const newLogs = relevantLogs.filter((log) => !existingLogIds.has(log.requestId));
+
+      if (newLogs.length > 0) {
+        associateAPILogsWithCommand(lastCommandId, newLogs);
+      }
     }
-  }, [apiLogs, terminalHistory]);
+  }, [apiLogs, lastCommandId, terminalHistory, associateAPILogsWithCommand]);
 
   /**
    * Handle command submission
@@ -104,8 +103,9 @@ export const Terminal: React.FC = () => {
       setCommandHistory((prev) => [...prev, command]);
       setHistoryIndex(-1);
 
-      // Add input line to terminal
-      addTerminalLine({ text: `> ${command}`, type: 'input' });
+      // Add input line to terminal and track the command ID
+      const commandId = addTerminalLine({ text: `> ${command}`, type: 'input' });
+      setLastCommandId(commandId);
       setInput('');
       setExecuting(true);
 
@@ -214,7 +214,11 @@ export const Terminal: React.FC = () => {
   ): void => {
     void (async (): Promise<void> => {
       setExecuting(true);
-      addTerminalLine({ text: `> Creating customer (${outcome})...`, type: 'input' });
+      const commandId = addTerminalLine({
+        text: `> Creating customer (${outcome})...`,
+        type: 'input',
+      });
+      setLastCommandId(commandId);
 
       try {
         const response = await fetch(`${API_BASE_URL}/customers`, {
@@ -262,7 +266,11 @@ export const Terminal: React.FC = () => {
   ): void => {
     void (async (): Promise<void> => {
       setExecuting(true);
-      addTerminalLine({ text: `> Creating ${method} paykey (${outcome})...`, type: 'input' });
+      const commandId = addTerminalLine({
+        text: `> Creating ${method} paykey (${outcome})...`,
+        type: 'input',
+      });
+      setLastCommandId(commandId);
 
       try {
         const endpoint =
@@ -311,7 +319,11 @@ export const Terminal: React.FC = () => {
   const handleChargeSubmit = (data: ChargeFormData, outcome: ChargeOutcome): void => {
     void (async (): Promise<void> => {
       setExecuting(true);
-      addTerminalLine({ text: `> Creating charge (${outcome})...`, type: 'input' });
+      const commandId = addTerminalLine({
+        text: `> Creating charge (${outcome})...`,
+        type: 'input',
+      });
+      setLastCommandId(commandId);
 
       try {
         const response = await fetch(`${API_BASE_URL}/charges`, {
@@ -357,7 +369,8 @@ export const Terminal: React.FC = () => {
   const handleDemoExecute = (): void => {
     void (async (): Promise<void> => {
       setSelectedCommand(null);
-      addTerminalLine({ text: '> /demo', type: 'input' });
+      const commandId = addTerminalLine({ text: '> /demo', type: 'input' });
+      setLastCommandId(commandId);
       setExecuting(true);
 
       try {
@@ -385,7 +398,8 @@ export const Terminal: React.FC = () => {
   const handleResetExecute = (): void => {
     void (async (): Promise<void> => {
       setSelectedCommand(null);
-      addTerminalLine({ text: '> /reset', type: 'input' });
+      const commandId = addTerminalLine({ text: '> /reset', type: 'input' });
+      setLastCommandId(commandId);
       setExecuting(true);
 
       try {
@@ -489,8 +503,8 @@ export const Terminal: React.FC = () => {
         {/* Inline API Logs */}
         {line.apiLogs && line.apiLogs.length > 0 && (
           <div className="ml-2 my-1.5 space-y-1">
-            {line.apiLogs.map((log) => (
-              <APILogInline key={log.requestId} entry={log} />
+            {line.apiLogs.map((log, index) => (
+              <APILogInline key={`${log.requestId}-${index}`} entry={log} />
             ))}
           </div>
         )}
@@ -574,7 +588,6 @@ export const Terminal: React.FC = () => {
       <CommandMenu
         onCommandSelect={(cmd) => {
           handleMenuCommand(cmd);
-          setIsMenuOpen(false);
         }}
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
