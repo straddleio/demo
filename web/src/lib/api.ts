@@ -204,10 +204,80 @@ export async function unmaskCustomer(customerId: string): Promise<UnmaskedCustom
 /**
  * Paykey/Bridge API
  */
+
+/**
+ * Paykey Review response structure
+ * Matches backend PaykeyReview type and Straddle SDK v0.3.0
+ */
+export interface PaykeyReview {
+  paykey_details: {
+    id: string;
+    config: {
+      processing_method?: 'inline' | 'background' | 'skip';
+      sandbox_outcome?: 'standard' | 'active' | 'rejected' | 'review';
+    };
+    created_at: string;
+    label: string;
+    paykey: string;
+    source: 'bank_account' | 'straddle' | 'mx' | 'plaid' | 'tan' | 'quiltt';
+    status: 'pending' | 'active' | 'inactive' | 'rejected' | 'review';
+    updated_at: string;
+    balance?: {
+      status: 'pending' | 'completed' | 'failed';
+      account_balance?: number | null;
+      updated_at?: string | null;
+    };
+    bank_data?: {
+      account_number: string;
+      account_type: 'checking' | 'savings';
+      routing_number: string;
+    };
+    customer_id?: string | null;
+    expires_at?: string | null;
+    external_id?: string | null;
+    institution_name?: string | null;
+    metadata?: {
+      [key: string]: string;
+    } | null;
+    status_details?: {
+      changed_at: string;
+      message: string;
+      reason: 'insufficient_funds' | 'closed_bank_account' | 'invalid_bank_account' | 'invalid_routing' | 'disputed' | 'payment_stopped' | 'owner_deceased' | 'frozen_bank_account' | 'risk_review' | 'fraudulent' | 'duplicate_entry' | 'invalid_paykey' | 'payment_blocked' | 'amount_too_large' | 'too_many_attempts' | 'internal_system_error' | 'user_request' | 'ok' | 'other_network_return' | 'payout_refused';
+      source: 'watchtower' | 'bank_decline' | 'customer_dispute' | 'user_action' | 'system';
+      code?: string | null;
+    };
+  };
+  verification_details?: {
+    id: string;
+    breakdown: {
+      account_validation?: {
+        codes: string[];
+        decision: 'unknown' | 'accept' | 'reject' | 'review';
+        reason?: string | null;
+      };
+      name_match?: {
+        codes: string[];
+        decision: 'unknown' | 'accept' | 'reject' | 'review';
+        correlation_score?: number | null;
+        customer_name?: string | null;
+        matched_name?: string | null;
+        names_on_account?: string[] | null;
+        reason?: string | null;
+      };
+    };
+    created_at: string;
+    decision: 'unknown' | 'accept' | 'reject' | 'review';
+    messages: {
+      [key: string]: string;
+    };
+    updated_at: string;
+  };
+}
+
 export interface CreatePaykeyRequest {
   customer_id: string;
   method: 'plaid' | 'bank_account';
-  outcome?: 'standard' | 'active' | 'rejected';
+  outcome?: 'standard' | 'active' | 'review' | 'rejected';
 }
 
 export interface Paykey {
@@ -231,6 +301,7 @@ export interface Paykey {
   created_at?: string;
   updated_at?: string;
   ownership_verified?: boolean;
+  review?: PaykeyReview; // Paykey review details
   // Legacy fields for backward compatibility
   account_type?: string; // Deprecated: use bank_data.account_type
   last4?: string; // Deprecated: extract from bank_data.account_number
@@ -253,6 +324,30 @@ export async function createPaykey(data: CreatePaykeyRequest): Promise<Paykey> {
 
 export async function getPaykey(paykeyId: string): Promise<Paykey> {
   return apiFetch<Paykey>(`/paykeys/${paykeyId}`);
+}
+
+/**
+ * Get paykey review details
+ */
+export async function getPaykeyReview(paykeyId: string): Promise<PaykeyReview> {
+  return apiFetch<PaykeyReview>(`/paykeys/${paykeyId}/review`);
+}
+
+/**
+ * Update paykey review decision
+ */
+export interface UpdatePaykeyReviewRequest {
+  decision: 'approved' | 'rejected';
+}
+
+export async function updatePaykeyReview(
+  paykeyId: string,
+  data: UpdatePaykeyReviewRequest
+): Promise<PaykeyReview> {
+  return apiFetch<PaykeyReview>(`/paykeys/${paykeyId}/review`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
 }
 
 /**

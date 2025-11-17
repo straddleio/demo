@@ -96,6 +96,8 @@ Type these in the browser terminal at `localhost:5173`:
 | `/customer-create` (or `/create-customer`) | Create verified customer | `/customer-create --outcome verified` |
 | `/customer-KYC` | Create customer with full KYC data | `/customer-KYC` |
 | `/create-paykey` | Link bank account | `/create-paykey bank --outcome active` |
+| `/paykey-review` | Show review details for current paykey | `/paykey-review` |
+| `/paykey-decision` | Approve/reject paykey in review | `/paykey-decision approve` |
 | `/create-charge` | Create payment | `/create-charge --amount 5000 --outcome paid` |
 | `/outcomes` | Show available sandbox outcomes | `/outcomes` |
 | `/info` | Show current state (IDs) | `/info` |
@@ -121,6 +123,17 @@ Type these in the browser terminal at `localhost:5173`:
 - SSE updates handled automatically via `useSSE` hook
 
 ## Straddle SDK Integration
+
+### SDK Version
+
+Currently using `@straddlecom/straddle` v0.3.0 which includes:
+- Paykey review endpoints (`GET /paykeys/:id/review`, `PATCH /paykeys/:id/review`)
+- Verification details with account_validation and name_match breakdowns
+- Review status for paykeys requiring manual approval
+
+**New Fields in Paykey Review:**
+- `verification_details.breakdown.account_validation` - Account validation codes, decision, reason
+- `verification_details.breakdown.name_match` - Name correlation score, customer/matched names, names on account
 
 ### ⚠️ CRITICAL: Verify API Fields Before Implementation
 
@@ -248,7 +261,7 @@ Control deterministic behavior with `config.sandbox_outcome`:
 | Resource | Outcomes |
 |----------|----------|
 | **Customers** | `standard`, `verified`, `review`, `rejected` |
-| **Paykeys** | `standard`, `active`, `rejected` |
+| **Paykeys** | `standard`, `active`, `review`, `rejected` |
 | **Charges** | `standard`, `paid`, `on_hold_daily_limit`, `cancelled_for_fraud_risk`, `cancelled_for_balance_check`, `failed_insufficient_funds`, `failed_customer_dispute`, `failed_closed_bank_account`, `reversed_insufficient_funds`, `reversed_customer_dispute`, `reversed_closed_bank_account` |
 
 **Note:** The `inactive` outcome for paykeys has been removed as it is not supported by the Straddle API.

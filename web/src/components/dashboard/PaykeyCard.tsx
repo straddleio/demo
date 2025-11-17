@@ -56,6 +56,7 @@ export const PaykeyCard: React.FC = () => {
     inactive: 'secondary',
     rejected: 'accent',
     pending: 'gold',
+    review: 'gold',
   } as const;
 
   const statusColor = statusColors[paykey.status as keyof typeof statusColors] || 'secondary';

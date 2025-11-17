@@ -19,6 +19,8 @@ export const AVAILABLE_COMMANDS = [
   '/create-customer',
   '/customer-KYC',
   '/create-paykey',
+  '/paykey-decision',
+  '/paykey-review',
   '/create-charge',
   '/demo',
   '/info',
@@ -56,6 +58,10 @@ export async function executeCommand(input: string): Promise<CommandResult> {
       return handleCustomerKYC();
     case 'create-paykey':
       return handleCreatePaykey(args);
+    case 'paykey-decision':
+      return handlePaykeyDecision(args);
+    case 'paykey-review':
+      return handlePaykeyReview();
     case 'create-charge':
       return handleCreateCharge(args);
     case 'demo':
@@ -92,7 +98,13 @@ Available Commands:
 
 - /create-paykey [plaid|bank]
   Link a bank account (requires customer first)
-  Options: --outcome standard|active|rejected
+  Options: --outcome standard|active|review|rejected
+
+- /paykey-decision [approve|reject]
+  Approve or reject paykey in review
+
+- /paykey-review
+  Show review details for current paykey
 
 - /create-charge
   Create a payment (requires paykey first)
@@ -329,6 +341,124 @@ async function handleCreateCharge(args: string[]): Promise<CommandResult> {
     return {
       success: false,
       message: `✗ Failed to create charge: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
+}
+
+/**
+ * /paykey-decision - Approve or reject paykey in review
+ */
+async function handlePaykeyDecision(args: string[]): Promise<CommandResult> {
+  const decision = args.find(a => a === 'approve' || a === 'reject');
+
+  if (!decision) {
+    return {
+      success: false,
+      message: 'Usage: /paykey-decision [approve|reject]',
+    };
+  }
+
+  const { paykey } = useDemoStore.getState();
+  if (!paykey?.id) {
+    return {
+      success: false,
+      message: 'Error: No paykey found. Create a paykey first with /create-paykey',
+    };
+  }
+
+  if (paykey.status !== 'review') {
+    return {
+      success: false,
+      message: `Error: Paykey status is "${paykey.status}", not "review". Only paykeys in review can be approved/rejected.`,
+    };
+  }
+
+  try {
+    const decisionValue = decision === 'approve' ? 'approved' : 'rejected';
+    await api.updatePaykeyReview(paykey.id, { decision: decisionValue });
+
+    // Fetch updated paykey to get new status
+    const updatedPaykey = await api.getPaykey(paykey.id);
+
+    // Update state with new paykey data
+    useDemoStore.getState().setPaykey(updatedPaykey);
+
+    return {
+      success: true,
+      message: `Paykey review ${decisionValue}. Status: ${updatedPaykey.status}`,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: `Failed to update paykey review: ${error.message}`,
+    };
+  }
+}
+
+/**
+ * /paykey-review - Show review details for current paykey
+ */
+async function handlePaykeyReview(): Promise<CommandResult> {
+  const { paykey } = useDemoStore.getState();
+  if (!paykey?.id) {
+    return {
+      success: false,
+      message: 'Error: No paykey found. Create a paykey first with /create-paykey',
+    };
+  }
+
+  if (paykey.status !== 'review') {
+    return {
+      success: false,
+      message: `Error: Paykey status is "${paykey.status}", not "review". Only paykeys in review have review details.`,
+    };
+  }
+
+  try {
+    const reviewDetails = await api.getPaykeyReview(paykey.id);
+
+    // Log to console for inspection
+    console.log('Paykey Review Details:', reviewDetails);
+
+    // Build readable message from review data
+    const msgs: string[] = ['Paykey Review Details:'];
+
+    if (reviewDetails.verification_details?.decision) {
+      msgs.push(`Decision: ${reviewDetails.verification_details.decision}`);
+    }
+
+    if (reviewDetails.verification_details?.breakdown) {
+      const { account_validation, name_match } = reviewDetails.verification_details.breakdown;
+
+      if (account_validation) {
+        msgs.push(`Account Validation: ${account_validation.decision || 'N/A'}`);
+        if (account_validation.reason) {
+          msgs.push(`  Reason: ${account_validation.reason}`);
+        }
+      }
+
+      if (name_match) {
+        msgs.push(`Name Match: ${name_match.decision || 'N/A'}`);
+        if (name_match.correlation_score !== undefined) {
+          msgs.push(`  Correlation Score: ${name_match.correlation_score}`);
+        }
+        if (name_match.customer_name && name_match.matched_name) {
+          msgs.push(`  Customer: ${name_match.customer_name}`);
+          msgs.push(`  Matched: ${name_match.matched_name}`);
+        }
+      }
+    }
+
+    msgs.push('(See browser console for full details)');
+
+    return {
+      success: true,
+      message: msgs.join('\n'),
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: `Failed to get paykey review: ${error.message}`,
     };
   }
 }

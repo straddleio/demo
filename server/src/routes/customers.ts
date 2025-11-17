@@ -537,7 +537,7 @@ router.post('/:id/refresh-review', async (req: Request, res: Response) => {
     });
 
     const startTime = Date.now();
-    const customer = await straddleClient.customers.refreshReview(req.params.id);
+    const customer = await straddleClient.customers.review.refreshReview(req.params.id);
     const duration = Date.now() - startTime;
 
     // Log inbound Straddle response to stream

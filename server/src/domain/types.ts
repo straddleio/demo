@@ -225,6 +225,77 @@ export interface DemoPaykey {
   updated_at?: string; // Last update timestamp
   // Legacy fields for backward compatibility
   ownership_verified?: boolean;
+  review?: PaykeyReview; // Paykey review details
+}
+
+/**
+ * Paykey Review response structure
+ * Matches Straddle SDK v0.3.0 ReviewGetResponse.Data structure
+ * @see node_modules/@straddlecom/straddle/resources/paykeys/review.d.ts
+ */
+export interface PaykeyReview {
+  paykey_details: {
+    id: string;
+    config: {
+      processing_method?: 'inline' | 'background' | 'skip';
+      sandbox_outcome?: 'standard' | 'active' | 'rejected' | 'review';
+    };
+    created_at: string;
+    label: string;
+    paykey: string;
+    source: 'bank_account' | 'straddle' | 'mx' | 'plaid' | 'tan' | 'quiltt';
+    status: 'pending' | 'active' | 'inactive' | 'rejected' | 'review';
+    updated_at: string;
+    balance?: {
+      status: 'pending' | 'completed' | 'failed';
+      account_balance?: number | null;
+      updated_at?: string | null;
+    };
+    bank_data?: {
+      account_number: string;
+      account_type: 'checking' | 'savings';
+      routing_number: string;
+    };
+    customer_id?: string | null;
+    expires_at?: string | null;
+    external_id?: string | null;
+    institution_name?: string | null;
+    metadata?: {
+      [key: string]: string;
+    } | null;
+    status_details?: {
+      changed_at: string;
+      message: string;
+      reason: 'insufficient_funds' | 'closed_bank_account' | 'invalid_bank_account' | 'invalid_routing' | 'disputed' | 'payment_stopped' | 'owner_deceased' | 'frozen_bank_account' | 'risk_review' | 'fraudulent' | 'duplicate_entry' | 'invalid_paykey' | 'payment_blocked' | 'amount_too_large' | 'too_many_attempts' | 'internal_system_error' | 'user_request' | 'ok' | 'other_network_return' | 'payout_refused';
+      source: 'watchtower' | 'bank_decline' | 'customer_dispute' | 'user_action' | 'system';
+      code?: string | null;
+    };
+  };
+  verification_details?: {
+    id: string;
+    breakdown: {
+      account_validation?: {
+        codes: string[];
+        decision: 'unknown' | 'accept' | 'reject' | 'review';
+        reason?: string | null;
+      };
+      name_match?: {
+        codes: string[];
+        decision: 'unknown' | 'accept' | 'reject' | 'review';
+        correlation_score?: number | null;
+        customer_name?: string | null;
+        matched_name?: string | null;
+        names_on_account?: string[] | null;
+        reason?: string | null;
+      };
+    };
+    created_at: string;
+    decision: 'unknown' | 'accept' | 'reject' | 'review';
+    messages: {
+      [key: string]: string;
+    };
+    updated_at: string;
+  };
 }
 
 export interface DemoCharge {
@@ -259,7 +330,7 @@ export interface ChargeStatusHistory {
  */
 export type CustomerOutcome = 'standard' | 'verified' | 'review' | 'rejected';
 
-export type PaykeyOutcome = 'standard' | 'active' | 'rejected';
+export type PaykeyOutcome = 'standard' | 'active' | 'review' | 'rejected';
 
 export type ChargeOutcome =
   | 'standard'
@@ -276,7 +347,7 @@ export type ChargeOutcome =
 
 export const SANDBOX_OUTCOMES = {
   customer: ['standard', 'verified', 'review', 'rejected'] as CustomerOutcome[],
-  paykey: ['standard', 'active', 'rejected'] as PaykeyOutcome[],
+  paykey: ['standard', 'active', 'review', 'rejected'] as PaykeyOutcome[],
   charge: [
     'standard',
     'paid',

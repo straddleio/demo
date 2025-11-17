@@ -77,6 +77,8 @@ Type these commands in the browser terminal:
 | `/customer-create` (or `/create-customer`) | Create and verify a customer identity |
 | `/customer-KYC` | Create customer with full KYC validation |
 | `/create-paykey` | Link a bank account |
+| `/paykey-review` | Show review details for current paykey |
+| `/paykey-decision` | Approve/reject paykey in review |
 | `/create-charge` | Process a payment |
 | `/outcomes` | Show all available sandbox outcome values |
 | `/info` | Show current demo state |
@@ -138,6 +140,13 @@ nerdcon/
 
 This demo showcases Straddle's core APIs:
 
+### SDK Version
+
+Using `@straddlecom/straddle` v0.3.0 with support for:
+- Paykey review endpoints for manual verification workflows
+- Verification details including account validation and name matching
+- Enhanced identity verification with detailed breakdowns
+
 ### Customer Identity Verification
 
 ```typescript
@@ -184,7 +193,7 @@ Control deterministic behavior with `config.sandbox_outcome`:
 | Resource | Outcomes | Description |
 |----------|----------|-------------|
 | **Customers** | `standard`, `verified`, `review`, `rejected` | Control customer verification status |
-| **Paykeys** | `standard`, `active`, `rejected` | Define paykey authorization states |
+| **Paykeys** | `standard`, `active`, `review`, `rejected` | Define paykey authorization states |
 | **Charges** | `standard`, `paid`, `on_hold_daily_limit`, `cancelled_for_fraud_risk`, `cancelled_for_balance_check`, `failed_insufficient_funds`, `failed_customer_dispute`, `failed_closed_bank_account`, `reversed_insufficient_funds`, `reversed_customer_dispute`, `reversed_closed_bank_account` | Simulate various payment outcomes |
 
 **Success Scenarios:**

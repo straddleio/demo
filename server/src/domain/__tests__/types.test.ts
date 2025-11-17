@@ -14,7 +14,7 @@ describe('Sandbox Outcome Types', () => {
 
   describe('PaykeyOutcome', () => {
     it('should include all documented paykey outcomes', () => {
-      const expected: PaykeyOutcome[] = ['standard', 'active', 'rejected'];
+      const expected: PaykeyOutcome[] = ['standard', 'active', 'review', 'rejected'];
       expect(SANDBOX_OUTCOMES.paykey).toEqual(expected);
     });
 
