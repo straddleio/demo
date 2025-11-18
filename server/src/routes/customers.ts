@@ -582,7 +582,7 @@ router.patch('/:id/review', (req: Request, res: Response) => {
 /**
  * GET /api/customers/:id/unmask
  * Get unmasked customer data (SSN, DOB, etc.)
- * Calls Straddle /customers/:id/unmask endpoint
+ * Calls Straddle /v1/customers/:id/unmasked endpoint via SDK
  */
 router.get('/:id/unmask', (req: Request, res: Response) => {
   void (async () => {
@@ -592,14 +592,14 @@ router.get('/:id/unmask', (req: Request, res: Response) => {
         timestamp: new Date().toISOString(),
         type: 'straddle-req',
         method: 'GET',
-        path: `/customers/${req.params.id}/unmask`,
+        path: `/v1/customers/${req.params.id}/unmasked`,
         requestId: req.requestId,
       });
 
       const startTime = Date.now();
 
-      // Use unmask endpoint
-      const unmaskResponse = await straddleClient.get(`/customers/${req.params.id}/unmask`);
+      // Use SDK unmasked method
+      const unmaskResponse = await straddleClient.customers.unmasked(req.params.id);
       const duration = Date.now() - startTime;
 
       // Log inbound Straddle response to stream
@@ -607,7 +607,7 @@ router.get('/:id/unmask', (req: Request, res: Response) => {
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
         statusCode: 200,
-        responseBody: unmaskResponse,
+        responseBody: unmaskResponse.data,
         duration,
         requestId: req.requestId,
       });
@@ -616,16 +616,16 @@ router.get('/:id/unmask', (req: Request, res: Response) => {
       logStraddleCall(
         req.requestId,
         req.correlationId,
-        `customers/${req.params.id}/unmask`,
+        `customers/${req.params.id}/unmasked`,
         'GET',
         200,
         duration,
         undefined,
-        unmaskResponse
+        unmaskResponse.data
       );
 
-      // SDK custom requests don't wrap in .data
-      res.json(unmaskResponse);
+      // SDK methods wrap response in .data
+      res.json(unmaskResponse.data);
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error unmasking customer', err);
@@ -662,7 +662,7 @@ router.get('/:id/unmask', (req: Request, res: Response) => {
       logStraddleCall(
         req.requestId,
         req.correlationId,
-        `customers/${req.params.id}/unmask`,
+        `customers/${req.params.id}/unmasked`,
         'GET',
         statusCode,
         0, // duration unknown on error

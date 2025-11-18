@@ -42,6 +42,7 @@ export const CustomerCard: React.FC = () => {
   const [isUnmasking, setIsUnmasking] = useState(false);
   const [allExpanded, setAllExpanded] = useState(false);
   const [infoMode, setInfoMode] = useState(false);
+  const [unmaskError, setUnmaskError] = useState<string | null>(null);
   const customer = useDemoStore((state) => state.customer);
 
   // Extract IP address from device field if available (placeholder for now since API doesn't include device yet)
@@ -64,6 +65,7 @@ export const CustomerCard: React.FC = () => {
   // Reset unmasked data when customer changes
   useEffect(() => {
     setUnmaskedData(null);
+    setUnmaskError(null);
   }, [customer?.id]);
 
   // Toggle unmask customer data
@@ -76,6 +78,7 @@ export const CustomerCard: React.FC = () => {
       // If already unmasked, hide it
       if (unmaskedData) {
         setUnmaskedData(null);
+        setUnmaskError(null);
         return;
       }
 
@@ -86,11 +89,12 @@ export const CustomerCard: React.FC = () => {
 
       setIsUnmasking(true);
       try {
+        setUnmaskError(null); // Clear previous errors
         const data = await unmaskCustomer(customer.id);
         setUnmaskedData(data);
       } catch (error) {
-        console.error('Error unmasking customer data:', error);
-        // TODO: Show user-friendly error message
+        const message = error instanceof Error ? error.message : 'Failed to unmask customer data';
+        setUnmaskError(message);
       } finally {
         setIsUnmasking(false);
       }
@@ -360,8 +364,7 @@ export const CustomerCard: React.FC = () => {
               <div>
                 <p className="text-xs text-neutral-500 font-body mb-0.5">SSN</p>
                 <p className="text-xs text-neutral-100 font-body font-mono">
-                  {unmaskedData?.compliance_profile?.ssn ||
-                    `***-**-${customer.compliance_profile.ssn.slice(-4)}`}
+                  {unmaskedData?.compliance_profile?.ssn || customer.compliance_profile.ssn}
                 </p>
               </div>
               <div className="pr-16">
@@ -385,6 +388,7 @@ export const CustomerCard: React.FC = () => {
             >
               {unmaskedData ? 'HIDE' : 'SHOW'}
             </button>
+            {unmaskError && <p className="text-xs text-accent font-body mt-1">{unmaskError}</p>}
           </div>
         )}
 

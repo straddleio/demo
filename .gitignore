@@ -43,3 +43,4 @@ Thumbs.db
 
 # Git worktrees
 .worktrees/
+.claude/settings.local.json
