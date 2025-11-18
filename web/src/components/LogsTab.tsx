@@ -3,6 +3,46 @@ import { cn } from '@/components/ui/utils';
 import { useDemoStore } from '@/lib/state';
 import { API_BASE_URL } from '@/lib/api';
 
+/**
+ * Copy text to clipboard
+ */
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy:', error);
+    return false;
+  }
+};
+
+/**
+ * Copy button for code blocks
+ */
+const CopyButton: React.FC<{ text: string; label?: string }> = ({ text, label = 'Copy' }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    void copyToClipboard(text).then((success) => {
+      if (success) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="px-2 py-0.5 text-[9px] font-pixel bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 rounded transition-colors"
+      title={label}
+    >
+      {copied ? '✓ Copied' : '⧉ Copy'}
+    </button>
+  );
+};
+
 type LogEntryType = 'straddle-req' | 'straddle-res' | 'webhook';
 
 interface WebhookPayload {
@@ -202,7 +242,13 @@ export const LogsTab: React.FC = () => {
           {/* Request Body */}
           {selectedEntry.requestBody !== undefined && (
             <div className="mb-4">
-              <h4 className="text-xs text-neutral-400 mb-2">Request Body:</h4>
+              <h4 className="text-xs text-neutral-400 mb-2 flex items-center justify-between">
+                <span>Request Body:</span>
+                <CopyButton
+                  text={JSON.stringify(selectedEntry.requestBody, null, 2)}
+                  label="Copy request body"
+                />
+              </h4>
               <pre className="p-3 bg-background-card border border-secondary/20 rounded text-xs text-neutral-300 overflow-x-auto scrollbar-retro">
                 {JSON.stringify(selectedEntry.requestBody, null, 2)}
               </pre>
@@ -212,7 +258,13 @@ export const LogsTab: React.FC = () => {
           {/* Response Body */}
           {selectedEntry.responseBody !== undefined && (
             <div className="mb-4">
-              <h4 className="text-xs text-neutral-400 mb-2">Response Body:</h4>
+              <h4 className="text-xs text-neutral-400 mb-2 flex items-center justify-between">
+                <span>Response Body:</span>
+                <CopyButton
+                  text={JSON.stringify(selectedEntry.responseBody, null, 2)}
+                  label="Copy response body"
+                />
+              </h4>
               <pre className="p-3 bg-background-card border border-secondary/20 rounded text-xs text-neutral-300 overflow-x-auto scrollbar-retro">
                 {JSON.stringify(selectedEntry.responseBody, null, 2)}
               </pre>
@@ -222,7 +274,13 @@ export const LogsTab: React.FC = () => {
           {/* Webhook Payload */}
           {selectedEntry.webhookPayload && (
             <div className="mb-4">
-              <h4 className="text-xs text-neutral-400 mb-2">Webhook Payload:</h4>
+              <h4 className="text-xs text-neutral-400 mb-2 flex items-center justify-between">
+                <span>Webhook Payload:</span>
+                <CopyButton
+                  text={JSON.stringify(selectedEntry.webhookPayload, null, 2)}
+                  label="Copy webhook payload"
+                />
+              </h4>
               <pre className="p-3 bg-background-card border border-secondary/20 rounded text-xs text-neutral-300 overflow-x-auto scrollbar-retro">
                 {JSON.stringify(selectedEntry.webhookPayload, null, 2)}
               </pre>

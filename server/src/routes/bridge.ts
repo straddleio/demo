@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { stateManager } from '../domain/state.js';
 import { DemoPaykey, PaykeyReview, SANDBOX_OUTCOMES, PaykeyOutcome } from '../domain/types.js';
-import { addLogEntry } from '../domain/log-stream.js';
+import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 import { config } from '../config.js';
 import { toExpressError } from '../domain/errors.js';
@@ -241,15 +241,28 @@ router.post('/bank-account', (req: Request, res: Response): void => {
       logger.error('Error linking bank account', err);
 
       const statusCode = err.status || 500;
-      const errorResponse = {
-        error: err.message || 'Failed to link bank account',
-        details: err.code || null,
-      };
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
 
       // Log error response to stream
       addLogEntry({
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
+      });
+
+      const errorResponse = {
+        error: err.message || 'Failed to link bank account',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
         statusCode,
         responseBody: errorResponse,
         requestId: req.requestId,
@@ -264,7 +277,7 @@ router.post('/bank-account', (req: Request, res: Response): void => {
         statusCode,
         0, // duration unknown on error
         linkData,
-        errorResponse
+        errorResponseBody || errorResponse
       );
 
       res.status(statusCode).json(errorResponse);
@@ -481,15 +494,28 @@ router.post('/plaid', (req: Request, res: Response): void => {
       logger.error('Error linking via Plaid', err);
 
       const statusCode = err.status || 500;
-      const errorResponse = {
-        error: err.message || 'Failed to link via Plaid',
-        details: err.code || null,
-      };
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
 
       // Log error response to stream
       addLogEntry({
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
+      });
+
+      const errorResponse = {
+        error: err.message || 'Failed to link via Plaid',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
         statusCode,
         responseBody: errorResponse,
         requestId: req.requestId,
@@ -504,7 +530,7 @@ router.post('/plaid', (req: Request, res: Response): void => {
         statusCode,
         0, // duration unknown on error
         linkData,
-        errorResponse
+        errorResponseBody || errorResponse
       );
 
       res.status(statusCode).json(errorResponse);

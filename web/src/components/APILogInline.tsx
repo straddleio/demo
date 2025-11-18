@@ -2,6 +2,19 @@ import React, { useState } from 'react';
 import { cn } from '@/components/ui/utils';
 import type { APILogEntry } from '@/lib/state';
 
+/**
+ * Copy text to clipboard
+ */
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy:', error);
+    return false;
+  }
+};
+
 interface APILogInlineProps {
   entry: APILogEntry;
 }
@@ -75,6 +88,34 @@ const highlightJSON = (jsonString: string): React.ReactNode => {
 };
 
 /**
+ * Copy button for code blocks
+ */
+const CopyButton: React.FC<{ text: string; label?: string }> = ({ text, label = 'Copy' }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation();
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button
+      onClick={(e) => {
+        void handleCopy(e);
+      }}
+      className="px-2 py-0.5 text-[9px] font-pixel bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 rounded transition-colors"
+      title={label}
+    >
+      {copied ? '✓ Copied' : '⧉ Copy'}
+    </button>
+  );
+};
+
+/**
  * Inline API request log that appears after terminal commands
  * Compact format with expandable request/response details
  */
@@ -135,7 +176,10 @@ export const APILogInline: React.FC<APILogInlineProps> = ({ entry }) => {
           <div className="grid grid-cols-2 gap-2">
             {/* Request */}
             <div>
-              <div className="text-neutral-500 font-pixel mb-1 text-[9px]">Request</div>
+              <div className="text-neutral-500 font-pixel mb-1 text-[9px] flex items-center justify-between">
+                <span>Request</span>
+                <CopyButton text={formatJSON(entry.requestBody)} label="Copy request" />
+              </div>
               <pre className="p-2 bg-background-dark border border-primary/20 rounded font-mono overflow-x-auto scrollbar-retro text-[10px] leading-relaxed">
                 <code>{highlightJSON(formatJSON(entry.requestBody))}</code>
               </pre>
@@ -143,7 +187,10 @@ export const APILogInline: React.FC<APILogInlineProps> = ({ entry }) => {
 
             {/* Response */}
             <div>
-              <div className="text-neutral-500 font-pixel mb-1 text-[9px]">Response</div>
+              <div className="text-neutral-500 font-pixel mb-1 text-[9px] flex items-center justify-between">
+                <span>Response</span>
+                <CopyButton text={formatJSON(entry.responseBody)} label="Copy response" />
+              </div>
               <pre className="p-2 bg-background-dark border border-secondary/20 rounded font-mono overflow-x-auto scrollbar-retro text-[10px] leading-relaxed">
                 <code>{highlightJSON(formatJSON(entry.responseBody))}</code>
               </pre>

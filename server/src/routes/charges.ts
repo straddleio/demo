@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { stateManager } from '../domain/state.js';
 import { DemoCharge } from '../domain/types.js';
-import { addLogEntry } from '../domain/log-stream.js';
+import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 import { toExpressError } from '../domain/errors.js';
 import { logger } from '../lib/logger.js';
@@ -177,18 +177,31 @@ router.post('/', (req: Request, res: Response): void => {
 
       const duration = Date.now() - startTime;
       const statusCode = err.status || 500;
-      const errorResponse = {
-        error: err.message || 'Failed to create charge',
-        details: err.code || null,
-      };
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
 
       // Log error response to stream
       addLogEntry({
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
         statusCode,
-        responseBody: errorResponse,
+        responseBody: errorResponseBody || { error: err.message },
         duration,
+        requestId: req.requestId,
+      });
+
+      const errorResponse = {
+        error: err.message || 'Failed to create charge',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
         requestId: req.requestId,
       });
 
@@ -201,7 +214,7 @@ router.post('/', (req: Request, res: Response): void => {
         statusCode,
         duration,
         chargeData,
-        errorResponse
+        errorResponseBody || errorResponse
       );
 
       res.status(statusCode).json(errorResponse);
@@ -302,9 +315,36 @@ router.get('/:id', (req: Request, res: Response): void => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error getting charge', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to get charge',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to get charge',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -356,9 +396,36 @@ router.post('/:id/cancel', (req: Request, res: Response): void => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error cancelling charge', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to cancel charge',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to cancel charge',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -410,9 +477,36 @@ router.post('/:id/hold', (req: Request, res: Response): void => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error holding charge', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to hold charge',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to hold charge',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -464,9 +558,36 @@ router.post('/:id/release', (req: Request, res: Response): void => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error releasing charge', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to release charge',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to release charge',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });

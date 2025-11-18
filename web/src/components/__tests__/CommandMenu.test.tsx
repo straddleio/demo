@@ -6,9 +6,8 @@ describe('CommandMenu', () => {
   describe('Visibility and Animation', () => {
     it('should not render when isOpen is false', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={false} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={false} />);
 
       // Menu should not be in the document when closed
       const menu = screen.queryByText('COMMAND MENU');
@@ -17,9 +16,8 @@ describe('CommandMenu', () => {
 
     it('should render when isOpen is true', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       // Menu should be visible when open
       expect(screen.getByText('COMMAND MENU')).toBeInTheDocument();
@@ -27,9 +25,8 @@ describe('CommandMenu', () => {
 
     it('should have correct ID attribute', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const panel = document.getElementById('command-menu-panel');
       expect(panel).toBeInTheDocument();
@@ -39,9 +36,8 @@ describe('CommandMenu', () => {
   describe('Command Categories', () => {
     it('should render all customer commands', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       expect(screen.getByText('Customers')).toBeInTheDocument();
       expect(screen.getByText('Create Customer')).toBeInTheDocument();
@@ -50,9 +46,8 @@ describe('CommandMenu', () => {
 
     it('should render all paykey commands', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       expect(screen.getByText('Paykeys')).toBeInTheDocument();
       expect(screen.getByText('Plaid Link')).toBeInTheDocument();
@@ -61,9 +56,8 @@ describe('CommandMenu', () => {
 
     it('should render all payment commands', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       expect(screen.getByText('Payments')).toBeInTheDocument();
       expect(screen.getByText('Charge')).toBeInTheDocument();
@@ -72,9 +66,8 @@ describe('CommandMenu', () => {
 
     it('should render all utility commands', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       expect(screen.getByText('DEMO')).toBeInTheDocument();
       expect(screen.getByText('RESET')).toBeInTheDocument();
@@ -82,104 +75,96 @@ describe('CommandMenu', () => {
   });
 
   describe('Command Selection', () => {
-    it('should call onCommandSelect and onClose when Create Customer is clicked', () => {
+    it('should call onCommandSelect when Create Customer is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const createCustomerBtn = screen.getByText('Create Customer');
       fireEvent.click(createCustomerBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('customer-create');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect and onClose when Customer KYC is clicked', () => {
+    it('should call onCommandSelect when Customer KYC is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const kycBtn = screen.getByText('Customer KYC');
       fireEvent.click(kycBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('customer-kyc');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect and onClose when Plaid Link is clicked', () => {
+    it('should call onCommandSelect when Plaid Link is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const plaidBtn = screen.getByText('Plaid Link');
       fireEvent.click(plaidBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('paykey-plaid');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect and onClose when Bank Account is clicked', () => {
+    it('should call onCommandSelect when Bank Account is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const bankBtn = screen.getByText('Bank Account');
       fireEvent.click(bankBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('paykey-bank');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect and onClose when Charge is clicked', () => {
+    it('should call onCommandSelect when Charge is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const chargeBtn = screen.getByText('Charge');
       fireEvent.click(chargeBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('charge');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect and onClose when DEMO is clicked', () => {
+    it('should call onCommandSelect when DEMO is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const demoBtn = screen.getByText('DEMO');
       fireEvent.click(demoBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('demo');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect and onClose when RESET is clicked', () => {
+    it('should call onCommandSelect when RESET is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const resetBtn = screen.getByText('RESET');
       fireEvent.click(resetBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('reset');
-      expect(mockClose).toHaveBeenCalled();
+      // Menu stays open - no auto-close
     });
   });
 
   describe('Button States', () => {
     it('should have Payout button disabled', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const payoutBtn = screen.getByText('Payout');
       expect(payoutBtn).toBeDisabled();
@@ -187,24 +172,21 @@ describe('CommandMenu', () => {
 
     it('should not call handlers when clicking disabled Payout button', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const payoutBtn = screen.getByText('Payout');
       fireEvent.click(payoutBtn);
 
       expect(mockSelect).not.toHaveBeenCalled();
-      expect(mockClose).not.toHaveBeenCalled();
     });
   });
 
   describe('Button Variants', () => {
     it('should apply correct variant classes to primary buttons', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const createCustomerBtn = screen.getByText('Create Customer');
       expect(createCustomerBtn).toHaveClass('bg-primary/20', 'border-primary', 'text-primary');
@@ -212,9 +194,8 @@ describe('CommandMenu', () => {
 
     it('should apply correct variant classes to utility buttons', () => {
       const mockSelect = vi.fn();
-      const mockClose = vi.fn();
 
-      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} onClose={mockClose} />);
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       const demoBtn = screen.getByText('DEMO');
       expect(demoBtn).toHaveClass('bg-gold/20', 'border-gold', 'text-gold');

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { eventBroadcaster } from '../domain/events.js';
 import { stateManager } from '../domain/state.js';
-import { addLogEntry } from '../domain/log-stream.js';
+import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logger } from '../lib/logger.js';
 import { ChargeStatusHistory } from '../domain/types.js';
 
@@ -211,7 +211,16 @@ router.post('/straddle', (req: Request, res: Response): void => {
     res.status(200).json({ received: true });
   } catch (error: unknown) {
     logger.error('Error processing webhook', error);
-    res.status(500).json({ error: 'Webhook processing failed' });
+
+    // Parse and log error response if available
+    const errorResponseBody = parseStraddleError(error);
+
+    const errorResponse = {
+      error: 'Webhook processing failed',
+      details: errorResponseBody || null,
+    };
+
+    res.status(500).json(errorResponse);
   }
 });
 

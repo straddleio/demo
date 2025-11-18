@@ -4,11 +4,11 @@
  */
 
 export type LogEntryType =
-  | 'request'      // Incoming request to our server
-  | 'response'     // Outgoing response from our server
+  | 'request' // Incoming request to our server
+  | 'response' // Outgoing response from our server
   | 'straddle-req' // Outgoing request to Straddle
   | 'straddle-res' // Incoming response from Straddle
-  | 'webhook';     // Incoming webhook from Straddle
+  | 'webhook'; // Incoming webhook from Straddle
 
 export interface LogStreamEntry {
   id: string;
@@ -55,4 +55,29 @@ export function getLogStream(): LogStreamEntry[] {
 
 export function clearLogStream(): void {
   logStream.length = 0;
+}
+
+/**
+ * Parse Straddle error response from SDK error
+ * Extracts the error body from either .error property or stringified message
+ */
+export function parseStraddleError(error: unknown): unknown {
+  if (typeof error === 'object' && error !== null) {
+    const errorObj = error as Record<string, unknown>;
+    // Try to extract error body from SDK error
+    if (errorObj.error) {
+      return errorObj.error;
+    } else if (errorObj.message && typeof errorObj.message === 'string') {
+      // Handle stringified JSON in error message
+      try {
+        const match = errorObj.message.match(/^\d+\s+(.+)$/);
+        if (match) {
+          return JSON.parse(match[1]);
+        }
+      } catch {
+        return { message: errorObj.message };
+      }
+    }
+  }
+  return null;
 }

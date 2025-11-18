@@ -77,7 +77,7 @@ describe('Terminal - CommandMenu Integration', () => {
       expect(menuButton).toHaveAttribute('aria-expanded', 'false');
     });
 
-    it('should close menu when a command is selected', async () => {
+    it('should keep menu open when a command is selected (sticky behavior)', async () => {
       render(<Terminal />);
 
       const menuButton = screen.getByRole('button', { name: /toggle command menu/i });
@@ -90,9 +90,9 @@ describe('Terminal - CommandMenu Integration', () => {
       const demoButton = screen.getByText('DEMO');
       fireEvent.click(demoButton);
 
-      // Menu should close
+      // Menu should stay open (sticky behavior)
       await waitFor(() => {
-        expect(screen.queryByText('COMMAND MENU')).not.toBeInTheDocument();
+        expect(screen.getByText('COMMAND MENU')).toBeInTheDocument();
       });
     });
   });
@@ -162,7 +162,7 @@ describe('Terminal - CommandMenu Integration', () => {
   });
 
   describe('Menu and Card Interaction', () => {
-    it('should clear selectedCommand when card is closed', async () => {
+    it('should clear selectedCommand when card is closed (menu stays open)', async () => {
       render(<Terminal />);
 
       const menuButton = screen.getByRole('button', { name: /toggle command menu/i });
@@ -172,9 +172,9 @@ describe('Terminal - CommandMenu Integration', () => {
       const demoBtn = screen.getByText('DEMO');
       fireEvent.click(demoBtn);
 
-      // Menu should be closed and card should be visible
+      // Menu should stay open and card should be visible
       await waitFor(() => {
-        expect(screen.queryByText('COMMAND MENU')).not.toBeInTheDocument();
+        expect(screen.getByText('COMMAND MENU')).toBeInTheDocument();
         expect(screen.getByText('AUTO')).toBeInTheDocument();
       });
 
@@ -187,14 +187,15 @@ describe('Terminal - CommandMenu Integration', () => {
       if (closeBtn) {
         fireEvent.click(closeBtn);
 
-        // Card should no longer be visible
+        // Card should no longer be visible (but menu should still be open)
         await waitFor(() => {
           expect(screen.queryByText('AUTO')).not.toBeInTheDocument();
+          expect(screen.getByText('COMMAND MENU')).toBeInTheDocument();
         });
       }
     });
 
-    it('should be able to reopen menu after selecting a command', async () => {
+    it('should keep menu open after selecting a command (sticky behavior)', async () => {
       render(<Terminal />);
 
       const menuButton = screen.getByRole('button', { name: /toggle command menu/i });
@@ -207,14 +208,11 @@ describe('Terminal - CommandMenu Integration', () => {
       const demoBtn = screen.getByText('DEMO');
       fireEvent.click(demoBtn);
 
-      // Wait for menu to close
+      // Menu should stay open after command selection and card should be visible
       await waitFor(() => {
-        expect(screen.queryByText('COMMAND MENU')).not.toBeInTheDocument();
+        expect(screen.getByText('COMMAND MENU')).toBeInTheDocument();
+        expect(screen.getByText('AUTO')).toBeInTheDocument();
       });
-
-      // Should be able to open menu again
-      fireEvent.click(menuButton);
-      expect(screen.getByText('COMMAND MENU')).toBeInTheDocument();
     });
   });
 

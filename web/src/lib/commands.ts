@@ -11,23 +11,33 @@ export interface CommandResult {
 }
 
 /**
- * Available terminal commands for autocomplete
+ * Command registry with IDs and descriptions for autocomplete
  */
-export const AVAILABLE_COMMANDS = [
-  '/help',
-  '/customer-create',
-  '/create-customer',
-  '/customer-KYC',
-  '/create-paykey',
-  '/paykey-decision',
-  '/paykey-review',
-  '/create-charge',
-  '/demo',
-  '/info',
-  '/outcomes',
-  '/reset',
-  '/clear',
+export interface CommandInfo {
+  id: string;
+  description: string;
+}
+
+export const COMMAND_REGISTRY: CommandInfo[] = [
+  { id: '/help', description: 'Show available commands' },
+  { id: '/customer-create', description: 'Create customer with identity verification' },
+  { id: '/create-customer', description: 'Alias for /customer-create' },
+  { id: '/customer-KYC', description: 'Create KYC test customer (Jane Doe)' },
+  { id: '/create-paykey', description: 'Link bank account' },
+  { id: '/paykey-decision', description: 'Approve or reject paykey in review' },
+  { id: '/paykey-review', description: 'Show review details for current paykey' },
+  { id: '/create-charge', description: 'Create a payment' },
+  { id: '/demo', description: 'Run full happy-path flow' },
+  { id: '/info', description: 'Show current demo state' },
+  { id: '/outcomes', description: 'Show available sandbox outcomes' },
+  { id: '/reset', description: 'Clear all demo data' },
+  { id: '/clear', description: 'Clear terminal output' },
 ];
+
+/**
+ * Available terminal commands (for backward compatibility)
+ */
+export const AVAILABLE_COMMANDS = COMMAND_REGISTRY.map((cmd) => cmd.id);
 
 /**
  * Parse and execute terminal command

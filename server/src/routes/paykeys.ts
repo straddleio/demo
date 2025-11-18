@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import straddleClient from '../sdk.js';
 import { DemoPaykey } from '../domain/types.js';
-import { addLogEntry } from '../domain/log-stream.js';
+import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 import { toExpressError } from '../domain/errors.js';
 import { logger } from '../lib/logger.js';
@@ -94,9 +94,36 @@ router.get('/:id', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error getting paykey', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to get paykey',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to get paykey',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -148,9 +175,36 @@ router.post('/:id/cancel', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error cancelling paykey', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to cancel paykey',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to cancel paykey',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -209,9 +263,36 @@ router.get('/:id/review', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error getting paykey review', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to get paykey review',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to get paykey review',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -285,9 +366,36 @@ router.patch('/:id/review', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error updating paykey review', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to update paykey review',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to update paykey review',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });

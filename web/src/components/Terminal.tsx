@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { RetroHeading } from '@/components/ui/retro-components';
 import { cn } from '@/components/ui/utils';
 import { useDemoStore, type TerminalLine } from '@/lib/state';
-import { executeCommand, AVAILABLE_COMMANDS } from '@/lib/commands';
+import { executeCommand, COMMAND_REGISTRY, type CommandInfo } from '@/lib/commands';
 import { API_BASE_URL, type Customer, type Paykey, type Charge } from '@/lib/api';
 import { CommandMenu, CommandType } from './CommandMenu';
+import { CommandAutocomplete } from './CommandAutocomplete';
 import { CustomerCard, CustomerFormData } from './cards/CustomerCard';
 import { PaykeyCard, PaykeyFormData } from './cards/PaykeyCard';
 import { ChargeCard, ChargeFormData, ChargeOutcome } from './cards/ChargeCard';
@@ -34,6 +35,9 @@ export const Terminal: React.FC = () => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [selectedCommand, setSelectedCommand] = useState<CommandType | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const [suggestions, setSuggestions] = useState<CommandInfo[]>([]);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const terminalHistory = useDemoStore((state) => state.terminalHistory);
   const isExecuting = useDemoStore((state) => state.isExecuting);
@@ -110,6 +114,19 @@ export const Terminal: React.FC = () => {
       setExecuting(true);
 
       try {
+        // Check if command exists
+        const commandName = command.slice(1).split(/\s+/)[0].toLowerCase();
+        const knownCommands = COMMAND_REGISTRY.map((cmd) => cmd.id.slice(1).toLowerCase());
+
+        if (!knownCommands.includes(commandName)) {
+          addTerminalLine({
+            text: `Unknown command: ${command}. Type /help to see available commands.`,
+            type: 'error',
+          });
+          setExecuting(false);
+          return;
+        }
+
         // Execute command
         const result = await executeCommand(command);
 
@@ -132,70 +149,114 @@ export const Terminal: React.FC = () => {
   };
 
   /**
-   * Handle arrow key navigation through history and Tab autocomplete
+   * Handle input change to update suggestions
+   */
+  const handleInputChange = (value: string): void => {
+    setInput(value);
+
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+      // Hide suggestions when input is empty
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setHighlightedIndex(-1);
+      return;
+    }
+
+    // Normalize input - if it doesn't start with /, add it for matching
+    const searchTerm = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+
+    // Find commands that start with the normalized search term (case-insensitive)
+    const matches = COMMAND_REGISTRY.filter((cmd) =>
+      cmd.id.toLowerCase().startsWith(searchTerm.toLowerCase())
+    );
+
+    setSuggestions(matches);
+    setShowSuggestions(matches.length > 0);
+    setHighlightedIndex(matches.length > 0 ? 0 : -1);
+  };
+
+  /**
+   * Handle arrow key navigation through history, Tab autocomplete, and suggestion navigation
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-
-      const currentInput = input.trim();
-      if (!currentInput) {
-        // Show all commands if nothing typed
-        setInput('/');
+    // Handle suggestion navigation
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightedIndex((prev) => Math.min(prev + 1, suggestions.length - 1));
         return;
       }
 
-      // Find matching commands
-      const matches = AVAILABLE_COMMANDS.filter((cmd) =>
-        cmd.toLowerCase().startsWith(currentInput.toLowerCase())
-      );
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightedIndex((prev) => Math.max(prev - 1, 0));
+        return;
+      }
 
-      if (matches.length === 1) {
-        // Exact match - autocomplete
-        setInput(matches[0] + ' ');
-      } else if (matches.length > 1) {
-        // Multiple matches - find common prefix
-        const commonPrefix = matches.reduce((prefix, cmd) => {
-          let i = 0;
-          while (
-            i < prefix.length &&
-            i < cmd.length &&
-            prefix[i].toLowerCase() === cmd[i].toLowerCase()
-          ) {
-            i++;
-          }
-          return prefix.slice(0, i);
-        }, matches[0]);
-
-        if (commonPrefix.length > currentInput.length) {
-          setInput(commonPrefix);
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
+          const selected = suggestions[highlightedIndex];
+          // Always insert with leading slash
+          setInput(selected.id);
+          setShowSuggestions(false);
+          setSuggestions([]);
+          setHighlightedIndex(-1);
         }
-      }
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (commandHistory.length === 0) {
         return;
       }
 
-      const newIndex =
-        historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
-      setHistoryIndex(newIndex);
-      setInput(commandHistory[newIndex]);
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (historyIndex === -1) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowSuggestions(false);
+        setSuggestions([]);
+        setHighlightedIndex(-1);
         return;
       }
 
-      const newIndex = historyIndex + 1;
-      if (newIndex >= commandHistory.length) {
-        setHistoryIndex(-1);
-        setInput('');
-      } else {
+      // Enter executes current input (fall through)
+    }
+
+    // Original history navigation (only when no suggestions showing)
+    if (!showSuggestions) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length === 0) {
+          return;
+        }
+
+        const newIndex =
+          historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
         setHistoryIndex(newIndex);
         setInput(commandHistory[newIndex]);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex === -1) {
+          return;
+        }
+
+        const newIndex = historyIndex + 1;
+        if (newIndex >= commandHistory.length) {
+          setHistoryIndex(-1);
+          setInput('');
+        } else {
+          setHistoryIndex(newIndex);
+          setInput(commandHistory[newIndex]);
+        }
       }
     }
+  };
+
+  /**
+   * Handle suggestion selection from autocomplete dropdown
+   */
+  const handleSuggestionSelect = (commandId: string): void => {
+    setInput(commandId);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setHighlightedIndex(-1);
   };
 
   /**
@@ -559,13 +620,20 @@ export const Terminal: React.FC = () => {
       {/* Input Area */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 border-t border-primary/20 pt-2 mt-2 bg-background-elevated/30 px-2 py-1.5 rounded"
+        className="relative flex items-center gap-2 border-t border-primary/20 pt-2 mt-2 bg-background-elevated/30 px-2 py-1.5 rounded"
       >
+        {/* Autocomplete Dropdown */}
+        <CommandAutocomplete
+          suggestions={suggestions}
+          highlightedIndex={highlightedIndex}
+          onSelect={handleSuggestionSelect}
+          isVisible={showSuggestions}
+        />
         <span className="text-primary font-pixel text-xs animate-pulse">{'>'}</span>
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Enter command..."
           className="flex-1 bg-transparent border-none outline-none text-primary font-mono text-xs placeholder-neutral-600 disabled:opacity-50"
@@ -590,7 +658,6 @@ export const Terminal: React.FC = () => {
           handleMenuCommand(cmd);
         }}
         isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
       />
 
       {/* Command Cards */}

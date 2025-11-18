@@ -50,10 +50,9 @@ const CommandButton: React.FC<CommandButtonProps> = ({
 interface CommandMenuProps {
   onCommandSelect: (command: CommandType) => void;
   isOpen: boolean;
-  onClose: () => void;
 }
 
-export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpen, onClose }) => {
+export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpen }) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -81,14 +80,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="Create Customer"
                   onClick={() => {
                     onCommandSelect('customer-create');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                 />
                 <CommandButton
                   label="Customer KYC"
                   onClick={() => {
                     onCommandSelect('customer-kyc');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                 />
               </div>
@@ -102,14 +101,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="Plaid Link"
                   onClick={() => {
                     onCommandSelect('paykey-plaid');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                 />
                 <CommandButton
                   label="Bank Account"
                   onClick={() => {
                     onCommandSelect('paykey-bank');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                 />
               </div>
@@ -123,14 +122,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="Charge"
                   onClick={() => {
                     onCommandSelect('charge');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                 />
                 <CommandButton
                   label="Payout"
                   onClick={() => {
                     onCommandSelect('payout');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                   disabled
                 />
@@ -144,7 +143,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="DEMO"
                   onClick={() => {
                     onCommandSelect('demo');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                   variant="utility"
                 />
@@ -152,7 +151,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="RESET"
                   onClick={() => {
                     onCommandSelect('reset');
-                    onClose();
+                    // Menu stays open until user toggles button
                   }}
                   variant="utility"
                 />

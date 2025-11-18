@@ -7,7 +7,7 @@ import {
   CustomerReview,
   validateKYCCustomerRequest,
 } from '../domain/types.js';
-import { addLogEntry } from '../domain/log-stream.js';
+import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 import { toExpressError } from '../domain/errors.js';
 import { logger } from '../lib/logger.js';
@@ -245,22 +245,34 @@ router.post('/', (req: Request, res: Response) => {
       logger.error('Error creating customer', err);
 
       const statusCode = err.status || 500;
-      const errorResponse = {
-        error: err.message || 'Failed to create customer',
-        details: err.code || null,
-      };
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
 
       // Log error response to stream
       addLogEntry({
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
         statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
+      });
+
+      const errorResponse = {
+        error: err.message || 'Failed to create customer',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
         responseBody: errorResponse,
         requestId: req.requestId,
       });
 
       // Log failed Straddle API call (Terminal API Log Panel)
-      const errorData = error as Record<string, unknown>;
       logStraddleCall(
         req.requestId,
         req.correlationId,
@@ -269,7 +281,7 @@ router.post('/', (req: Request, res: Response) => {
         statusCode,
         0, // duration unknown on error
         body,
-        errorData.error || errorResponse
+        errorResponseBody || errorResponse
       );
 
       res.status(statusCode).json(errorResponse);
@@ -336,9 +348,36 @@ router.get('/:id', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error getting customer', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to get customer',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to get customer',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -402,22 +441,34 @@ router.get('/:id/review', (req: Request, res: Response) => {
       logger.error('Error getting customer review', err);
 
       const statusCode = err.status || 500;
-      const errorResponse = {
-        error: err.message || 'Failed to get customer review',
-        details: err.code || null,
-      };
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
 
       // Log error response to stream
       addLogEntry({
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
         statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
+      });
+
+      const errorResponse = {
+        error: err.message || 'Failed to get customer review',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
         responseBody: errorResponse,
         requestId: req.requestId,
       });
 
       // Log failed Straddle API call (Terminal API Log Panel)
-      const errorData = error as Record<string, unknown>;
       logStraddleCall(
         req.requestId,
         req.correlationId,
@@ -426,7 +477,7 @@ router.get('/:id/review', (req: Request, res: Response) => {
         statusCode,
         0, // duration unknown on error
         undefined,
-        errorData.error || errorResponse
+        errorResponseBody || errorResponse
       );
 
       res.status(statusCode).json(errorResponse);
@@ -494,9 +545,36 @@ router.patch('/:id/review', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error updating customer review', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to update customer review',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to update customer review',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
@@ -553,12 +631,34 @@ router.get('/:id/unmask', (req: Request, res: Response) => {
       logger.error('Error unmasking customer', err);
 
       const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
+      });
+
       const errorResponse = {
         error: err.message || 'Failed to unmask customer',
+        details: errorResponseBody || null,
       };
 
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
       // Log failed Straddle API call (Terminal API Log Panel)
-      const errorData = error as Record<string, unknown>;
       logStraddleCall(
         req.requestId,
         req.correlationId,
@@ -567,7 +667,7 @@ router.get('/:id/unmask', (req: Request, res: Response) => {
         statusCode,
         0, // duration unknown on error
         undefined,
-        errorData.error || errorResponse
+        errorResponseBody || errorResponse
       );
 
       res.status(statusCode).json(errorResponse);
@@ -622,9 +722,36 @@ router.post('/:id/refresh-review', (req: Request, res: Response) => {
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error refreshing customer review', err);
-      res.status(err.status || 500).json({
-        error: err.message || 'Failed to refresh customer review',
+
+      const statusCode = err.status || 500;
+
+      // Parse and log Straddle error response if available
+      const errorResponseBody = parseStraddleError(error);
+
+      // Log error response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'straddle-res',
+        statusCode,
+        responseBody: errorResponseBody || { error: err.message },
+        requestId: req.requestId,
       });
+
+      const errorResponse = {
+        error: err.message || 'Failed to refresh customer review',
+        details: errorResponseBody || null,
+      };
+
+      // Log outbound response to stream
+      addLogEntry({
+        timestamp: new Date().toISOString(),
+        type: 'response',
+        statusCode,
+        responseBody: errorResponse,
+        requestId: req.requestId,
+      });
+
+      res.status(statusCode).json(errorResponse);
     }
   })();
 });
