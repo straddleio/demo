@@ -33,6 +33,9 @@ jest.mock('../../sdk.js', () => ({
       create: jest.fn(),
       get: jest.fn(),
       unmasked: jest.fn(),
+      review: {
+        decision: jest.fn(),
+      },
     },
     get: jest.fn(),
   },
@@ -359,6 +362,96 @@ describe('Customer Routes', () => {
 
       // Verify the correct SDK method was called
       expect(straddleClient.customers.unmasked).toHaveBeenCalledWith('cust_nonexistent');
+    });
+  });
+
+  describe('PATCH /api/customers/:id/review', () => {
+    it('should approve customer in review', async () => {
+      const mockDecisionResponse = {
+        data: {
+          id: 'cust_123',
+          name: 'Test User',
+          email: 'test@example.com',
+          phone: '+12125550123',
+          type: 'individual',
+          verification_status: 'verified',
+          status: 'verified',
+          created_at: '2025-11-16T10:00:00Z',
+        },
+      };
+
+      jest
+        .spyOn((straddleClient.customers as any).review, 'decision')
+        .mockResolvedValue(mockDecisionResponse as any);
+
+      const response = await request(app)
+        .patch('/api/customers/cust_123/review')
+        .send({ status: 'verified' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('verification_status', 'verified');
+      expect((straddleClient.customers as any).review.decision).toHaveBeenCalledWith('cust_123', {
+        status: 'verified',
+      });
+    });
+
+    it('should reject customer in review', async () => {
+      const mockDecisionResponse = {
+        data: {
+          id: 'cust_123',
+          name: 'Test User',
+          email: 'test@example.com',
+          phone: '+12125550123',
+          type: 'individual',
+          verification_status: 'rejected',
+          status: 'rejected',
+          created_at: '2025-11-16T10:00:00Z',
+        },
+      };
+
+      jest
+        .spyOn((straddleClient.customers as any).review, 'decision')
+        .mockResolvedValue(mockDecisionResponse as any);
+
+      const response = await request(app)
+        .patch('/api/customers/cust_123/review')
+        .send({ status: 'rejected' });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('verification_status', 'rejected');
+      expect((straddleClient.customers as any).review.decision).toHaveBeenCalledWith('cust_123', {
+        status: 'rejected',
+      });
+    });
+
+    it('should return 400 for missing status', async () => {
+      const response = await request(app).patch('/api/customers/cust_123/review').send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('error');
+      expect(response.body.error).toContain('Status is required');
+    });
+
+    it('should handle review decision API errors', async () => {
+      const mockError = {
+        error: {
+          type: 'invalid_request',
+          code: 'REVIEW_NOT_FOUND',
+          message: 'Customer review not found',
+        },
+        status: 404,
+      };
+
+      jest
+        .spyOn((straddleClient.customers as any).review, 'decision')
+        .mockRejectedValue(mockError as any);
+
+      const response = await request(app)
+        .patch('/api/customers/cust_123/review')
+        .send({ status: 'verified' });
+
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('error');
     });
   });
 });

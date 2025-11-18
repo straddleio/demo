@@ -49,7 +49,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
     }));
   }, [customerId]);
 
-  const handleSubmit = (outcome: 'standard' | 'active' | 'rejected') => {
+  const handleSubmit = (outcome: 'standard' | 'active' | 'rejected'): void => {
     const payload: PaykeyFormData = {
       ...formData,
       customer_id: formData.customer_id || customerId || '',
@@ -65,7 +65,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
     onClose();
   };
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

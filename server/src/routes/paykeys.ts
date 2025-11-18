@@ -5,6 +5,7 @@ import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 import { toExpressError } from '../domain/errors.js';
 import { logger } from '../lib/logger.js';
+import { stateManager } from '../domain/state.js';
 
 const router = Router();
 
@@ -360,6 +361,15 @@ router.patch('/:id/review', (req: Request, res: Response) => {
         paykeyId: req.params.id,
         status: reviewUpdateData.status,
       });
+
+      // Update demo state if this is the current paykey
+      const paykeyState = stateManager.getState();
+      if (paykeyState.paykey && paykeyState.paykey.id === req.params.id) {
+        stateManager.setPaykey({
+          ...paykeyState.paykey,
+          status: typeof reviewUpdateData.status === 'string' ? reviewUpdateData.status : status,
+        });
+      }
 
       // Straddle wraps response in .data
       res.json(review.data);

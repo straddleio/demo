@@ -540,6 +540,20 @@ router.patch('/:id/review', (req: Request, res: Response) => {
         decision.data
       );
 
+      // Update demo state if this is the current customer
+      const state = stateManager.getState();
+      if (state.customer && state.customer.id === req.params.id) {
+        const decisionResponseData = decision.data as unknown as Record<string, unknown>;
+        stateManager.updateCustomer({
+          verification_status:
+            typeof decisionResponseData.status === 'string' ? decisionResponseData.status : status,
+          risk_score:
+            typeof decisionResponseData.risk_score === 'number'
+              ? decisionResponseData.risk_score
+              : state.customer.risk_score,
+        });
+      }
+
       // Straddle wraps response in .data
       res.json(decision.data);
     } catch (error: unknown) {

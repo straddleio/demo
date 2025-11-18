@@ -34,7 +34,7 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
   isOpen,
   onClose,
   onSubmit,
-  paykeyToken
+  paykeyToken,
 }) => {
   const today = new Date().toISOString().split('T')[0];
 
@@ -53,13 +53,13 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
     }));
   }, [paykeyToken]);
 
-  const handleSubmit = (outcome: ChargeOutcome) => {
+  const handleSubmit = (outcome: ChargeOutcome): void => {
     onSubmit(formData, outcome);
     onClose();
   };
 
-  const updateField = (field: string, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const updateField = (field: string, value: string | number): void => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -68,17 +68,15 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
       <div className="space-y-3">
         {/* Paykey */}
         <div>
-          <label className="block text-xs font-pixel text-primary mb-1">
-            Paykey Token
-          </label>
+          <label className="block text-xs font-pixel text-primary mb-1">Paykey Token</label>
           <input
             type="text"
             value={formData.paykey}
             onChange={(e) => updateField('paykey', e.target.value)}
             className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
+              'w-full px-2 py-1 bg-background-dark border border-primary/30',
+              'rounded text-neutral-200 font-body text-sm',
+              'focus:border-primary focus:outline-none'
             )}
             placeholder="xxxxxxxx.02.xxxxxxxxx..."
           />
@@ -87,22 +85,18 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
 
         {/* Amount */}
         <div>
-          <label className="block text-xs font-pixel text-primary mb-1">
-            Amount (cents)
-          </label>
+          <label className="block text-xs font-pixel text-primary mb-1">Amount (cents)</label>
           <input
             type="number"
             value={formData.amount}
             onChange={(e) => updateField('amount', parseInt(e.target.value))}
             className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
+              'w-full px-2 py-1 bg-background-dark border border-primary/30',
+              'rounded text-neutral-200 font-body text-sm',
+              'focus:border-primary focus:outline-none'
             )}
           />
-          <p className="text-xs text-neutral-500 mt-1">
-            ${(formData.amount / 100).toFixed(2)} USD
-          </p>
+          <p className="text-xs text-neutral-500 mt-1">${(formData.amount / 100).toFixed(2)} USD</p>
         </div>
 
         {/* Description */}
@@ -113,9 +107,9 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             value={formData.description}
             onChange={(e) => updateField('description', e.target.value)}
             className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
+              'w-full px-2 py-1 bg-background-dark border border-primary/30',
+              'rounded text-neutral-200 font-body text-sm',
+              'focus:border-primary focus:outline-none'
             )}
           />
         </div>
@@ -128,9 +122,9 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             value={formData.payment_date}
             onChange={(e) => updateField('payment_date', e.target.value)}
             className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
+              'w-full px-2 py-1 bg-background-dark border border-primary/30',
+              'rounded text-neutral-200 font-body text-sm',
+              'focus:border-primary focus:outline-none'
             )}
           />
         </div>
@@ -142,9 +136,9 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             value={formData.consent_type}
             onChange={(e) => updateField('consent_type', e.target.value)}
             className={cn(
-              "w-full px-2 py-1 bg-background-dark border border-primary/30",
-              "rounded text-neutral-200 font-body text-sm",
-              "focus:border-primary focus:outline-none"
+              'w-full px-2 py-1 bg-background-dark border border-primary/30',
+              'rounded text-neutral-200 font-body text-sm',
+              'focus:border-primary focus:outline-none'
             )}
           >
             <option value="internet">Internet</option>
@@ -164,10 +158,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('standard')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-secondary/20 border border-secondary text-secondary",
-                "hover:bg-secondary/30 hover:shadow-[0_0_10px_rgba(0,102,255,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-secondary/20 border border-secondary text-secondary',
+                'hover:bg-secondary/30 hover:shadow-[0_0_10px_rgba(0,102,255,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ⚡ Standard
@@ -175,10 +169,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('paid')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-accent-green/20 border border-accent-green text-accent-green",
-                "hover:bg-accent-green/30 hover:shadow-[0_0_10px_rgba(57,255,20,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-accent-green/20 border border-accent-green text-accent-green',
+                'hover:bg-accent-green/30 hover:shadow-[0_0_10px_rgba(57,255,20,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ✓ Paid
@@ -193,10 +187,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('on_hold_daily_limit')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-gold/20 border border-gold text-gold",
-                "hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-gold/20 border border-gold text-gold',
+                'hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ⏸ Daily Limit
@@ -204,10 +198,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('cancelled_for_fraud_risk')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-accent/20 border border-accent text-accent",
-                "hover:bg-accent/30 hover:shadow-[0_0_10px_rgba(255,0,153,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-accent/20 border border-accent text-accent',
+                'hover:bg-accent/30 hover:shadow-[0_0_10px_rgba(255,0,153,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               🚫 Fraud
@@ -215,10 +209,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('cancelled_for_balance_check')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px] col-span-2",
-                "bg-accent/20 border border-accent text-accent",
-                "hover:bg-accent/30 hover:shadow-[0_0_10px_rgba(255,0,153,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px] col-span-2',
+                'bg-accent/20 border border-accent text-accent',
+                'hover:bg-accent/30 hover:shadow-[0_0_10px_rgba(255,0,153,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               🚫 Balance Check
@@ -233,10 +227,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('failed_insufficient_funds')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-accent-red/20 border border-accent-red text-accent-red",
-                "hover:bg-accent-red/30 hover:shadow-[0_0_10px_rgba(255,0,64,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-accent-red/20 border border-accent-red text-accent-red',
+                'hover:bg-accent-red/30 hover:shadow-[0_0_10px_rgba(255,0,64,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ✗ NSF (R01)
@@ -244,10 +238,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('failed_customer_dispute')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-accent-red/20 border border-accent-red text-accent-red",
-                "hover:bg-accent-red/30 hover:shadow-[0_0_10px_rgba(255,0,64,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-accent-red/20 border border-accent-red text-accent-red',
+                'hover:bg-accent-red/30 hover:shadow-[0_0_10px_rgba(255,0,64,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ✗ Dispute (R05)
@@ -255,10 +249,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('failed_closed_bank_account')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px] col-span-2",
-                "bg-accent-red/20 border border-accent-red text-accent-red",
-                "hover:bg-accent-red/30 hover:shadow-[0_0_10px_rgba(255,0,64,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px] col-span-2',
+                'bg-accent-red/20 border border-accent-red text-accent-red',
+                'hover:bg-accent-red/30 hover:shadow-[0_0_10px_rgba(255,0,64,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ✗ Closed Acct (R02)
@@ -273,10 +267,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('reversed_insufficient_funds')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-gold/20 border border-gold text-gold",
-                "hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-gold/20 border border-gold text-gold',
+                'hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ↩ NSF (R01)
@@ -284,10 +278,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('reversed_customer_dispute')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px]",
-                "bg-gold/20 border border-gold text-gold",
-                "hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px]',
+                'bg-gold/20 border border-gold text-gold',
+                'hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ↩ Dispute (R05)
@@ -295,10 +289,10 @@ export const ChargeCard: React.FC<ChargeCardProps> = ({
             <button
               onClick={() => handleSubmit('reversed_closed_bank_account')}
               className={cn(
-                "px-2 py-1.5 rounded-pixel font-pixel text-[10px] col-span-2",
-                "bg-gold/20 border border-gold text-gold",
-                "hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]",
-                "transition-all duration-200 uppercase"
+                'px-2 py-1.5 rounded-pixel font-pixel text-[10px] col-span-2',
+                'bg-gold/20 border border-gold text-gold',
+                'hover:bg-gold/30 hover:shadow-[0_0_10px_rgba(255,195,0,0.3)]',
+                'transition-all duration-200 uppercase'
               )}
             >
               ↩ Closed Acct (R02)

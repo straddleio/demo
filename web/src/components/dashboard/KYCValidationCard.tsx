@@ -7,7 +7,10 @@ interface KYCValidationCardProps {
   isExpanded?: boolean;
 }
 
-export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, isExpanded: parentExpanded = false }) => {
+export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({
+  customer,
+  isExpanded: parentExpanded = false,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const kyc = customer.review?.kyc;
 
@@ -22,9 +25,13 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, 
   const decision = (kyc.decision || '').toUpperCase();
 
   // Map decision labels to match Email/Phone pattern
-  const getDecisionLabel = (decision: string) => {
-    if (decision === 'ACCEPT') {return 'PASS';}
-    if (decision === 'REVIEW') {return 'REVIEW';}
+  const getDecisionLabel = (decision: string): string => {
+    if (decision === 'ACCEPT') {
+      return 'PASS';
+    }
+    if (decision === 'REVIEW') {
+      return 'REVIEW';
+    }
     return 'FAIL';
   };
 
@@ -38,15 +45,15 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, 
     { key: 'first_name', label: 'First Name' },
     { key: 'last_name', label: 'Last Name' },
     { key: 'phone', label: 'Phone' },
-    { key: 'ssn', label: 'SSN' }
+    { key: 'ssn', label: 'SSN' },
   ];
 
-  const validatedFields = validationFields.filter(field =>
-    kyc.validations?.[field.key as keyof typeof kyc.validations]
+  const validatedFields = validationFields.filter(
+    (field) => kyc.validations?.[field.key as keyof typeof kyc.validations]
   );
 
-  const failedFields = validationFields.filter(field =>
-    !kyc.validations?.[field.key as keyof typeof kyc.validations]
+  const failedFields = validationFields.filter(
+    (field) => !kyc.validations?.[field.key as keyof typeof kyc.validations]
   );
 
   return (
@@ -59,16 +66,19 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, 
           <span className="text-xs font-body text-neutral-200">KYC</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className={cn(
-            'text-xs font-pixel',
-            decision === 'ACCEPT' ? 'text-green-500' :
-            decision === 'REVIEW' ? 'text-gold' : 'text-accent'
-          )}>
+          <span
+            className={cn(
+              'text-xs font-pixel',
+              decision === 'ACCEPT'
+                ? 'text-green-500'
+                : decision === 'REVIEW'
+                  ? 'text-gold'
+                  : 'text-accent'
+            )}
+          >
             {getDecisionLabel(decision)}
           </span>
-          <span className="text-xs text-neutral-500">
-            {expanded ? '▼' : '▶'}
-          </span>
+          <span className="text-xs text-neutral-500">{expanded ? '▼' : '▶'}</span>
         </div>
       </button>
 
@@ -85,7 +95,7 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, 
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {validatedFields.map(field => (
+                  {validatedFields.map((field) => (
                     <div key={field.key} className="flex items-center gap-1.5">
                       <span className="text-green-500 text-xs">✓</span>
                       <span className="text-xs text-neutral-300 font-body">{field.label}</span>
@@ -105,7 +115,7 @@ export const KYCValidationCard: React.FC<KYCValidationCardProps> = ({ customer, 
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {failedFields.map(field => (
+                  {failedFields.map((field) => (
                     <div key={field.key} className="flex items-center gap-1.5">
                       <span className="text-neutral-600 text-xs">✗</span>
                       <span className="text-xs text-neutral-500 font-body">{field.label}</span>

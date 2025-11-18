@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { PaykeyCard } from '../PaykeyCard';
 
 describe('PaykeyCard', () => {
-  const mockOnClose = () => {};
-  const mockOnSubmit = () => {};
+  const mockOnClose = (): void => {};
+  const mockOnSubmit = (): void => {};
 
   it('should render bank account form fields', () => {
     render(

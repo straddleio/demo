@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { ChargeCard } from '../ChargeCard';
 
 describe('ChargeCard', () => {
-  const mockOnClose = () => {};
-  const mockOnSubmit = () => {};
+  const mockOnClose = (): void => {};
+  const mockOnSubmit = (): void => {};
 
   it('should render charge form fields', () => {
     render(

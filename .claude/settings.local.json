@@ -57,7 +57,8 @@
       "Bash(node debug-frontend.js:*)",
       "Bash(node /home/keith/nerdcon/debug-frontend-detailed.js:*)",
       "Bash(npm run lint:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__plugin_episodic-memory_episodic-memory__search"
     ],
     "deny": [],
     "ask": []

@@ -15,7 +15,7 @@ import { useSSE } from './lib/useSSE';
  * Phase 3C: Dashboard data binding
  * Phase 3D: Real-time webhooks + polish
  */
-function App() {
+function App(): React.ReactElement {
   // Connect to SSE for real-time updates
   useSSE();
 
@@ -23,17 +23,8 @@ function App() {
     <>
       <ConnectionStatus />
       <SplitView
-        left={
-          <LeftPanel
-            terminal={<Terminal />}
-          />
-        }
-        right={
-          <RightPanel
-            demoView={<DashboardView />}
-            logsView={<LogsTab />}
-          />
-        }
+        left={<LeftPanel terminal={<Terminal />} />}
+        right={<RightPanel demoView={<DashboardView />} logsView={<LogsTab />} />}
       />
       <SoundToggle />
     </>

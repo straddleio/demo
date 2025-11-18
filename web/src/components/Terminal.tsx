@@ -180,7 +180,7 @@ export const Terminal: React.FC = () => {
   /**
    * Handle arrow key navigation through history, Tab autocomplete, and suggestion navigation
    */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     // Handle suggestion navigation
     if (showSuggestions && suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
@@ -262,7 +262,7 @@ export const Terminal: React.FC = () => {
   /**
    * Handle command selection from menu
    */
-  const handleMenuCommand = (command: CommandType) => {
+  const handleMenuCommand = (command: CommandType): void => {
     setSelectedCommand(command);
   };
 
@@ -542,7 +542,7 @@ export const Terminal: React.FC = () => {
   /**
    * Render a single terminal line with enhanced alacritty-style formatting
    */
-  const renderLine = (line: TerminalLine) => {
+  const renderLine = (line: TerminalLine): React.ReactElement => {
     const formattedContent = formatTerminalText(line.text);
 
     return (

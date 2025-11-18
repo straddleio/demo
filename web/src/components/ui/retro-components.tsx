@@ -295,7 +295,7 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
     let startTime: number;
     let animationFrame: number;
 
-    const animate = (currentTime: number) => {
+    const animate = (currentTime: number): void => {
       if (!startTime) {
         startTime = currentTime;
       }
@@ -351,8 +351,8 @@ export const useTypewriter = (text: string, speed: number = 50): string => {
 /**
  * Hook for retro audio effects (optional, requires Web Audio API)
  */
-export const useRetroAudio = () => {
-  const playBeep = React.useCallback((frequency: number = 440, duration: number = 100) => {
+export const useRetroAudio = (): { playBeep: (frequency?: number, duration?: number) => void } => {
+  const playBeep = React.useCallback((frequency: number = 440, duration: number = 100): void => {
     const AudioContextClass =
       window.AudioContext ||
       (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

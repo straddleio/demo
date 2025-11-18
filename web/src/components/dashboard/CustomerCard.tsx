@@ -9,9 +9,11 @@ import {
 import { cn } from '@/components/ui/utils';
 import { useGeolocation } from '@/lib/useGeolocation';
 import { useDemoStore } from '@/lib/state';
-import { unmaskCustomer, type UnmaskedCustomer } from '@/lib/api';
+import { unmaskCustomer, customerReviewDecision, type UnmaskedCustomer } from '@/lib/api';
 import { KYCValidationCard } from './KYCValidationCard';
 import { AddressWatchlistCard } from './AddressWatchlistCard';
+import { PixelSkull } from '@/components/ui/PixelSkull';
+import { ReviewDecisionModal } from '@/components/ReviewDecisionModal';
 
 type ModuleDecision = 'accept' | 'reject' | 'review' | 'unavailable';
 
@@ -43,6 +45,7 @@ export const CustomerCard: React.FC = () => {
   const [allExpanded, setAllExpanded] = useState(false);
   const [infoMode, setInfoMode] = useState(false);
   const [unmaskError, setUnmaskError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const customer = useDemoStore((state) => state.customer);
 
   // Extract IP address from device field if available (placeholder for now since API doesn't include device yet)
@@ -242,7 +245,7 @@ export const CustomerCard: React.FC = () => {
     pending: 'secondary',
   } as const;
 
-  const getRiskColor = (score: number) => {
+  const getRiskColor = (score: number): string => {
     if (score < 0.75) {
       return 'text-green-500';
     } // Green - low risk
@@ -252,7 +255,7 @@ export const CustomerCard: React.FC = () => {
     return 'text-accent'; // Red - high risk
   };
 
-  const getDecisionLabel = (decision: 'accept' | 'review' | 'reject') => {
+  const getDecisionLabel = (decision: 'accept' | 'review' | 'reject'): string => {
     if (decision === 'accept') {
       return 'PASS';
     }
@@ -262,21 +265,21 @@ export const CustomerCard: React.FC = () => {
     return 'FAIL';
   };
 
-  const toggleModule = (moduleName: string) => {
+  const toggleModule = (moduleName: string): void => {
     setExpandedModule(expandedModule === moduleName ? null : moduleName);
   };
 
-  const toggleAllModules = () => {
+  const toggleAllModules = (): void => {
     setAllExpanded(!allExpanded);
     setExpandedModule(null);
   };
 
-  const toggleInfoMode = () => {
+  const toggleInfoMode = (): void => {
     setInfoMode(!infoMode);
   };
 
   // Determine if a module should be expanded
-  const isModuleExpanded = (moduleName: string) => {
+  const isModuleExpanded = (moduleName: string): boolean => {
     if (allExpanded) {
       return true;
     }
@@ -290,10 +293,7 @@ export const CustomerCard: React.FC = () => {
           <RetroCardTitle className="flex-shrink">Customer</RetroCardTitle>
           {status === 'review' ? (
             <button
-              onClick={() => {
-                // TODO: Add review action handler (e.g., open review modal)
-                console.info('Review button clicked - open review workflow');
-              }}
+              onClick={() => setIsModalOpen(true)}
               className={cn(
                 'px-2 py-1 text-xs font-pixel uppercase transition-all',
                 'bg-gold/20 text-gold border border-gold/40 rounded-pixel',
@@ -305,7 +305,10 @@ export const CustomerCard: React.FC = () => {
               {status.toUpperCase()}
             </button>
           ) : (
-            <RetroBadge variant={statusColors[status]}>{status.toUpperCase()}</RetroBadge>
+            <RetroBadge variant={statusColors[status]}>
+              {status === 'rejected' && <PixelSkull size={12} className="mr-1 -mt-0.5" />}
+              {status.toUpperCase()}
+            </RetroBadge>
           )}
         </div>
       </RetroCardHeader>
@@ -581,6 +584,50 @@ export const CustomerCard: React.FC = () => {
           </div>
         </div>
       </RetroCardContent>
+
+      {/* Review Decision Modal */}
+      {customer.verification_status === 'review' && (
+        <ReviewDecisionModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onDecision={async (decision) => {
+            // Log to terminal
+            useDemoStore.getState().addAPILogEntry({
+              type: 'ui-action',
+              text: `Customer review decision: ${decision}`,
+            });
+
+            try {
+              // Call API
+              await customerReviewDecision(customer.id, decision as 'verified' | 'rejected');
+
+              // State will update via SSE
+            } catch (error) {
+              console.error('Failed to update customer review:', error);
+              // Show error in terminal
+              useDemoStore.getState().addTerminalLine({
+                text: `Error: ${error instanceof Error ? error.message : 'Failed to update review'}`,
+                type: 'error',
+              });
+            }
+          }}
+          data={{
+            type: 'customer',
+            id: customer.id,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            status: customer.verification_status || 'review',
+            verificationSummary: modules.reduce(
+              (acc, m) => {
+                acc[m.name.toLowerCase()] = m.decision;
+                return acc;
+              },
+              {} as Record<string, string>
+            ),
+          }}
+        />
+      )}
     </RetroCard>
   );
 };

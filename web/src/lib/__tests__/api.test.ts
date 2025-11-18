@@ -6,6 +6,8 @@ import {
   getPaykeyReview,
   updatePaykeyReview,
   getCharge,
+  customerReviewDecision,
+  paykeyReviewDecision,
 } from '../api';
 import { useDemoStore } from '../state';
 
@@ -220,5 +222,103 @@ describe('API Client - Terminal Logging', () => {
     const lastEntry = finalHistory[finalHistory.length - 1];
     expect(lastEntry.text).toContain('Refreshing charge data');
     expect(lastEntry.type).toBe('info');
+  });
+});
+
+describe('customerReviewDecision', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should approve customer', async () => {
+    const mockResponse = { id: 'cust_123', status: 'verified' };
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => Promise.resolve(mockResponse),
+    });
+
+    const result = await customerReviewDecision('cust_123', 'verified');
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/customers/cust_123/review'), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'verified' }),
+    });
+  });
+
+  it('should reject customer', async () => {
+    const mockResponse = { id: 'cust_123', status: 'rejected' };
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => Promise.resolve(mockResponse),
+    });
+
+    const result = await customerReviewDecision('cust_123', 'rejected');
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/customers/cust_123/review'), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'rejected' }),
+    });
+  });
+
+  it('should throw on API error', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      json: async () => Promise.resolve({ error: 'Invalid status' }),
+    });
+
+    await expect(customerReviewDecision('cust_123', 'verified')).rejects.toThrow();
+  });
+});
+
+describe('paykeyReviewDecision', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should approve paykey', async () => {
+    const mockResponse = { id: 'paykey_123', status: 'active' };
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => Promise.resolve(mockResponse),
+    });
+
+    const result = await paykeyReviewDecision('paykey_123', 'approved');
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/paykeys/paykey_123/review'), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision: 'approved' }),
+    });
+  });
+
+  it('should reject paykey', async () => {
+    const mockResponse = { id: 'paykey_123', status: 'rejected' };
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      json: async () => Promise.resolve(mockResponse),
+    });
+
+    const result = await paykeyReviewDecision('paykey_123', 'rejected');
+
+    expect(result).toEqual(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/paykeys/paykey_123/review'), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision: 'rejected' }),
+    });
+  });
+
+  it('should throw on API error', async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: false,
+      json: async () => Promise.resolve({ error: 'Invalid decision' }),
+    });
+
+    await expect(paykeyReviewDecision('paykey_123', 'approved')).rejects.toThrow();
   });
 });

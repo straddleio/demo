@@ -57,7 +57,7 @@ export const PizzaTracker: React.FC = () => {
   // Current status is the last entry in the history
   const currentStatus = statusHistory[statusHistory.length - 1]?.status || 'created';
 
-  const getStepColor = (status: string, isLatest: boolean) => {
+  const getStepColor = (status: string, isLatest: boolean): string => {
     if (status === 'paid') {
       return 'text-primary border-primary bg-primary/10';
     }
@@ -67,7 +67,7 @@ export const PizzaTracker: React.FC = () => {
     return 'text-secondary border-secondary bg-secondary/10';
   };
 
-  const getConnectorColor = (index: number) => {
+  const getConnectorColor = (index: number): string => {
     // All connectors before the last entry are complete
     if (index < statusHistory.length - 1) {
       return 'bg-primary';
@@ -75,8 +75,10 @@ export const PizzaTracker: React.FC = () => {
     return 'bg-neutral-700';
   };
 
-  const formatTimestamp = (timestamp: string | undefined) => {
-    if (!timestamp) {return null;}
+  const formatTimestamp = (timestamp: string | undefined): string | null => {
+    if (!timestamp) {
+      return null;
+    }
     try {
       const date = new Date(timestamp);
       // Format as: Nov 12, 8:05 PM
@@ -117,19 +119,18 @@ export const PizzaTracker: React.FC = () => {
                       getStepColor(entry.status, isLatest)
                     )}
                   >
-                    <ChargeStatusIcon
-                      status={entry.status}
-                      className="w-5 h-5"
-                    />
+                    <ChargeStatusIcon status={entry.status} className="w-5 h-5" />
                   </div>
 
                   {/* Step Label */}
                   <p
                     className={cn(
                       'font-body text-xs font-bold mt-2 text-center',
-                      entry.status === 'paid' ? 'text-primary' :
-                      isLatest ? 'text-gold' :
-                      'text-secondary'
+                      entry.status === 'paid'
+                        ? 'text-primary'
+                        : isLatest
+                          ? 'text-gold'
+                          : 'text-secondary'
                     )}
                   >
                     {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
@@ -151,12 +152,7 @@ export const PizzaTracker: React.FC = () => {
                 {/* Horizontal Connector (except for last step) */}
                 {index < statusHistory.length - 1 && (
                   <div className="flex items-center pt-5 flex-shrink-0">
-                    <div
-                      className={cn(
-                        'h-1 w-8 transition-all',
-                        getConnectorColor(index)
-                      )}
-                    />
+                    <div className={cn('h-1 w-8 transition-all', getConnectorColor(index))} />
                   </div>
                 )}
               </React.Fragment>

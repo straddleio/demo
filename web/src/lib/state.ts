@@ -4,7 +4,7 @@ import type { Customer, Paykey, Charge } from './api';
 /**
  * Helper function for UUID generation with fallback
  */
-const uuid = () => {
+const uuid = (): string => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }

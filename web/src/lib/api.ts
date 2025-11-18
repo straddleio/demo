@@ -1,6 +1,28 @@
 /**
  * HTTP Client for Straddle Demo Backend
  * Calls backend API at `${API_BASE_URL}/api/*` where API_BASE_URL can be configured via env.
+ *
+ * REVIEW DECISION API NAMING CONVENTION:
+ * ======================================
+ * Review-related functions follow these patterns:
+ *
+ * 1. GET/READ operations (display review info):
+ *    - getPaykeyReview() - Fetch review details for display
+ *
+ * 2. PATCH/WRITE operations (make decisions):
+ *    - customerReviewDecision() - Make customer KYC decision (status: 'verified'|'rejected')
+ *    - paykeyReviewDecision() - Make paykey decision (decision: 'approved'|'rejected')
+ *    - updatePaykeyReview() - Alternative name for paykeyReviewDecision() (uses object param)
+ *
+ * IMPORTANT: paykeyReviewDecision() and updatePaykeyReview() are EQUIVALENT functions:
+ * - Both make PATCH request to /paykeys/:id/review
+ * - Both require the same "review" status
+ * - Difference is parameter format: string vs object
+ * - Use whichever fits your naming convention
+ *
+ * PARAMETER NAME DIFFERENCES:
+ * - Customer uses: { status: 'verified' | 'rejected' }
+ * - Paykey uses: { decision: 'approved' | 'rejected' }
  */
 
 import { useDemoStore } from './state';
@@ -407,7 +429,17 @@ export async function getPaykey(paykeyId: string): Promise<Paykey> {
 }
 
 /**
- * Get paykey review details
+ * Get paykey review details (READ-ONLY)
+ *
+ * Fetches verification and review information for a paykey in review status.
+ * Use this to display review details to the user (account validation, name matching, etc.)
+ *
+ * @param paykeyId - The paykey ID to fetch review details for
+ * @returns PaykeyReview with verification_details and paykey_details
+ *
+ * @example
+ * const review = await getPaykeyReview('paykey_123');
+ * console.log(review.verification_details.breakdown.account_validation);
  */
 export async function getPaykeyReview(paykeyId: string): Promise<PaykeyReview> {
   useDemoStore.getState().addAPILogEntry({
@@ -419,7 +451,31 @@ export async function getPaykeyReview(paykeyId: string): Promise<PaykeyReview> {
 }
 
 /**
- * Update paykey review decision
+ * Update paykey review decision (WRITE - Makes decision: approved/rejected)
+ *
+ * NAMING CONVENTION:
+ * This function has two names that do the same thing. Use whichever fits your context:
+ * - `updatePaykeyReview()` - Preferred for explicit "update" semantics (found in updatePaykeyReview)
+ * - `paykeyReviewDecision()` - Alternative emphasizing "decision-making" (found in paykeyReviewDecision)
+ *
+ * Both functions:
+ * - PATCH /paykeys/:id/review with { decision: 'approved' | 'rejected' }
+ * - Map 'approved' → 'active' status, 'rejected' → 'rejected' status
+ * - Return the updated PaykeyReview object
+ *
+ * Use EITHER function - they are equivalent. `updatePaykeyReview()` is recommended for
+ * consistency with the "get" verb pattern (getPaykeyReview → updatePaykeyReview).
+ *
+ * @param paykeyId - The paykey ID to make a decision on
+ * @param data - UpdatePaykeyReviewRequest with decision field
+ * @returns PaykeyReview with updated verification status
+ *
+ * @example
+ * // Approve a paykey in review
+ * const result = await updatePaykeyReview('paykey_123', { decision: 'approved' });
+ *
+ * // Reject a paykey in review
+ * const result = await updatePaykeyReview('paykey_123', { decision: 'rejected' });
  */
 export interface UpdatePaykeyReviewRequest {
   decision: 'approved' | 'rejected';
@@ -537,4 +593,118 @@ export async function getOutcomes(): Promise<SandboxOutcomes> {
  */
 export async function healthCheck(): Promise<{ status: string; timestamp: string }> {
   return apiFetch<{ status: string; timestamp: string }>('/health');
+}
+
+/**
+ * Make a customer KYC review decision (WRITE - Manual verification approval)
+ *
+ * NAMING CONVENTION - Review Decision Functions:
+ * ===============================================
+ * Review decision functions use this pattern: `{entityType}ReviewDecision()`
+ * - `customerReviewDecision()` - Make manual decision on customer KYC review
+ * - `paykeyReviewDecision()` - Make manual decision on paykey review
+ *
+ * These functions are for making MANUAL verification decisions. The customer or paykey
+ * must be in a "review" status before a decision can be made.
+ *
+ * RELATED FUNCTIONS (for reference):
+ * - `getPaykeyReview()` - Fetches paykey review details (READ-ONLY)
+ * - `updatePaykeyReview()` - Updates paykey review decision (WRITE - same as paykeyReviewDecision)
+ *
+ * KEY DIFFERENCES:
+ * ================
+ * CUSTOMER:
+ * - Uses `status` parameter: 'verified' | 'rejected'
+ * - PATCH /customers/:id/review with { status }
+ * - SDK call: straddleClient.customers.review.decision(customerId, { status })
+ *
+ * PAYKEY:
+ * - Uses `decision` parameter: 'approved' | 'rejected'
+ * - PATCH /paykeys/:id/review with { decision }
+ * - SDK call: straddleClient.paykeys.review.decision(paykeyId, { status })
+ * - Note: Backend maps 'approved' → 'active', 'rejected' → 'rejected'
+ *
+ * @param customerId - The customer ID to make a review decision for
+ * @param status - The manual verification decision: 'verified' or 'rejected'
+ * @returns The updated Customer object with review decision applied
+ *
+ * @example
+ * // Manually approve customer KYC
+ * const result = await customerReviewDecision('cust_123', 'verified');
+ *
+ * // Manually reject customer KYC
+ * const result = await customerReviewDecision('cust_123', 'rejected');
+ */
+export async function customerReviewDecision(
+  customerId: string,
+  status: 'verified' | 'rejected'
+): Promise<unknown> {
+  return apiFetch<unknown>(`/customers/${customerId}/review`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+/**
+ * Make a paykey review decision (WRITE - Manual verification approval)
+ *
+ * NAMING CONVENTION - Review Decision Functions:
+ * ===============================================
+ * Review decision functions use this pattern: `{entityType}ReviewDecision()`
+ * - `customerReviewDecision()` - Make manual decision on customer KYC review
+ * - `paykeyReviewDecision()` - Make manual decision on paykey review
+ *
+ * These functions are for making MANUAL verification decisions. The paykey must be in
+ * a "review" status before a decision can be made.
+ *
+ * DUPLICATE ALERT - Two ways to update paykey review:
+ * ====================================================
+ * This function is equivalent to `updatePaykeyReview()` - both make the same API call.
+ * Use whichever naming convention fits your context:
+ *
+ * - `updatePaykeyReview()` - For "get/update" consistency (getPaykeyReview → updatePaykeyReview)
+ * - `paykeyReviewDecision()` - For "decision-making" emphasis and parallel with customerReviewDecision()
+ *
+ * Implementation comparison:
+ * ```
+ * updatePaykeyReview(id, { decision: 'approved' })  // Same as:
+ * paykeyReviewDecision(id, 'approved')              // (but different param name)
+ * ```
+ *
+ * RELATED FUNCTIONS (for reference):
+ * - `getPaykeyReview()` - Fetches paykey review details (READ-ONLY)
+ * - `updatePaykeyReview()` - Same as paykeyReviewDecision but different parameter format
+ *
+ * KEY DIFFERENCES (vs customerReviewDecision):
+ * =============================================
+ * CUSTOMER:
+ * - Uses `status` parameter: 'verified' | 'rejected'
+ * - PATCH /customers/:id/review with { status }
+ *
+ * PAYKEY (this function):
+ * - Uses `decision` parameter: 'approved' | 'rejected'
+ * - PATCH /paykeys/:id/review with { decision }
+ * - Backend maps 'approved' → 'active', 'rejected' → 'rejected'
+ *
+ * @param paykeyId - The paykey ID to make a review decision for
+ * @param decision - The manual review decision: 'approved' or 'rejected'
+ * @returns The updated PaykeyReview object with decision applied
+ *
+ * @example
+ * // Manually approve paykey in review
+ * const result = await paykeyReviewDecision('paykey_123', 'approved');
+ *
+ * // Manually reject paykey in review
+ * const result = await paykeyReviewDecision('paykey_123', 'rejected');
+ *
+ * @see updatePaykeyReview - Alternative function with same behavior
+ */
+export async function paykeyReviewDecision(
+  paykeyId: string,
+  decision: 'approved' | 'rejected'
+): Promise<unknown> {
+  return apiFetch<unknown>(`/paykeys/${paykeyId}/review`, {
+    method: 'PATCH',
+    body: JSON.stringify({ decision }),
+  });
 }

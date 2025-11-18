@@ -235,6 +235,8 @@ export const tailwindConfig = {
         flicker: 'flicker 0.15s infinite',
         scan: 'scan 8s linear infinite',
         'pixel-fade-in': 'pixel-fade-in 0.3s ease-out',
+        shake: 'shake 0.5s ease-in-out',
+        sparkle: 'sparkle 1s ease-out forwards',
       },
       keyframes: {
         'pulse-glow': {
@@ -257,6 +259,27 @@ export const tailwindConfig = {
         'pixel-fade-in': {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        // Decision Animation Effects
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+          '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
+        },
+        'reject-flash': {
+          '0%': { opacity: '0.5' },
+          '50%': { opacity: '0.8' },
+          '100%': { opacity: '0' },
+        },
+        'approve-glow': {
+          '0%': { opacity: '0.3' },
+          '50%': { opacity: '0.5' },
+          '100%': { opacity: '0' },
+        },
+        sparkle: {
+          '0%': { opacity: '0', transform: 'scale(0)' },
+          '50%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'translateY(-50px) scale(0)' },
         },
       },
     },

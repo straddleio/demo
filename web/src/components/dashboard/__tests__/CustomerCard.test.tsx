@@ -5,9 +5,30 @@ import { useDemoStore } from '@/lib/state';
 import * as api from '@/lib/api';
 
 // Mock the Zustand store
-vi.mock('@/lib/state', () => ({
-  useDemoStore: vi.fn(),
-}));
+vi.mock('@/lib/state', () => {
+  const mockAddAPILogEntry = vi.fn();
+  const mockAddTerminalLine = vi.fn();
+
+  return {
+    useDemoStore: Object.assign(
+      vi.fn((selector: ((state: unknown) => unknown) | undefined) => {
+        const mockState = {
+          customer: null,
+        };
+        if (!selector) {
+          return mockState;
+        }
+        return selector(mockState);
+      }),
+      {
+        getState: vi.fn(() => ({
+          addAPILogEntry: mockAddAPILogEntry,
+          addTerminalLine: mockAddTerminalLine,
+        })),
+      }
+    ),
+  };
+});
 
 // Mock the geolocation hook
 vi.mock('@/lib/useGeolocation', () => ({
@@ -309,6 +330,108 @@ describe('CustomerCard - SSN Display Logic', () => {
     // Should display a generic error message
     await waitFor(() => {
       expect(screen.getByText('Failed to unmask customer data')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('CustomerCard - Review Modal Integration', () => {
+  const mockCustomer = {
+    id: 'cust_123',
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '+12125550123',
+    verification_status: 'review',
+    risk_score: 0.25,
+    compliance_profile: {
+      ssn: '***-**-1234',
+      dob: '****-**-15',
+    },
+    review: {
+      review_id: 'rev_123',
+      decision: 'review',
+      breakdown: {
+        email: {
+          decision: 'accept',
+          risk_score: 0.1,
+        },
+        phone: {
+          decision: 'accept',
+          risk_score: 0.1,
+        },
+      },
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Update the mock selector to return the mockCustomer
+    (useDemoStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: ((state: { customer: typeof mockCustomer }) => unknown) | undefined) => {
+        const state = {
+          customer: mockCustomer,
+        };
+        if (!selector) {
+          return state;
+        }
+        return selector(state);
+      }
+    );
+  });
+
+  it('should open modal when review button clicked', () => {
+    render(<CustomerCard />);
+
+    // Modal should not be visible initially
+    expect(screen.queryByText('⚔️ COMPLIANCE CHALLENGE ⚔️')).not.toBeInTheDocument();
+
+    // Click review button
+    const reviewButton = screen.getByText('REVIEW');
+    fireEvent.click(reviewButton);
+
+    // Modal should appear
+    expect(screen.getByText('⚔️ COMPLIANCE CHALLENGE ⚔️')).toBeInTheDocument();
+  });
+
+  it('should call API on approve', async () => {
+    const mockCustomerReviewDecision = vi.fn().mockResolvedValue({
+      id: 'cust_123',
+      status: 'verified',
+    });
+
+    vi.spyOn(api, 'customerReviewDecision').mockImplementation(mockCustomerReviewDecision);
+
+    render(<CustomerCard />);
+
+    // Open modal
+    fireEvent.click(screen.getByText('REVIEW'));
+
+    // Click approve
+    fireEvent.click(screen.getByText('APPROVE'));
+
+    await waitFor(() => {
+      expect(mockCustomerReviewDecision).toHaveBeenCalledWith('cust_123', 'verified');
+    });
+  });
+
+  it('should call API on reject', async () => {
+    const mockCustomerReviewDecision = vi.fn().mockResolvedValue({
+      id: 'cust_123',
+      status: 'rejected',
+    });
+
+    vi.spyOn(api, 'customerReviewDecision').mockImplementation(mockCustomerReviewDecision);
+
+    render(<CustomerCard />);
+
+    // Open modal
+    fireEvent.click(screen.getByText('REVIEW'));
+
+    // Click reject
+    fireEvent.click(screen.getByText('REJECT'));
+
+    await waitFor(() => {
+      expect(mockCustomerReviewDecision).toHaveBeenCalledWith('cust_123', 'rejected');
     });
   });
 });

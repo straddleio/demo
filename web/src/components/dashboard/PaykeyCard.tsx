@@ -14,6 +14,9 @@ import {
   AccountValidationDisplay,
   AccountStatusDisplay,
 } from './PaykeyVerificationDisplay';
+import { PixelSkull } from '@/components/ui/PixelSkull';
+import { ReviewDecisionModal } from '@/components/ReviewDecisionModal';
+import { paykeyReviewDecision } from '@/lib/api';
 
 /**
  * Paykey (Bank Account) Ownership Card
@@ -28,11 +31,13 @@ export const PaykeyCard: React.FC = () => {
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showInfoMode, setShowInfoMode] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Reset states when paykey changes
   useEffect(() => {
     setIsExpanded(false);
     setShowInfoMode(false);
+    setIsModalOpen(false);
   }, [paykey?.id]);
 
   if (!paykey) {
@@ -110,6 +115,36 @@ export const PaykeyCard: React.FC = () => {
     return 'Unknown';
   };
 
+  // Handler for review decision (approve/reject)
+  const handleReviewDecision = async (
+    decision: 'verified' | 'rejected' | 'approved'
+  ): Promise<void> => {
+    if (!paykey?.id) {
+      return;
+    }
+
+    // Map 'approved' to 'approved', 'rejected' to 'rejected'
+    const apiDecision = decision === 'approved' ? 'approved' : 'rejected';
+
+    try {
+      // Call API
+      await paykeyReviewDecision(paykey.id, apiDecision);
+
+      // Log to terminal
+      const action = apiDecision === 'approved' ? 'Approved' : 'Rejected';
+      useDemoStore.getState().addAPILogEntry({
+        type: 'ui-action',
+        text: `Paykey review decision: ${action} paykey for ${truncateBankName(paykey.institution_name || paykey.label)}`,
+      });
+    } catch (error) {
+      // Log error to terminal
+      useDemoStore.getState().addTerminalLine({
+        type: 'error',
+        text: `Failed to ${apiDecision === 'approved' ? 'approve' : 'reject'} paykey: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    }
+  };
+
   return (
     <RetroCard variant="blue" className="h-full">
       <RetroCardHeader>
@@ -117,11 +152,7 @@ export const PaykeyCard: React.FC = () => {
           <RetroCardTitle className="flex-shrink">Paykey</RetroCardTitle>
           {paykey.status === 'review' ? (
             <button
-              onClick={() => {
-                // TODO: Add review action handler in future task
-                // eslint-disable-next-line no-console
-                console.log('Paykey review button clicked - workflow to be implemented');
-              }}
+              onClick={() => setIsModalOpen(true)}
               className={cn(
                 'px-2 py-1 text-xs font-pixel uppercase transition-all',
                 'bg-gold/20 text-gold border border-gold/40 rounded-pixel',
@@ -133,7 +164,10 @@ export const PaykeyCard: React.FC = () => {
               REVIEW
             </button>
           ) : (
-            <RetroBadge variant={statusColor}>{paykey.status.toUpperCase()}</RetroBadge>
+            <RetroBadge variant={statusColor}>
+              {paykey.status === 'rejected' && <PixelSkull size={12} className="mr-1 -mt-0.5" />}
+              {paykey.status.toUpperCase()}
+            </RetroBadge>
           )}
         </div>
       </RetroCardHeader>
@@ -242,6 +276,34 @@ export const PaykeyCard: React.FC = () => {
           </div>
         )}
       </RetroCardContent>
+
+      {/* Review Decision Modal */}
+      {paykey.status === 'review' && (
+        <ReviewDecisionModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onDecision={handleReviewDecision}
+          data={{
+            type: 'paykey',
+            id: paykey.id,
+            customerName: getCustomerName(),
+            institution: truncateBankName(paykey.institution_name || paykey.label),
+            balance: balance,
+            status: paykey.status,
+            verificationSummary: paykey.review?.verification_details?.breakdown
+              ? Object.entries(paykey.review.verification_details.breakdown).reduce(
+                  (acc, [key, value]) => {
+                    if (value && typeof value === 'object' && 'decision' in value) {
+                      acc[key] = (value as { decision: string }).decision;
+                    }
+                    return acc;
+                  },
+                  {} as Record<string, string>
+                )
+              : undefined,
+          }}
+        />
+      )}
     </RetroCard>
   );
 };

@@ -9,7 +9,7 @@ interface ResetCardProps {
 }
 
 export const ResetCard: React.FC<ResetCardProps> = ({ isOpen, onClose, onConfirm }) => {
-  const handleReset = () => {
+  const handleReset = (): void => {
     onConfirm();
     onClose();
   };
@@ -20,9 +20,7 @@ export const ResetCard: React.FC<ResetCardProps> = ({ isOpen, onClose, onConfirm
       <div className="py-6 text-center space-y-4">
         <div className="text-6xl">⚠️</div>
 
-        <h3 className="font-pixel text-2xl text-accent-red text-glow-accent">
-          WARNING
-        </h3>
+        <h3 className="font-pixel text-2xl text-accent-red text-glow-accent">WARNING</h3>
 
         <p className="text-neutral-300 font-body text-sm max-w-sm mx-auto">
           This will clear all demo data:
@@ -43,10 +41,10 @@ export const ResetCard: React.FC<ResetCardProps> = ({ isOpen, onClose, onConfirm
           <button
             onClick={onClose}
             className={cn(
-              "px-4 py-3 rounded-pixel font-pixel text-sm",
-              "bg-neutral-700/20 border-2 border-neutral-500 text-neutral-400",
-              "hover:bg-neutral-700/30",
-              "transition-all duration-200 uppercase"
+              'px-4 py-3 rounded-pixel font-pixel text-sm',
+              'bg-neutral-700/20 border-2 border-neutral-500 text-neutral-400',
+              'hover:bg-neutral-700/30',
+              'transition-all duration-200 uppercase'
             )}
           >
             Cancel
@@ -54,10 +52,10 @@ export const ResetCard: React.FC<ResetCardProps> = ({ isOpen, onClose, onConfirm
           <button
             onClick={handleReset}
             className={cn(
-              "px-4 py-3 rounded-pixel font-pixel text-sm",
-              "bg-accent-red/20 border-2 border-accent-red text-accent-red",
-              "hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgba(255,0,64,0.5)]",
-              "transition-all duration-200 uppercase"
+              'px-4 py-3 rounded-pixel font-pixel text-sm',
+              'bg-accent-red/20 border-2 border-accent-red text-accent-red',
+              'hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgba(255,0,64,0.5)]',
+              'transition-all duration-200 uppercase'
             )}
           >
             🗑️ Reset

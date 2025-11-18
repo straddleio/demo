@@ -91,16 +91,16 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
     setFormData(getInitialFormData(mode));
   }, [mode, isOpen]);
 
-  const handleSubmit = (outcome: 'standard' | 'verified' | 'review' | 'rejected') => {
+  const handleSubmit = (outcome: 'standard' | 'verified' | 'review' | 'rejected'): void => {
     onSubmit(formData, outcome);
     onClose();
   };
 
-  const updateField = (field: string, value: string) => {
+  const updateField = (field: string, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const updateNestedField = (parent: string, field: string, value: string) => {
+  const updateNestedField = (parent: string, field: string, value: string): void => {
     setFormData((prev) => {
       const parentObj = prev[parent as keyof CustomerFormData];
       if (typeof parentObj === 'object' && parentObj !== null) {

@@ -9,7 +9,7 @@ interface DemoCardProps {
 }
 
 export const DemoCard: React.FC<DemoCardProps> = ({ isOpen, onClose, onConfirm }) => {
-  const handleExecute = () => {
+  const handleExecute = (): void => {
     onConfirm();
     onClose();
   };
@@ -19,17 +19,16 @@ export const DemoCard: React.FC<DemoCardProps> = ({ isOpen, onClose, onConfirm }
       {/* Street Fighter Style Visual */}
       <div className="py-8 text-center space-y-6">
         <div className="relative">
-          <h3 className={cn(
-            "font-pixel text-6xl text-primary text-glow-primary",
-            "animate-pulse"
-          )}>
+          <h3 className={cn('font-pixel text-6xl text-primary text-glow-primary', 'animate-pulse')}>
             AUTO
           </h3>
-          <h3 className={cn(
-            "font-pixel text-6xl text-accent text-glow-accent",
-            "animate-pulse",
-            "animation-delay-150"
-          )}>
+          <h3
+            className={cn(
+              'font-pixel text-6xl text-accent text-glow-accent',
+              'animate-pulse',
+              'animation-delay-150'
+            )}
+          >
             ATTACK
           </h3>
         </div>
@@ -50,12 +49,12 @@ export const DemoCard: React.FC<DemoCardProps> = ({ isOpen, onClose, onConfirm }
         <button
           onClick={handleExecute}
           className={cn(
-            "w-full px-6 py-4 rounded-pixel font-pixel text-lg",
-            "bg-gradient-to-r from-primary via-secondary to-accent",
-            "text-black border-4 border-gold",
-            "hover:shadow-[0_0_30px_rgba(0,255,255,0.8)]",
-            "transition-all duration-200 uppercase",
-            "animate-pulse"
+            'w-full px-6 py-4 rounded-pixel font-pixel text-lg',
+            'bg-gradient-to-r from-primary via-secondary to-accent',
+            'text-black border-4 border-gold',
+            'hover:shadow-[0_0_30px_rgba(0,255,255,0.8)]',
+            'transition-all duration-200 uppercase',
+            'animate-pulse'
           )}
         >
           🎮 EXECUTE COMBO
