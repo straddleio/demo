@@ -146,3 +146,22 @@ export async function playAutoAttackSound(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Play bridge opened sound (when Bridge modal opens)
+ */
+export async function playBridgeOpenedSound(): Promise<boolean> {
+  if (!soundEnabled) {
+    return false;
+  }
+
+  try {
+    const audio = new Audio('/sounds/bridge_opened.mp3');
+    audio.volume = 0.4;
+    await audio.play();
+    return true;
+  } catch (error) {
+    console.warn('Bridge opened sound failed to play:', error);
+    return false;
+  }
+}

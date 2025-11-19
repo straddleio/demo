@@ -8,6 +8,7 @@ import {
   playEndDemoSound,
   playChargeStatusSound,
   playAutoAttackSound,
+  playBridgeOpenedSound,
 } from '../sounds';
 
 describe('Sound System', () => {
@@ -218,6 +219,58 @@ describe('Sound System', () => {
       expect(result).toBe(false);
       expect(consoleWarn).toHaveBeenCalledWith(
         'Auto attack sound failed to play:',
+        expect.any(Error)
+      );
+
+      consoleWarn.mockRestore();
+    });
+  });
+
+  describe('playBridgeOpenedSound', () => {
+    it('should create audio element with correct path', async () => {
+      await playBridgeOpenedSound();
+
+      expect(global.Audio).toHaveBeenCalledWith('/sounds/bridge_opened.mp3');
+    });
+
+    it('should play the audio', async () => {
+      const mockPlay = vi.fn().mockResolvedValue(undefined);
+      global.Audio = class {
+        volume = 1;
+        play = mockPlay;
+        pause(): void {}
+      } as unknown as typeof Audio;
+
+      const result = await playBridgeOpenedSound();
+
+      expect(mockPlay).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('should not play when sound is disabled', async () => {
+      setSoundEnabled(false);
+
+      const result = await playBridgeOpenedSound();
+
+      expect(global.Audio).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+
+    it('should handle errors gracefully', async () => {
+      const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
+      global.Audio = class {
+        volume = 1;
+        play = mockPlay;
+        pause(): void {}
+      } as unknown as typeof Audio;
+
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = await playBridgeOpenedSound();
+
+      expect(result).toBe(false);
+      expect(consoleWarn).toHaveBeenCalledWith(
+        'Bridge opened sound failed to play:',
         expect.any(Error)
       );
 

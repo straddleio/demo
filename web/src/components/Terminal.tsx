@@ -4,6 +4,7 @@ import { cn } from '@/components/ui/utils';
 import { useDemoStore, type TerminalLine } from '@/lib/state';
 import { executeCommand, COMMAND_REGISTRY, type CommandInfo } from '@/lib/commands';
 import { API_BASE_URL, type Customer, type Paykey, type Charge } from '@/lib/api';
+import { playBridgeOpenedSound } from '@/lib/sounds';
 import { CommandMenu, CommandType } from './CommandMenu';
 import { CommandAutocomplete } from './CommandAutocomplete';
 import { CustomerCard, CustomerFormData } from './cards/CustomerCard';
@@ -277,6 +278,10 @@ export const Terminal: React.FC = () => {
       case 'paykey-bridge':
         void (async (): Promise<void> => {
           setIsMenuOpen(false);
+
+          // Play bridge opened sound
+          void playBridgeOpenedSound();
+
           const commandId = addTerminalLine({ text: '> /create-paykey-bridge', type: 'input' });
           setLastCommandId(commandId);
           setExecuting(true);
