@@ -162,4 +162,37 @@ describe('DashboardView', () => {
     expect(testUserElements.length).toBeGreaterThan(0);
     expect(screen.getByText('$50.00')).toBeInTheDocument();
   });
+
+  it('should render customer+paykey layout with 50/50 grid split', () => {
+    // Set customer and paykey but no charge to trigger customer-paykey layout
+    useDemoStore.getState().setCustomer({
+      id: 'cust_123',
+      name: 'Test User',
+      email: 'test@example.com',
+      phone: '+12125551234',
+      verification_status: 'verified',
+      risk_score: 10,
+    });
+
+    useDemoStore.getState().setPaykey({
+      id: 'pk_123',
+      paykey: 'pk_test_123',
+      customer_id: 'cust_123',
+      status: 'active',
+      source: 'bank_account',
+      label: 'Chase Checking',
+      institution_name: 'JPMORGAN CHASE BANK, NA',
+      last4: '1234',
+      account_type: 'checking',
+    });
+
+    const { container } = render(<DashboardView />);
+
+    // Verify layout is customer-paykey
+    expect(container.querySelector('[data-layout="customer-paykey"]')).toBeInTheDocument();
+
+    // Verify the grid uses lg:grid-cols-2 for 50/50 split
+    const gridContainer = container.querySelector('.grid.grid-cols-1.lg\\:grid-cols-2');
+    expect(gridContainer).toBeInTheDocument();
+  });
 });

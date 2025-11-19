@@ -59,16 +59,12 @@ export const DashboardView: React.FC = () => {
         </>
       )}
 
-      {/* Layout: Customer + Paykey - 60/40 split */}
+      {/* Layout: Customer + Paykey - 50/50 split */}
       {displayState.layout === 'customer-paykey' && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 animate-pixel-fade-in">
-            <div className="lg:col-span-3">
-              <CustomerCard />
-            </div>
-            <div className="lg:col-span-2">
-              <PaykeyCard />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-pixel-fade-in">
+            <CustomerCard />
+            <PaykeyCard />
           </div>
           <div className="animate-pixel-fade-in" style={{ animationDelay: '0.1s' }}>
             <ChargeCard />

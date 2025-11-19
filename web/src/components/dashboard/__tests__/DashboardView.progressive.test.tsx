@@ -74,14 +74,14 @@ describe('DashboardView Progressive Disclosure', () => {
     expect(container.querySelector('[data-layout="customer-only"]')).toBeInTheDocument();
   });
 
-  it('customer-paykey state shows 60/40 split', () => {
+  it('customer-paykey state shows 50/50 split', () => {
     mockState = {
       customer: { id: 'cust_123' } as any,
       paykey: { id: 'pk_123', status: 'active' } as any,
       charge: null,
       getCardDisplayState: () => ({
         layout: 'customer-paykey',
-        customerWidth: '60',
+        customerWidth: '50',
         paykeyVisible: true,
         paykeyMode: 'standalone',
         chargeMode: 'empty',

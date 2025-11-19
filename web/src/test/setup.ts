@@ -243,7 +243,7 @@ vi.mock('@/lib/state', () => {
     if (!charge) {
       return {
         layout: 'customer-paykey' as const,
-        customerWidth: '60' as const,
+        customerWidth: '50' as const,
         paykeyVisible: true,
         paykeyMode: 'standalone' as const,
         chargeMode: 'empty' as const,

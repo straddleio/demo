@@ -39,14 +39,14 @@ describe('Card Display States', () => {
     expect(displayState.chargeMode).toBe('empty');
   });
 
-  test('returns customer+paykey state with 60/40 split', () => {
+  test('returns customer+paykey state with 50/50 split', () => {
     useDemoStore.getState().setCustomer({ id: 'cust_123' } as Customer);
     useDemoStore.getState().setPaykey({ id: 'pk_123', status: 'active' } as Paykey);
 
     const displayState = useDemoStore.getState().getCardDisplayState();
 
     expect(displayState.layout).toBe('customer-paykey');
-    expect(displayState.customerWidth).toBe('60');
+    expect(displayState.customerWidth).toBe('50');
     expect(displayState.paykeyVisible).toBe(true);
     expect(displayState.paykeyMode).toBe('standalone');
     expect(displayState.chargeMode).toBe('empty');
