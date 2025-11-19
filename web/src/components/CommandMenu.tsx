@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 export type CommandType =
   | 'customer-create'
   | 'customer-kyc'
+  | 'customer-business'
   | 'paykey-plaid'
   | 'paykey-bank'
+  | 'paykey-bridge'
   | 'charge'
   | 'payout'
   | 'demo'
@@ -84,6 +86,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   }}
                 />
                 <CommandButton
+                  label="Create Business"
+                  onClick={() => {
+                    onCommandSelect('customer-business');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="secondary"
+                />
+                <CommandButton
                   label="Customer KYC"
                   onClick={() => {
                     onCommandSelect('customer-kyc');
@@ -97,6 +107,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
             <div>
               <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">Paykeys</h3>
               <div className="space-y-2">
+                <CommandButton
+                  label="Straddle Bridge"
+                  onClick={() => {
+                    onCommandSelect('paykey-bridge');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="primary"
+                />
                 <CommandButton
                   label="Plaid Link"
                   onClick={() => {
