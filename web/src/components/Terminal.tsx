@@ -12,6 +12,7 @@ import { ChargeCard, ChargeFormData, ChargeOutcome } from './cards/ChargeCard';
 import { DemoCard } from './cards/DemoCard';
 import { ResetCard } from './cards/ResetCard';
 import { APILogInline } from './APILogInline';
+import { BusinessCard, BusinessFormData } from './cards/BusinessCard';
 
 // Type guards for API responses
 function isCustomer(value: unknown): value is Customer {
@@ -268,29 +269,7 @@ export const Terminal: React.FC = () => {
         setSelectedCommand('customer-create');
         break;
       case 'customer-business':
-        void (async (): Promise<void> => {
-          setIsMenuOpen(false);
-          const commandId = addTerminalLine({ text: '> /create-business', type: 'input' });
-          setLastCommandId(commandId);
-          setExecuting(true);
-
-          try {
-            const result = await executeCommand('/create-business');
-            if (result.message) {
-              addTerminalLine({
-                text: result.message,
-                type: result.success ? 'success' : 'error',
-              });
-            }
-          } catch (error) {
-            addTerminalLine({
-              text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              type: 'error',
-            });
-          } finally {
-            setExecuting(false);
-          }
-        })();
+        setSelectedCommand('customer-business');
         break;
       case 'customer-kyc':
         setSelectedCommand('customer-kyc');
@@ -337,6 +316,31 @@ export const Terminal: React.FC = () => {
         break;
       case 'reset':
         setSelectedCommand('reset');
+        break;
+      case 'end':
+        void (async (): Promise<void> => {
+          setIsMenuOpen(false);
+          const commandId = addTerminalLine({ text: '> /end', type: 'input' });
+          setLastCommandId(commandId);
+          setExecuting(true);
+
+          try {
+            const result = await executeCommand('/end');
+            if (result.message) {
+              addTerminalLine({
+                text: result.message,
+                type: result.success ? 'success' : 'error',
+              });
+            }
+          } catch (error) {
+            addTerminalLine({
+              text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              type: 'error',
+            });
+          } finally {
+            setExecuting(false);
+          }
+        })();
         break;
       default:
         // Handle unknown commands
@@ -447,6 +451,39 @@ export const Terminal: React.FC = () => {
         }
         useDemoStore.getState().setPaykey(paykeyData);
 
+        // Trigger generator modal for Plaid paykeys
+        if (method === 'plaid') {
+          // Extract customer name
+          const customerName = customer?.name || 'Customer';
+
+          // Extract WALDO data (only for Plaid paykeys with name_match data)
+          const waldoData = paykeyData.review?.verification_details?.breakdown?.name_match
+            ? {
+                correlationScore:
+                  paykeyData.review.verification_details.breakdown.name_match.correlation_score ??
+                  0,
+                matchedName:
+                  paykeyData.review.verification_details.breakdown.name_match.matched_name ?? '',
+                namesOnAccount:
+                  paykeyData.review.verification_details.breakdown.name_match.names_on_account ??
+                  [],
+              }
+            : undefined;
+
+          // Extract account details
+          const accountLast4 = paykeyData.bank_data?.account_number?.slice(-4) ?? '****';
+          const routingNumber = paykeyData.bank_data?.routing_number ?? '';
+
+          // Set generator data to trigger modal
+          useDemoStore.getState().setGeneratorData({
+            customerName,
+            waldoData,
+            paykeyToken: paykeyData.paykey,
+            accountLast4,
+            routingNumber,
+          });
+        }
+
         addTerminalLine({
           text: `✓ Paykey created: ${paykeyData.id}`,
           type: 'success',
@@ -554,6 +591,42 @@ export const Terminal: React.FC = () => {
 
       try {
         const result = await executeCommand('/reset');
+        if (result.message) {
+          addTerminalLine({
+            text: result.message,
+            type: result.success ? 'success' : 'error',
+          });
+        }
+      } catch (error) {
+        addTerminalLine({
+          text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          type: 'error',
+        });
+      } finally {
+        setExecuting(false);
+      }
+    })();
+  };
+
+  /**
+   * Handle business outcome selection
+   */
+  const handleBusinessSubmit = (
+    data: BusinessFormData,
+    outcome: 'standard' | 'verified' | 'review' | 'rejected'
+  ): void => {
+    void (async (): Promise<void> => {
+      setSelectedCommand(null);
+      setIsMenuOpen(false);
+      const commandId = addTerminalLine({
+        text: `> /create-business --outcome ${outcome}`,
+        type: 'input',
+      });
+      setLastCommandId(commandId);
+      setExecuting(true);
+
+      try {
+        const result = await executeCommand(`/create-business --outcome ${outcome}`, data);
         if (result.message) {
           addTerminalLine({
             text: result.message,
@@ -787,6 +860,11 @@ export const Terminal: React.FC = () => {
         isOpen={selectedCommand === 'reset'}
         onClose={() => setSelectedCommand(null)}
         onConfirm={handleResetExecute}
+      />
+      <BusinessCard
+        isOpen={selectedCommand === 'customer-business'}
+        onClose={() => setSelectedCommand(null)}
+        onSubmit={handleBusinessSubmit}
       />
     </div>
   );
