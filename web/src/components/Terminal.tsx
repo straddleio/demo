@@ -263,7 +263,85 @@ export const Terminal: React.FC = () => {
    * Handle command selection from menu
    */
   const handleMenuCommand = (command: CommandType): void => {
-    setSelectedCommand(command);
+    switch (command) {
+      case 'customer-create':
+        setSelectedCommand('customer-create');
+        break;
+      case 'customer-business':
+        void (async (): Promise<void> => {
+          setIsMenuOpen(false);
+          const commandId = addTerminalLine({ text: '> /create-business', type: 'input' });
+          setLastCommandId(commandId);
+          setExecuting(true);
+
+          try {
+            const result = await executeCommand('/create-business');
+            if (result.message) {
+              addTerminalLine({
+                text: result.message,
+                type: result.success ? 'success' : 'error',
+              });
+            }
+          } catch (error) {
+            addTerminalLine({
+              text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              type: 'error',
+            });
+          } finally {
+            setExecuting(false);
+          }
+        })();
+        break;
+      case 'customer-kyc':
+        setSelectedCommand('customer-kyc');
+        break;
+      case 'paykey-bridge':
+        void (async (): Promise<void> => {
+          setIsMenuOpen(false);
+          const commandId = addTerminalLine({ text: '> /create-paykey-bridge', type: 'input' });
+          setLastCommandId(commandId);
+          setExecuting(true);
+
+          try {
+            const result = await executeCommand('/create-paykey-bridge');
+            if (result.message) {
+              addTerminalLine({
+                text: result.message,
+                type: result.success ? 'success' : 'error',
+              });
+            }
+          } catch (error) {
+            addTerminalLine({
+              text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              type: 'error',
+            });
+          } finally {
+            setExecuting(false);
+          }
+        })();
+        break;
+      case 'paykey-plaid':
+        setSelectedCommand('paykey-plaid');
+        break;
+      case 'paykey-bank':
+        setSelectedCommand('paykey-bank');
+        break;
+      case 'charge':
+        setSelectedCommand('charge');
+        break;
+      case 'payout':
+        // Future implementation
+        break;
+      case 'demo':
+        setSelectedCommand('demo');
+        break;
+      case 'reset':
+        setSelectedCommand('reset');
+        break;
+      default:
+        // Handle unknown commands
+        break;
+    }
   };
 
   /**
