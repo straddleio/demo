@@ -96,15 +96,15 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                   }}
                 />
 
-                {/* Main text with pixel font */}
+                {/* Main text with display font for readability */}
                 <h1
                   className={cn(
-                    'relative font-pixel text-7xl md:text-9xl font-bold',
+                    'relative font-display text-6xl md:text-8xl font-black',
                     'text-transparent bg-clip-text',
                     'bg-gradient-to-b from-primary via-cyan-300 to-primary',
                     'drop-shadow-[0_0_20px_rgba(0,255,255,0.8)]',
-                    'tracking-wider',
-                    'animate-pulse-glow'
+                    'tracking-wide',
+                    'animate-pulse-glow uppercase'
                   )}
                   style={{
                     textShadow: `
@@ -115,7 +115,7 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                     `,
                   }}
                 >
-                  THANKS NERDS!
+                  Thanks Nerds!
                 </h1>
 
                 {/* Pixel decorations */}
@@ -144,16 +144,16 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                   rel="noopener noreferrer"
                   className={cn(
                     'inline-block group',
-                    'font-mono text-3xl md:text-5xl font-bold',
-                    'text-gold tracking-widest',
+                    'font-display text-3xl md:text-5xl font-bold',
+                    'text-accent tracking-widest',
                     'transition-all duration-300',
                     'hover:scale-110 hover:tracking-[0.3em]'
                   )}
                   style={{
                     textShadow: `
-                      0 0 10px rgba(255, 195, 0, 0.8),
-                      0 0 20px rgba(255, 195, 0, 0.5),
-                      2px 2px 0px rgba(255, 0, 153, 0.3)
+                      0 0 10px rgba(255, 0, 153, 0.8),
+                      0 0 20px rgba(255, 0, 153, 0.5),
+                      2px 2px 0px rgba(0, 102, 255, 0.3)
                     `,
                   }}
                 >
@@ -179,7 +179,7 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                   <span className="inline-block group-hover:animate-bounce-subtle animation-delay-525">
                     E
                   </span>
-                  <span className="inline-block text-primary">.COM</span>
+                  <span className="inline-block text-secondary">.COM</span>
                 </a>
 
                 {/* Pixel hearts decoration */}
