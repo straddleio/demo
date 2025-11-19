@@ -1,6 +1,6 @@
 import { useDemoStore } from './state';
 import * as api from './api';
-import { playEndDemoSound } from './sounds';
+import { playEndDemoSound, playAutoAttackSound } from './sounds';
 
 /**
  * Command execution result
@@ -702,6 +702,9 @@ async function handleDemo(): Promise<CommandResult> {
   const { addTerminalLine } = useDemoStore.getState();
 
   try {
+    // Play auto attack sound at start of demo
+    void playAutoAttackSound();
+
     // Step 1: Create customer
     addTerminalLine({ text: '→ Creating customer...', type: 'info' });
     const customerResult = await handleCreateCustomer(['--outcome', 'verified']);
