@@ -63,6 +63,23 @@ export interface GeneratorData {
 }
 
 /**
+ * Card display state for progressive disclosure
+ */
+export type LayoutState = 'empty' | 'customer-only' | 'customer-paykey' | 'customer-charge' | 'tracker-featured';
+export type CustomerWidth = 'full' | '60' | '50' | 'compact';
+export type PaykeyMode = 'empty' | 'standalone' | 'embedded' | 'in-tracker';
+export type ChargeMode = 'empty' | 'with-embedded-paykey' | 'hidden';
+
+export interface CardDisplayState {
+  layout: LayoutState;
+  customerWidth: CustomerWidth;
+  paykeyVisible: boolean;
+  paykeyMode: PaykeyMode;
+  chargeMode: ChargeMode;
+  showCircularTracker: boolean;
+}
+
+/**
  * Demo state
  */
 export interface DemoState {
@@ -126,13 +143,16 @@ export interface DemoState {
   showEndDemoBanner: boolean;
   setShowEndDemoBanner: (show: boolean) => void;
 
+  // Card Display State
+  getCardDisplayState: () => CardDisplayState;
+
   reset: () => void;
 }
 
 /**
  * Global demo store
  */
-export const useDemoStore = create<DemoState>((set) => ({
+export const useDemoStore = create<DemoState>((set, get) => ({
   // Initial state
   customer: null,
   paykey: null,
@@ -242,6 +262,72 @@ export const useDemoStore = create<DemoState>((set) => ({
   showEndDemoBanner: false,
   setShowEndDemoBanner: (show: boolean) => set({ showEndDemoBanner: show }),
 
+  getCardDisplayState: () => {
+    const { customer, paykey, charge } = get();
+
+    // No resources - empty state (maintain current UX)
+    if (!customer) {
+      return {
+        layout: 'empty' as const,
+        customerWidth: 'full' as const,
+        paykeyVisible: true,
+        paykeyMode: 'empty' as const,
+        chargeMode: 'empty' as const,
+        showCircularTracker: false,
+      };
+    }
+
+    // Customer only
+    if (!paykey) {
+      return {
+        layout: 'customer-only' as const,
+        customerWidth: 'full' as const,
+        paykeyVisible: true,
+        paykeyMode: 'empty' as const,
+        chargeMode: 'empty' as const,
+        showCircularTracker: false,
+      };
+    }
+
+    // Customer + Paykey (no charge yet)
+    if (!charge) {
+      return {
+        layout: 'customer-paykey' as const,
+        customerWidth: '60' as const,
+        paykeyVisible: true,
+        paykeyMode: 'standalone' as const,
+        chargeMode: 'empty' as const,
+        showCircularTracker: false,
+      };
+    }
+
+    // Check if charge is scheduled/pending/paid - show featured tracker
+    const isScheduled = charge.status === 'scheduled' ||
+                       charge.status === 'pending' ||
+                       charge.status === 'paid';
+
+    if (isScheduled) {
+      return {
+        layout: 'tracker-featured' as const,
+        customerWidth: 'compact' as const,
+        paykeyVisible: false,
+        paykeyMode: 'in-tracker' as const,
+        chargeMode: 'hidden' as const,
+        showCircularTracker: true,
+      };
+    }
+
+    // Customer + Charge (created) - paykey embedded in charge card
+    return {
+      layout: 'customer-charge' as const,
+      customerWidth: '50' as const,
+      paykeyVisible: false, // Hidden - embedded in charge card
+      paykeyMode: 'embedded' as const,
+      chargeMode: 'with-embedded-paykey' as const,
+      showCircularTracker: false,
+    };
+  },
+
   reset: () =>
     set({
       customer: null,
@@ -264,5 +350,6 @@ export const useDemoStore = create<DemoState>((set) => ({
       isBridgeModalOpen: false,
       reviewModalData: null,
       isReviewModalOpen: false,
+      showEndDemoBanner: false,
     }),
 }));
