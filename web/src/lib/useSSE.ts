@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useDemoStore } from './state';
 import type { Customer, Paykey, Charge } from './api';
 import { API_BASE_URL } from './api';
+import { playReviewAlertSound } from './sounds';
 
 /**
  * SSE event types from backend
@@ -162,6 +163,16 @@ export function useSSE(url: string = DEFAULT_SSE_URL): void {
 
         if (isCustomer(parsed)) {
           console.info('[SSE] Customer updated:', parsed);
+
+          // Get previous status before updating
+          const previousCustomer = useDemoStore.getState().customer;
+          const previousStatus = previousCustomer?.verification_status;
+
+          // Play review alert if status changed TO review
+          if (parsed.verification_status === 'review' && previousStatus !== 'review') {
+            void playReviewAlertSound();
+          }
+
           setCustomer(parsed);
         }
       });
@@ -172,6 +183,16 @@ export function useSSE(url: string = DEFAULT_SSE_URL): void {
 
         if (isPaykey(parsed)) {
           console.info('[SSE] Paykey updated:', parsed);
+
+          // Get previous status before updating
+          const previousPaykey = useDemoStore.getState().paykey;
+          const previousStatus = previousPaykey?.status;
+
+          // Play review alert if status changed TO review
+          if (parsed.status === 'review' && previousStatus !== 'review') {
+            void playReviewAlertSound();
+          }
+
           setPaykey(parsed);
         }
       });
