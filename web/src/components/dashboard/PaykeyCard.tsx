@@ -5,7 +5,6 @@ import {
   RetroCardTitle,
   RetroCardContent,
   RetroBadge,
-  RetroButton,
 } from '@/components/ui/retro-components';
 import { useDemoStore } from '@/lib/state';
 import { hasVerificationData } from './PaykeyCard.helpers';
@@ -16,9 +15,6 @@ import {
   AccountStatusDisplay,
 } from './PaykeyVerificationDisplay';
 import { PixelSkull } from '@/components/ui/PixelSkull';
-import { ReviewDecisionModal } from '@/components/ReviewDecisionModal';
-import { paykeyReviewDecision } from '@/lib/api';
-import { executeCommand } from '@/lib/commands';
 
 /**
  * Paykey (Bank Account) Ownership Card
@@ -33,32 +29,12 @@ export const PaykeyCard: React.FC = () => {
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [showInfoMode, setShowInfoMode] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [executingCommand, setExecutingCommand] = useState<string | null>(null);
 
   // Reset states when paykey changes
   useEffect(() => {
     setIsExpanded(false);
     setShowInfoMode(false);
-    setIsModalOpen(false);
   }, [paykey?.id]);
-
-  // Handler for button clicks
-  const handleLinkAccount = async (command: string, label: string): Promise<void> => {
-    setIsExecuting(true);
-    setExecutingCommand(label);
-    try {
-      await executeCommand(command);
-    } catch (error) {
-      // Error is already logged to terminal by executeCommand
-      // eslint-disable-next-line no-console
-      console.error('Command execution failed:', error);
-    } finally {
-      setIsExecuting(false);
-      setExecutingCommand(null);
-    }
-  };
 
   if (!paykey) {
     return (
@@ -69,46 +45,7 @@ export const PaykeyCard: React.FC = () => {
         <RetroCardContent>
           <p className="text-neutral-400 text-sm mb-4">No bank account linked.</p>
 
-          {customer ? (
-            <div className="space-y-2">
-              <RetroButton
-                variant="primary"
-                onClick={() => {
-                  void handleLinkAccount('/create-paykey-bridge', 'Bridge');
-                }}
-                disabled={isExecuting}
-                className="w-full"
-              >
-                {executingCommand === 'Bridge' ? '⏳ Linking...' : '🌉 Link via Bridge'}
-              </RetroButton>
-
-              <RetroButton
-                variant="secondary"
-                onClick={() => {
-                  void handleLinkAccount('/create-paykey plaid', 'Plaid');
-                }}
-                disabled={isExecuting}
-                className="w-full"
-              >
-                {executingCommand === 'Plaid' ? '⏳ Linking...' : '🏦 Link via Plaid'}
-              </RetroButton>
-
-              <RetroButton
-                variant="secondary"
-                onClick={() => {
-                  void handleLinkAccount('/create-paykey bank', 'Direct');
-                }}
-                disabled={isExecuting}
-                className="w-full"
-              >
-                {executingCommand === 'Direct' ? '⏳ Linking...' : '🏛️ Link Direct'}
-              </RetroButton>
-            </div>
-          ) : (
-            <p className="text-neutral-400 text-xs">
-              Create a customer first using the command menu
-            </p>
-          )}
+          <p className="text-neutral-400 text-xs">Use the command menu to link a bank account</p>
         </RetroCardContent>
       </RetroCard>
     );
@@ -173,36 +110,6 @@ export const PaykeyCard: React.FC = () => {
     return 'Unknown';
   };
 
-  // Handler for review decision (approve/reject)
-  const handleReviewDecision = async (
-    decision: 'verified' | 'rejected' | 'approved'
-  ): Promise<void> => {
-    if (!paykey?.id) {
-      return;
-    }
-
-    // Map 'approved' to 'approved', 'rejected' to 'rejected'
-    const apiDecision = decision === 'approved' ? 'approved' : 'rejected';
-
-    try {
-      // Call API
-      await paykeyReviewDecision(paykey.id, apiDecision);
-
-      // Log to terminal
-      const action = apiDecision === 'approved' ? 'Approved' : 'Rejected';
-      useDemoStore.getState().addAPILogEntry({
-        type: 'ui-action',
-        text: `Paykey review decision: ${action} paykey for ${truncateBankName(paykey.institution_name || paykey.label)}`,
-      });
-    } catch (error) {
-      // Log error to terminal
-      useDemoStore.getState().addTerminalLine({
-        type: 'error',
-        text: `Failed to ${apiDecision === 'approved' ? 'approve' : 'reject'} paykey: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      });
-    }
-  };
-
   return (
     <RetroCard
       variant="blue"
@@ -220,7 +127,32 @@ export const PaykeyCard: React.FC = () => {
           <RetroCardTitle className="flex-shrink text-glow-primary">Paykey</RetroCardTitle>
           {paykey.status === 'review' ? (
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                // Open modal via global state
+                useDemoStore.getState().setReviewModalData({
+                  type: 'paykey',
+                  id: paykey.id,
+                  data: {
+                    type: 'paykey',
+                    id: paykey.id,
+                    customerName: getCustomerName(),
+                    institution: truncateBankName(paykey.institution_name || paykey.label),
+                    balance: balance,
+                    status: paykey.status,
+                    verificationSummary: paykey.review?.verification_details?.breakdown
+                      ? Object.entries(paykey.review.verification_details.breakdown).reduce(
+                          (acc, [key, value]) => {
+                            if (value && typeof value === 'object' && 'decision' in value) {
+                              acc[key] = (value as { decision: string }).decision;
+                            }
+                            return acc;
+                          },
+                          {} as Record<string, string>
+                        )
+                      : undefined,
+                  },
+                });
+              }}
               className={cn(
                 'px-2 py-1 text-xs font-pixel uppercase transition-all',
                 'bg-gold/20 text-gold border border-gold/40 rounded-pixel',
@@ -241,7 +173,7 @@ export const PaykeyCard: React.FC = () => {
           )}
         </div>
       </RetroCardHeader>
-      <RetroCardContent className="space-y-4 relative z-10">
+      <RetroCardContent className="space-y-3 relative z-10">
         {/* Bank Info with Source */}
         <div className="flex items-start gap-3">
           {/* Logo Placeholder - Phase 3C will use logo.dev */}
@@ -278,7 +210,7 @@ export const PaykeyCard: React.FC = () => {
         </div>
 
         {/* Balance & Token */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-neutral-400 font-body mb-1">Balance</p>
             <p className="text-sm text-neutral-100 font-body font-bold text-glow-cyan">
@@ -300,7 +232,7 @@ export const PaykeyCard: React.FC = () => {
 
         {/* Verification Details */}
         {hasVerificationData(paykey) && (
-          <div className="pt-3 border-t border-secondary/20">
+          <div className="pt-2 border-t border-secondary/20">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-neutral-400 font-body">Verification Details</p>
               <div className="flex items-center gap-2">
@@ -364,34 +296,6 @@ export const PaykeyCard: React.FC = () => {
           </div>
         )}
       </RetroCardContent>
-
-      {/* Review Decision Modal */}
-      {paykey.status === 'review' && (
-        <ReviewDecisionModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onDecision={handleReviewDecision}
-          data={{
-            type: 'paykey',
-            id: paykey.id,
-            customerName: getCustomerName(),
-            institution: truncateBankName(paykey.institution_name || paykey.label),
-            balance: balance,
-            status: paykey.status,
-            verificationSummary: paykey.review?.verification_details?.breakdown
-              ? Object.entries(paykey.review.verification_details.breakdown).reduce(
-                  (acc, [key, value]) => {
-                    if (value && typeof value === 'object' && 'decision' in value) {
-                      acc[key] = (value as { decision: string }).decision;
-                    }
-                    return acc;
-                  },
-                  {} as Record<string, string>
-                )
-              : undefined,
-          }}
-        />
-      )}
     </RetroCard>
   );
 };

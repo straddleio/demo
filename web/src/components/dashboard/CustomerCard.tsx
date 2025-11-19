@@ -9,11 +9,10 @@ import {
 import { cn } from '@/components/ui/utils';
 import { useGeolocation } from '@/lib/useGeolocation';
 import { useDemoStore } from '@/lib/state';
-import { unmaskCustomer, customerReviewDecision, type UnmaskedCustomer } from '@/lib/api';
+import { unmaskCustomer, type UnmaskedCustomer } from '@/lib/api';
 import { KYCValidationCard } from './KYCValidationCard';
 import { AddressWatchlistCard } from './AddressWatchlistCard';
 import { PixelSkull } from '@/components/ui/PixelSkull';
-import { ReviewDecisionModal } from '@/components/ReviewDecisionModal';
 
 type ModuleDecision = 'accept' | 'reject' | 'review' | 'unavailable';
 
@@ -45,7 +44,6 @@ export const CustomerCard: React.FC = () => {
   const [allExpanded, setAllExpanded] = useState(false);
   const [infoMode, setInfoMode] = useState(false);
   const [unmaskError, setUnmaskError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const customer = useDemoStore((state) => state.customer);
 
   // Determine if customer is business or individual
@@ -133,6 +131,32 @@ export const CustomerCard: React.FC = () => {
 
   if (customer.review?.breakdown) {
     const { breakdown, messages } = customer.review;
+
+    // Business Verification module - for business customers, codes are in review.messages
+    if (isBusinessCustomer && messages) {
+      // Extract business codes from messages (BR*, BI*, BV*)
+      const businessCodes = Object.keys(messages).filter(
+        (code) => code.startsWith('BR') || code.startsWith('BI') || code.startsWith('BV')
+      );
+
+      if (businessCodes.length > 0) {
+        // Determine decision based on code type
+        let decision: 'accept' | 'review' | 'reject' = 'accept';
+        const hasRiskCodes = businessCodes.some((code) => code.startsWith('BR'));
+
+        if (hasRiskCodes) {
+          decision = customer.review.decision === 'accept' ? 'accept' : 'review';
+        }
+
+        modules.push({
+          name: 'Business',
+          decision,
+          riskScore: customer.risk_score || 0,
+          codes: businessCodes,
+          messages: messages || {},
+        });
+      }
+    }
 
     // Email module
     if (breakdown.email) {
@@ -297,7 +321,48 @@ export const CustomerCard: React.FC = () => {
           <RetroCardTitle className="flex-shrink">Customer</RetroCardTitle>
           {status === 'review' ? (
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                // Open modal via global state
+                useDemoStore.getState().setReviewModalData({
+                  type: 'customer',
+                  id: customer.id,
+                  data: {
+                    type: 'customer',
+                    id: customer.id,
+                    name: customer.name,
+                    email: customer.email,
+                    phone: customer.phone,
+                    status: customer.verification_status || 'review',
+                    verificationSummary: modules
+                      .filter(
+                        (m) => !['reputation', 'watchlist', 'kyc'].includes(m.name.toLowerCase())
+                      )
+                      .reduce(
+                        (acc, m) => {
+                          acc[m.name.toLowerCase()] = m.decision;
+                          return acc;
+                        },
+                        {} as Record<string, string>
+                      ),
+                    legal_business_name:
+                      customer.type === 'business'
+                        ? (customer as { legal_business_name?: string }).legal_business_name
+                        : undefined,
+                    website:
+                      customer.type === 'business'
+                        ? (customer as { website?: string }).website
+                        : undefined,
+                    ein:
+                      customer.type === 'business' ? (customer as { ein?: string }).ein : undefined,
+                    codes: (
+                      customer.review as { business_identity?: { codes?: string[] } } | undefined
+                    )?.business_identity?.codes,
+                    kyc: customer.review?.kyc,
+                    watchlist: customer.review?.watch_list,
+                    networkIntelligence: customer.review?.reputation,
+                  },
+                });
+              }}
               className={cn(
                 'px-2 py-1 text-xs font-pixel uppercase transition-all',
                 'bg-gold/20 text-gold border border-gold/40 rounded-pixel',
@@ -320,11 +385,11 @@ export const CustomerCard: React.FC = () => {
         {/* Name and Email Row */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <p className="text-xs text-neutral-400 font-body mb-0.5">Name</p>
+            <p className="text-xs text-neutral-400 font-body mb-1">Name</p>
             <p className="text-sm text-neutral-100 font-body">{customer.name}</p>
           </div>
           <div>
-            <p className="text-xs text-neutral-400 font-body mb-0.5">Email</p>
+            <p className="text-xs text-neutral-400 font-body mb-1">Email</p>
             <p className="text-xs text-neutral-100 font-body truncate">{customer.email}</p>
           </div>
         </div>
@@ -334,7 +399,7 @@ export const CustomerCard: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <div>
-                <p className="text-xs text-neutral-500 font-body mb-0.5">Phone</p>
+                <p className="text-xs text-neutral-500 font-body mb-1">Phone</p>
                 <p className="text-xs text-neutral-100 font-body">{customer.phone}</p>
               </div>
               {/* Live Geolocation Indicator */}
@@ -349,7 +414,7 @@ export const CustomerCard: React.FC = () => {
             </div>
             {customer.address && (
               <div>
-                <p className="text-xs text-neutral-500 font-body mb-0.5">Address</p>
+                <p className="text-xs text-neutral-500 font-body mb-1">Address</p>
                 <div className="text-xs text-neutral-100 font-body">
                   <p>
                     {customer.address.address1}
@@ -369,13 +434,13 @@ export const CustomerCard: React.FC = () => {
           <div className="pt-2 border-t border-primary/10 relative">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-neutral-500 font-body mb-0.5">SSN</p>
+                <p className="text-xs text-neutral-500 font-body mb-1">SSN</p>
                 <p className="text-xs text-neutral-100 font-body font-mono">
                   {unmaskedData?.compliance_profile?.ssn || customer.compliance_profile.ssn}
                 </p>
               </div>
               <div className="pr-16">
-                <p className="text-xs text-neutral-500 font-body mb-0.5">Date of Birth</p>
+                <p className="text-xs text-neutral-500 font-body mb-1">Date of Birth</p>
                 <p className="text-xs text-neutral-100 font-body font-mono">
                   {unmaskedData?.compliance_profile?.dob || customer.compliance_profile.dob}
                 </p>
@@ -434,7 +499,7 @@ export const CustomerCard: React.FC = () => {
           </div>
 
           {/* 2x3 Grid: Email/Phone, Reputation/Fraud, Address/KYC */}
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-2 gap-3 mb-2">
             {modules.map((module) => (
               <div
                 key={module.name}
@@ -501,14 +566,9 @@ export const CustomerCard: React.FC = () => {
                       <div className="px-3 pb-2">
                         <div className="pt-2 space-y-1.5">
                           {infoMode
-                            ? // I-Codes Mode: Show codes that DON'T start with R OR insight business codes (BI/BV)
+                            ? // I-Codes Mode: Show info codes (I*, BI*, BV*) - exclude risk codes (R*, BR*)
                               module.codes
-                                .filter(
-                                  (code) =>
-                                    !code.startsWith('R') ||
-                                    code.startsWith('BI') ||
-                                    code.startsWith('BV')
-                                )
+                                .filter((code) => !code.startsWith('R') && !code.startsWith('BR'))
                                 .map((code) => {
                                   const isInsightBusinessCode =
                                     code.startsWith('BI') || code.startsWith('BV');
@@ -528,9 +588,9 @@ export const CustomerCard: React.FC = () => {
                                     </div>
                                   );
                                 })
-                            : // R-Codes Mode: Show codes that start with R (including BR risk codes)
+                            : // R-Codes Mode: Show risk codes (R*, BR*)
                               module.codes
-                                .filter((code) => code.startsWith('R'))
+                                .filter((code) => code.startsWith('R') || code.startsWith('BR'))
                                 .map((code) => (
                                   <div key={code} className="flex gap-2">
                                     <span className="text-xs text-accent font-mono flex-shrink-0">
@@ -544,12 +604,11 @@ export const CustomerCard: React.FC = () => {
                           {/* No codes message */}
                           {(infoMode
                             ? module.codes.filter(
-                                (code) =>
-                                  !code.startsWith('R') ||
-                                  code.startsWith('BI') ||
-                                  code.startsWith('BV')
+                                (code) => !code.startsWith('R') && !code.startsWith('BR')
                               ).length === 0
-                            : module.codes.filter((code) => code.startsWith('R')).length === 0) && (
+                            : module.codes.filter(
+                                (code) => code.startsWith('R') || code.startsWith('BR')
+                              ).length === 0) && (
                             <p className="text-xs text-neutral-500 font-body">
                               {infoMode ? 'No insights' : 'No risk signals'}
                             </p>
@@ -609,50 +668,6 @@ export const CustomerCard: React.FC = () => {
           </div>
         </div>
       </RetroCardContent>
-
-      {/* Review Decision Modal */}
-      {customer.verification_status === 'review' && (
-        <ReviewDecisionModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onDecision={async (decision) => {
-            // Log to terminal
-            useDemoStore.getState().addAPILogEntry({
-              type: 'ui-action',
-              text: `Customer review decision: ${decision}`,
-            });
-
-            try {
-              // Call API
-              await customerReviewDecision(customer.id, decision as 'verified' | 'rejected');
-
-              // State will update via SSE
-            } catch (error) {
-              console.error('Failed to update customer review:', error);
-              // Show error in terminal
-              useDemoStore.getState().addTerminalLine({
-                text: `Error: ${error instanceof Error ? error.message : 'Failed to update review'}`,
-                type: 'error',
-              });
-            }
-          }}
-          data={{
-            type: 'customer',
-            id: customer.id,
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            status: customer.verification_status || 'review',
-            verificationSummary: modules.reduce(
-              (acc, m) => {
-                acc[m.name.toLowerCase()] = m.decision;
-                return acc;
-              },
-              {} as Record<string, string>
-            ),
-          }}
-        />
-      )}
     </RetroCard>
   );
 };
