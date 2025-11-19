@@ -127,7 +127,7 @@ export const ChargeCard: React.FC = () => {
           <RetroBadge variant={statusColor}>{charge.status.toUpperCase()}</RetroBadge>
         </div>
       </RetroCardHeader>
-      <RetroCardContent className="space-y-4">
+      <RetroCardContent className="space-y-3">
         {/* Embedded Paykey Details - Expandable */}
         {isPaykeyEmbedded && paykey && paykeyExpanded && (
           <div className="bg-green-500/5 border border-green-500/20 rounded-pixel p-3 space-y-2 animate-pixel-fade-in">
@@ -137,18 +137,18 @@ export const ChargeCard: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <p className="text-neutral-500 font-body mb-0.5">Bank</p>
+                <p className="text-neutral-500 font-body mb-1">Bank</p>
                 <p className="text-neutral-100 font-body">
                   {truncateBankName(paykey.institution_name || paykey.label)}
                 </p>
               </div>
               <div>
-                <p className="text-neutral-500 font-body mb-0.5">Account</p>
+                <p className="text-neutral-500 font-body mb-1">Account</p>
                 <p className="text-neutral-100 font-body">••••{last4}</p>
               </div>
               {hasBalanceData && (
                 <div>
-                  <p className="text-neutral-500 font-body mb-0.5">Balance</p>
+                  <p className="text-neutral-500 font-body mb-1">Balance</p>
                   <p className="text-neutral-100 font-body">
                     $
                     {balanceBefore.toLocaleString('en-US', {
@@ -159,7 +159,7 @@ export const ChargeCard: React.FC = () => {
                 </div>
               )}
               <div>
-                <p className="text-neutral-500 font-body mb-0.5">Status</p>
+                <p className="text-neutral-500 font-body mb-1">Status</p>
                 <p className="text-green-500 font-body">{paykey.status.toUpperCase()}</p>
               </div>
             </div>
@@ -175,7 +175,7 @@ export const ChargeCard: React.FC = () => {
         </div>
 
         {/* Payment Details */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-neutral-400 font-body mb-1">Payment Rail</p>
             <p className="text-sm text-neutral-100 font-body font-bold">
@@ -198,7 +198,7 @@ export const ChargeCard: React.FC = () => {
 
         {/* Balance Check - Only show for Plaid/Straddle paykeys (not bank_account) */}
         {hasBalanceData && (
-          <div className="pt-3 border-t border-accent/20">
+          <div className="pt-2 border-t border-accent/20">
             <div className="flex justify-between items-center mb-2">
               <p className="text-xs text-neutral-400 font-body">Balance Check</p>
               <p
@@ -209,11 +209,11 @@ export const ChargeCard: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <p className="text-neutral-500 font-body mb-0.5">Before</p>
+                <p className="text-neutral-500 font-body mb-1">Before</p>
                 <p className="text-neutral-300 font-body">${balanceBefore.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-neutral-500 font-body mb-0.5">After</p>
+                <p className="text-neutral-500 font-body mb-1">After</p>
                 <p className="text-neutral-300 font-body">${balanceAfter.toFixed(2)}</p>
               </div>
             </div>
@@ -221,7 +221,7 @@ export const ChargeCard: React.FC = () => {
         )}
 
         {/* Consent Type */}
-        <div className="pt-3 border-t border-accent/20">
+        <div className="pt-2 border-t border-accent/20">
           <div className="flex justify-between items-center">
             <p className="text-xs text-neutral-400 font-body">Consent Type</p>
             <p className="text-xs text-neutral-300 font-body capitalize">{consentType}</p>
