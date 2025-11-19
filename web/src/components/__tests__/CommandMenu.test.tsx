@@ -201,4 +201,26 @@ describe('CommandMenu', () => {
       expect(demoBtn).toHaveClass('bg-gold/20', 'border-gold', 'text-gold');
     });
   });
+
+  describe('End Demo button', () => {
+    it('should have End Demo button', () => {
+      const mockSelect = vi.fn();
+
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
+
+      const endButton = screen.getByText('END DEMO');
+      expect(endButton).toBeInTheDocument();
+    });
+
+    it('should call onCommandSelect with "end" when End Demo clicked', () => {
+      const mockSelect = vi.fn();
+
+      render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
+
+      const endButton = screen.getByText('END DEMO');
+      fireEvent.click(endButton);
+
+      expect(mockSelect).toHaveBeenCalledWith('end');
+    });
+  });
 });

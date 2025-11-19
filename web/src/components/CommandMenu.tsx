@@ -12,7 +12,8 @@ export type CommandType =
   | 'charge'
   | 'payout'
   | 'demo'
-  | 'reset';
+  | 'reset'
+  | 'end';
 
 interface CommandButtonProps {
   label: string;
@@ -128,6 +129,12 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     // Menu stays open until user toggles button
                   }}
                 />
+                <CommandButton
+                  label="Quiltt"
+                  onClick={() => {
+                    // Placeholder - no action
+                  }}
+                />
               </div>
             </div>
 
@@ -155,7 +162,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
 
             {/* UTILITIES */}
             <div className="pt-2 border-t border-primary/20">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <CommandButton
                   label="DEMO"
                   onClick={() => {
@@ -168,6 +175,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="RESET"
                   onClick={() => {
                     onCommandSelect('reset');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="utility"
+                />
+                <CommandButton
+                  label="END DEMO"
+                  onClick={() => {
+                    onCommandSelect('end');
                     // Menu stays open until user toggles button
                   }}
                   variant="utility"
