@@ -3,7 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { Instance, Instances, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import type { GeneratorData } from '@/lib/state';
-import { lerp, easing, pulse } from '../animationUtils';
 
 // Type definition for the proxy object returned by <Instance />
 // Drei's Instance component mimics an Object3D but patches direct color/scale access
@@ -151,13 +150,13 @@ export const Blake3D: React.FC<Props> = ({ data, onComplete }) => {
           </Text>
         </group>
       ))}
-      {/* Visual Connections (Data Beams) */}
-      <DataBeam start={[-4, -1.6, 0]} end={[-2, -0.4, 0]} delay={1.5} duration={0.5} />
-      <DataBeam start={[0, -1.6, 0]} end={[-2, -0.4, 0]} delay={1.7} duration={0.5} />
-      <DataBeam start={[0, -1.6, 0]} end={[2, -0.4, 0]} delay={1.9} duration={0.5} />
-      <DataBeam start={[4, -1.6, 0]} end={[2, -0.4, 0]} delay={2.1} duration={0.5} />
-      <DataBeam start={[-2, 0.4, 0]} end={[0, 1.6, 0]} delay={3.0} duration={0.7} />
-      <DataBeam start={[2, 0.4, 0]} end={[0, 1.6, 0]} delay={3.2} duration={0.7} />
+      {/* Visual Connections (Beams) */}
+      <DataBeam start={[-4, -1.6, 0]} end={[-2, -0.4, 0]} delay={1} /> {/* Identity -> Left Agg */}
+      <DataBeam start={[0, -1.6, 0]} end={[-2, -0.4, 0]} delay={1.5} /> {/* Risk -> Left Agg */}
+      <DataBeam start={[0, -1.6, 0]} end={[2, -0.4, 0]} delay={1.5} /> {/* Risk -> Right Agg */}
+      <DataBeam start={[4, -1.6, 0]} end={[2, -0.4, 0]} delay={2} /> {/* Bank -> Right Agg */}
+      <DataBeam start={[-2, 0.4, 0]} end={[0, 1.6, 0]} delay={3.5} /> {/* Left Agg -> Root */}
+      <DataBeam start={[2, 0.4, 0]} end={[0, 1.6, 0]} delay={3.5} /> {/* Right Agg -> Root */}
     </group>
   );
 };
@@ -173,7 +172,6 @@ interface BlockProps {
 
 const Block: React.FC<BlockProps> = ({ x, y, z, isInput = false, index, level }) => {
   const ref = useRef<DreiInstance>(null);
-  const startTimeRef = useRef<number | null>(null);
 
   useFrame((state) => {
     if (!ref.current) {
@@ -182,53 +180,36 @@ const Block: React.FC<BlockProps> = ({ x, y, z, isInput = false, index, level })
 
     const time = state.clock.elapsedTime;
 
-    // Initialize start time
-    if (startTimeRef.current === null) {
-      startTimeRef.current = time;
-    }
-
-    const elapsed = time - startTimeRef.current;
-
     // Activation Timing
     let activateTime = 0;
     if (isInput) {
-      activateTime = 0.2 + index * 0.4; // Inputs: 0.2s, 0.6s, 1.0s
-    } else {
-      activateTime = level === 1 ? 2.5 : 4.0; // Aggregators: 2.5s, Root: 4.0s
-    }
+      activateTime = 0.5 + index * 0.5;
+    } // Inputs light up sequentially
+    else {
+      activateTime = 3.0 + level * 1.5;
+    } // Tree lights up up later
 
-    const isActive = elapsed > activateTime;
+    const isActive = time > activateTime;
 
     if (isActive) {
-      const timeSinceActive = elapsed - activateTime;
+      // Pulse effect
+      const pulseValue = Math.sin((time - activateTime) * 10) * 0.08 + 1;
+      ref.current.scale.setScalar(pulseValue);
 
-      // Smooth scale-in with overshoot
-      const scaleProgress = Math.min(1, timeSinceActive / 0.3);
-      const targetScale = lerp(0.1, 1.0, scaleProgress, easing.easeOutBack);
-
-      // Gentle pulse after activation
-      const pulseEffect = pulse(elapsed - activateTime, 2, 0.05, 1);
-      ref.current.scale.setScalar(targetScale * pulseEffect);
-
-      // Color transition based on type
       if (!isInput && level === 2) {
-        // Root: Smooth transition to gold
-        const goldProgress = Math.min(1, timeSinceActive / 0.5);
-        const r = lerp(0, 1, goldProgress);
-        const g = lerp(1, 0.84, goldProgress);
-        const b = lerp(1, 0, goldProgress);
-        ref.current.color.setRGB(r, g, b);
+        // Gold Root with higher emissive
+        ref.current.color.setRGB(1, 0.843, 0);
       } else if (!isInput) {
-        // Aggregators: Magenta
-        ref.current.color.setHex(0xff0099);
+        // Magenta Nodes
+        ref.current.color.setRGB(1, 0, 0.6);
       } else {
-        // Inputs: Cyan
-        ref.current.color.setHex(0x00ffff);
+        // Cyan Inputs
+        ref.current.color.setRGB(0, 1, 1);
       }
     } else {
-      // Inactive state
-      ref.current.color.setHex(0x333333);
-      ref.current.scale.setScalar(0.9);
+      // Darker inactive state
+      ref.current.color.setRGB(0.15, 0.15, 0.15);
+      ref.current.scale.setScalar(0.85);
     }
   });
 
@@ -236,17 +217,12 @@ const Block: React.FC<BlockProps> = ({ x, y, z, isInput = false, index, level })
 };
 
 // Animated Beam Component
-interface DataBeamProps {
+const DataBeam: React.FC<{
   start: [number, number, number];
   end: [number, number, number];
   delay: number;
-  duration?: number;
-}
-
-const DataBeam: React.FC<DataBeamProps> = ({ start, end, delay, duration = 0.5 }) => {
+}> = ({ start, end, delay }) => {
   const ref = useRef<THREE.Mesh>(null);
-  const startTimeRef = useRef<number | null>(null);
-
   const curve = useMemo(
     () => new THREE.LineCurve3(new THREE.Vector3(...start), new THREE.Vector3(...end)),
     [start, end]
@@ -256,34 +232,18 @@ const DataBeam: React.FC<DataBeamProps> = ({ start, end, delay, duration = 0.5 }
     if (!ref.current) {
       return;
     }
-
     const time = state.clock.elapsedTime;
 
-    // Initialize start time
-    if (startTimeRef.current === null) {
-      startTimeRef.current = time;
-    }
-
-    const elapsed = time - startTimeRef.current;
-
-    if (elapsed > delay) {
-      const beamProgress = (elapsed - delay) / duration;
-
-      if (beamProgress < 1) {
-        // Animate particle along curve with easing
-        const easedProgress = easing.easeInOutCubic(beamProgress);
-        const pos = curve.getPoint(easedProgress);
+    if (time > delay) {
+      // "Shoot" particle along line
+      const progress = (time - delay) * 2; // Speed
+      if (progress < 1) {
+        const pos = curve.getPoint(progress);
         ref.current.position.copy(pos);
         ref.current.visible = true;
-
-        // Scale up during first half, down during second half for shooting effect
-        const scale =
-          beamProgress < 0.5
-            ? lerp(0.1, 0.2, beamProgress * 2)
-            : lerp(0.2, 0.05, (beamProgress - 0.5) * 2);
-        ref.current.scale.setScalar(scale);
+        ref.current.scale.setScalar(1);
       } else {
-        // Beam complete
+        // Arrived
         ref.current.visible = false;
       }
     } else {

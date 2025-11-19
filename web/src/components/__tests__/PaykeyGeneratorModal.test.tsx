@@ -3,28 +3,51 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PaykeyGeneratorModal } from '../PaykeyGeneratorModal';
 import { useDemoStore } from '@/lib/state';
 
-// Mock the stage components to avoid complex animation testing
-vi.mock('../generator/WaldoStage', () => ({
-  WaldoStage: ({ onComplete }: { onComplete: () => void }) => (
+// Mock Canvas from @react-three/fiber to avoid WebGL initialization in tests
+vi.mock('@react-three/fiber', () => ({
+  Canvas: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="canvas-mock">{children}</div>
+  ),
+  useProgress: () => ({ progress: 100 }),
+}));
+
+// Mock drei utilities
+vi.mock('@react-three/drei', () => ({
+  Html: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="html-mock">{children}</div>
+  ),
+  useProgress: () => ({ progress: 100 }),
+}));
+
+// Mock the 3D stage components to avoid complex animation and Canvas testing
+vi.mock('../generator/v5/stages/Waldo3D', () => ({
+  Waldo3D: ({ onComplete }: { onComplete: () => void }) => (
     <div data-testid="waldo-stage">
       <button onClick={onComplete}>Complete WALDO</button>
     </div>
   ),
 }));
 
-vi.mock('../generator/Blake3Stage', () => ({
-  Blake3Stage: ({ onComplete }: { onComplete: (hash: string) => void }) => (
+vi.mock('../generator/v5/stages/Blake3D', () => ({
+  Blake3D: ({ onComplete }: { onComplete: (hash: string) => void }) => (
     <div data-testid="blake3-stage">
       <button onClick={() => onComplete('abc123hash')}>Complete BLAKE3</button>
     </div>
   ),
 }));
 
-vi.mock('../generator/MintingStage', () => ({
-  MintingStage: ({ onComplete }: { onComplete: () => void }) => (
+vi.mock('../generator/v5/stages/Minting3D', () => ({
+  Minting3D: ({ onComplete }: { onComplete: () => void }) => (
     <div data-testid="minting-stage">
       <button onClick={onComplete}>Complete Minting</button>
     </div>
+  ),
+}));
+
+// Mock the 3D Scene component
+vi.mock('../generator/v5/Scene', () => ({
+  Scene: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="scene-container">{children}</div>
   ),
 }));
 
@@ -61,8 +84,8 @@ describe('PaykeyGeneratorModal', () => {
     render(<PaykeyGeneratorModal />);
 
     expect(screen.getByText('PAYKEY GENERATOR')).toBeInTheDocument();
-    expect(screen.getByText('Generating secure token for')).toBeInTheDocument();
-    expect(screen.getByText('John Smith')).toBeInTheDocument();
+    expect(screen.getByText('GPU_ACCELERATED // WEBGL2.0 // R3F')).toBeInTheDocument();
+    expect(screen.getByText('SECURE_ENCLAVE_ACTIVE')).toBeInTheDocument();
   });
 
   it('should start at WALDO stage when waldoData exists', () => {
@@ -134,7 +157,7 @@ describe('PaykeyGeneratorModal', () => {
     });
   });
 
-  it('should close modal on Skip button click', () => {
+  it('should close modal on TERMINATE_SEQUENCE button click', () => {
     useDemoStore.getState().setGeneratorData({
       customerName: 'John Smith',
       waldoData: undefined,
@@ -147,8 +170,8 @@ describe('PaykeyGeneratorModal', () => {
 
     expect(screen.getByText('PAYKEY GENERATOR')).toBeInTheDocument();
 
-    // Click Skip
-    fireEvent.click(screen.getByText('SKIP'));
+    // Click TERMINATE_SEQUENCE button
+    fireEvent.click(screen.getByText(/TERMINATE_SEQUENCE/));
 
     // Modal should be closed
     const state = useDemoStore.getState();
@@ -156,7 +179,7 @@ describe('PaykeyGeneratorModal', () => {
     expect(state.generatorData).toBeNull();
   });
 
-  it('should close modal on ESC key', () => {
+  it('should display GPU stats and encryption status', () => {
     useDemoStore.getState().setGeneratorData({
       customerName: 'John Smith',
       waldoData: undefined,
@@ -167,36 +190,26 @@ describe('PaykeyGeneratorModal', () => {
 
     render(<PaykeyGeneratorModal />);
 
-    // Press ESC
-    fireEvent.keyDown(window, { key: 'Escape' });
-
-    // Modal should be closed
-    const state = useDemoStore.getState();
-    expect(state.showPaykeyGenerator).toBe(false);
-    expect(state.generatorData).toBeNull();
+    // Check for GPU stats
+    expect(screen.getByText('FPS: 60')).toBeInTheDocument();
+    expect(screen.getByText('DRAW_CALLS: 12')).toBeInTheDocument();
+    expect(screen.getByText('MEM: 24MB')).toBeInTheDocument();
   });
 
-  it('should close modal on background click', () => {
+  it('should display customer UID from generatorData', () => {
+    const customerName = 'Alberta Bobbeth Charleson';
     useDemoStore.getState().setGeneratorData({
-      customerName: 'John Smith',
+      customerName,
       waldoData: undefined,
       paykeyToken: 'token_123',
       accountLast4: '1234',
       routingNumber: '021000021',
     });
 
-    const { container } = render(<PaykeyGeneratorModal />);
+    render(<PaykeyGeneratorModal />);
 
-    // Click on overlay background
-    const overlay = container.querySelector('.fixed.inset-0');
-    if (overlay) {
-      fireEvent.click(overlay);
-    }
-
-    // Modal should be closed
-    const state = useDemoStore.getState();
-    expect(state.showPaykeyGenerator).toBe(false);
-    expect(state.generatorData).toBeNull();
+    // Check for customer UID display
+    expect(screen.getByText(new RegExp(`UID: ${customerName}`))).toBeInTheDocument();
   });
 });
 
@@ -204,7 +217,7 @@ describe('PaykeyGeneratorModal Performance', () => {
   it('should not re-render excessively when data does not change', () => {
     const renderSpy = vi.fn();
 
-    const TestWrapper = () => {
+    const TestWrapper = (): React.JSX.Element => {
       renderSpy();
       return <PaykeyGeneratorModal />;
     };

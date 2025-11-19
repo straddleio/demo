@@ -25,34 +25,40 @@ const fragmentShader = `
 
   void main() {
       vec2 uv = vUv;
-      
-      // Grid effect
-      float gridScale = 40.0;
+
+      // Subtle grid effect (reduced scale for less noise)
+      float gridScale = 20.0;
       vec2 gridUv = fract(uv * gridScale);
       vec2 gridId = floor(uv * gridScale);
-      
-      // Random digital rain drops
-      float dropSpeed = 2.0 + random(vec2(gridId.x, 0.0)) * 3.0;
-      float dropPos = fract(iTime * 0.5 * dropSpeed + random(vec2(gridId.x, 1.0)));
-      
-      // Trail effect
-      float trail = smoothstep(0.0, 1.0, (1.0 - distance(gridUv.y, dropPos)));
-      trail *= step(gridUv.y, dropPos); // Only trail behind
-      
-      // Hex character simulation (just pixel noise)
-      float charNoise = step(0.5, random(vec2(gridId.x, gridId.y + floor(iTime * 10.0))));
-      
-      float alpha = trail * charNoise * 0.5;
-      
-      // Base grid glow
-      float gridLine = step(0.95, gridUv.x) + step(0.95, gridUv.y);
-      alpha += gridLine * 0.05;
 
-      // Vignette
-      float vig = 1.0 - distance(uv, vec2(0.5)) * 1.2;
-      
+      // Slower, subtler digital rain
+      float dropSpeed = 0.5 + random(vec2(gridId.x, 0.0)) * 0.5;
+      float dropPos = fract(iTime * 0.2 * dropSpeed + random(vec2(gridId.x, 1.0)));
+
+      // More subtle trail effect
+      float trail = smoothstep(0.2, 0.8, (1.0 - distance(gridUv.y, dropPos)));
+      trail *= step(gridUv.y, dropPos); // Only trail behind
+
+      // Reduced character noise frequency
+      float charNoise = step(0.7, random(vec2(gridId.x, gridId.y + floor(iTime * 5.0))));
+
+      // Much more subtle overall
+      float alpha = trail * charNoise * 0.15;
+
+      // Subtle grid lines
+      float gridLine = step(0.98, gridUv.x) + step(0.98, gridUv.y);
+      alpha += gridLine * 0.02;
+
+      // Atmospheric fog gradient (bottom to top)
+      float fog = smoothstep(0.0, 0.6, uv.y) * 0.1;
+      alpha += fog;
+
+      // Stronger vignette for focus
+      float vig = 1.0 - distance(uv, vec2(0.5)) * 1.5;
+      vig = smoothstep(0.0, 1.0, vig);
+
       vec3 finalColor = iColor * alpha;
-      gl_FragColor = vec4(finalColor, alpha * vig);
+      gl_FragColor = vec4(finalColor, alpha * vig * 0.6);
   }
 `;
 

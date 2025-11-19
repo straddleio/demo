@@ -58,7 +58,11 @@ export const GeneratorModalV5: React.FC = () => {
               )}
 
               {stage === 'minting' && (
-                <Minting3D hash={generatedHash} onComplete={clearGeneratorData} />
+                <Minting3D
+                  hash={generatedHash}
+                  paykeyToken={generatorData.paykeyToken}
+                  onComplete={clearGeneratorData}
+                />
               )}
             </Scene>
           </Suspense>
