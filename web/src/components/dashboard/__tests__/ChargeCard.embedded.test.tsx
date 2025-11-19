@@ -85,6 +85,8 @@ describe('ChargeCard with Embedded Paykey', () => {
     const keyButton = screen.getByRole('button', { name: /toggle paykey details/i });
     expect(keyButton).toBeInTheDocument();
     expect(keyButton).toHaveClass('text-green-500');
+    // Verify simplified label
+    expect(screen.getByText('Paykey')).toBeInTheDocument();
   });
 
   it('expands paykey details when key icon is clicked', () => {

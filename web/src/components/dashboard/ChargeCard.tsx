@@ -98,32 +98,7 @@ export const ChargeCard: React.FC = () => {
     <RetroCard variant="magenta" className="h-full">
       <RetroCardHeader>
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-1">
-            <RetroCardTitle className="flex-shrink">Charge</RetroCardTitle>
-
-            {/* Enhanced Embedded Paykey CTA */}
-            {isPaykeyEmbedded && paykey && (
-              <button
-                onClick={() => setPaykeyExpanded(!paykeyExpanded)}
-                className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-pixel transition-all',
-                  'bg-green-500/10 border border-green-500/40 text-green-500',
-                  'hover:bg-green-500/20 hover:border-green-500/60 hover:scale-105',
-                  'shadow-glow-green',
-                  'text-sm font-body font-semibold'
-                )}
-                aria-label="Toggle paykey details"
-              >
-                <FiKey className="w-4 h-4 animate-pulse" />
-                <span>View Paykey</span>
-                {paykeyExpanded ? (
-                  <FiChevronUp className="w-4 h-4" />
-                ) : (
-                  <FiChevronDown className="w-4 h-4" />
-                )}
-              </button>
-            )}
-          </div>
+          <RetroCardTitle>Charge</RetroCardTitle>
           <RetroBadge variant={statusColor}>{charge.status.toUpperCase()}</RetroBadge>
         </div>
       </RetroCardHeader>
@@ -169,9 +144,33 @@ export const ChargeCard: React.FC = () => {
         {/* Amount */}
         <div>
           <p className="text-xs text-neutral-400 font-body mb-1">Amount</p>
-          <p className="text-4xl text-neutral-100 font-pixel">
-            ${(charge.amount / 100).toFixed(2)}
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-4xl text-neutral-100 font-pixel">
+              ${(charge.amount / 100).toFixed(2)}
+            </p>
+            {/* Enhanced Embedded Paykey CTA - Inline with Amount */}
+            {isPaykeyEmbedded && paykey && (
+              <button
+                onClick={() => setPaykeyExpanded(!paykeyExpanded)}
+                className={cn(
+                  'flex items-center gap-2 px-3 py-2 rounded-pixel transition-all',
+                  'bg-green-500/10 border border-green-500/40 text-green-500',
+                  'hover:bg-green-500/20 hover:border-green-500/60 hover:scale-105',
+                  'shadow-glow-green',
+                  'text-sm font-body font-semibold'
+                )}
+                aria-label="Toggle paykey details"
+              >
+                <FiKey className="w-4 h-4 animate-pulse" />
+                <span>Paykey</span>
+                {paykeyExpanded ? (
+                  <FiChevronUp className="w-4 h-4" />
+                ) : (
+                  <FiChevronDown className="w-4 h-4" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Payment Details */}
