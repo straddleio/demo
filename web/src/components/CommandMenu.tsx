@@ -91,7 +91,6 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('customer-business');
                     // Menu stays open until user toggles button
                   }}
-                  variant="secondary"
                 />
                 <CommandButton
                   label="Customer KYC"
