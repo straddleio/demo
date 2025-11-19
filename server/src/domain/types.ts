@@ -212,25 +212,50 @@ export function validateKYCCustomerRequest(data: unknown): KYCValidationResult {
     errors.push({ field: 'compliance_profile', message: 'Compliance profile is required' });
   } else {
     const compliance = obj.compliance_profile as Record<string, unknown>;
-    if (
-      !compliance.ssn ||
-      typeof compliance.ssn !== 'string' ||
-      !/^\d{3}-\d{2}-\d{4}$/.test(compliance.ssn)
-    ) {
-      errors.push({
-        field: 'compliance_profile.ssn',
-        message: 'Valid SSN format required (XXX-XX-XXXX)',
-      });
+    const customerType = obj.type as string | undefined;
+
+    // Individual customer validation (SSN + DOB)
+    if (!customerType || customerType === 'individual') {
+      if (
+        !compliance.ssn ||
+        typeof compliance.ssn !== 'string' ||
+        !/^\d{3}-\d{2}-\d{4}$/.test(compliance.ssn)
+      ) {
+        errors.push({
+          field: 'compliance_profile.ssn',
+          message: 'Valid SSN format required (XXX-XX-XXXX)',
+        });
+      }
+      if (
+        !compliance.dob ||
+        typeof compliance.dob !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(compliance.dob)
+      ) {
+        errors.push({
+          field: 'compliance_profile.dob',
+          message: 'Valid DOB format required (YYYY-MM-DD)',
+        });
+      }
     }
-    if (
-      !compliance.dob ||
-      typeof compliance.dob !== 'string' ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(compliance.dob)
-    ) {
-      errors.push({
-        field: 'compliance_profile.dob',
-        message: 'Valid DOB format required (YYYY-MM-DD)',
-      });
+
+    // Business customer validation (EIN + legal_business_name)
+    if (customerType === 'business') {
+      if (
+        !compliance.ein ||
+        typeof compliance.ein !== 'string' ||
+        !/^\d{2}-\d{7}$/.test(compliance.ein)
+      ) {
+        errors.push({
+          field: 'compliance_profile.ein',
+          message: 'Valid EIN format required (XX-XXXXXXX)',
+        });
+      }
+      if (!compliance.legal_business_name || typeof compliance.legal_business_name !== 'string') {
+        errors.push({
+          field: 'compliance_profile.legal_business_name',
+          message: 'Legal business name is required',
+        });
+      }
     }
   }
 

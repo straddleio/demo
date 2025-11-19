@@ -13,10 +13,6 @@ export const BridgeModal: React.FC = () => {
     addTerminalLine,
   } = useDemoStore();
 
-  if (!isBridgeModalOpen || !bridgeToken || bridgeToken.trim() === '') {
-    return null;
-  }
-
   const handleSuccess = (event: { data: Paykey }): void => {
     if (!event?.data?.id) {
       addTerminalLine({
@@ -40,6 +36,12 @@ export const BridgeModal: React.FC = () => {
   };
 
   const handleExit = (): void => {
+    // Force remove Straddle iframe that doesn't cleanup automatically
+    const iframe = document.getElementById('Straddle-widget-iframe');
+    if (iframe) {
+      iframe.remove();
+    }
+
     addTerminalLine({
       text: 'Bridge widget closed',
       type: 'info',
@@ -60,26 +62,81 @@ export const BridgeModal: React.FC = () => {
     setBridgeModalOpen(false);
   };
 
+  // ESC key handler
+  React.useEffect(() => {
+    const handleEsc = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') {
+        handleExit();
+      }
+    };
+
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
+  // Cleanup orphaned iframe on unmount (defense in depth)
+  React.useEffect(() => {
+    return () => {
+      const iframe = document.getElementById('Straddle-widget-iframe');
+      if (iframe) {
+        iframe.remove();
+      }
+    };
+  }, []);
+
+  if (!bridgeToken || bridgeToken.trim() === '') {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <StraddleBridge
-        token={bridgeToken}
-        mode="sandbox"
-        open={true}
-        onSuccess={handleSuccess}
-        onClose={handleExit}
-        onLoadError={handleLoadError}
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '480px',
-          height: '600px',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-          backgroundColor: 'white',
-        }}
-      />
-    </div>
+    <>
+      {/* Backdrop */}
+      {isBridgeModalOpen && (
+        <div
+          className="fixed inset-0 backdrop-blur-sm"
+          style={{
+            zIndex: 2147483646,
+            background:
+              'linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 102, 255, 0.3) 100%)',
+          }}
+          onClick={handleExit}
+        />
+      )}
+
+      {/* Bridge Widget - only render when modal is open */}
+      {isBridgeModalOpen && (
+        <StraddleBridge
+          token={bridgeToken}
+          mode="sandbox"
+          open={true}
+          onSuccess={handleSuccess}
+          onClose={handleExit}
+          onLoadError={handleLoadError}
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '600px',
+            height: '800px',
+            zIndex: 2147483647,
+            border: '3px solid #00FFFF',
+            borderRadius: '12px',
+            boxShadow: '0 0 30px rgba(0, 255, 255, 0.5)',
+          }}
+        />
+      )}
+
+      {/* Close button overlay */}
+      {isBridgeModalOpen && (
+        <button
+          onClick={handleExit}
+          className="fixed top-4 right-4 z-[2147483648] px-3 py-2 bg-accent text-white font-pixel text-xs rounded hover:bg-accent/80 transition-colors border-2 border-accent-dark shadow-lg"
+          aria-label="Close Bridge widget"
+        >
+          ✕ ESC
+        </button>
+      )}
+    </>
   );
 };

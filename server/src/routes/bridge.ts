@@ -564,32 +564,16 @@ router.post('/initialize', (req: Request, res: Response): void => {
     try {
       const startTime = Date.now();
 
-      // Build URL based on environment (sandbox vs production)
-      const baseUrl =
-        config.straddle.environment === 'sandbox'
-          ? 'https://api.sandbox.straddle.com'
-          : 'https://api.straddle.com';
-      const url = `${baseUrl}/v1/bridge/initialize`;
-
-      // Use direct fetch since SDK might not have this endpoint yet
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${config.straddle.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ customer_id }),
-      });
-
+      // Use SDK bridge.initialize method
+      const bridgeToken = await straddleClient.bridge.initialize({ customer_id });
       const duration = Date.now() - startTime;
-      const responseData = (await response.json()) as { message?: string; data?: unknown };
 
       // Log inbound Straddle response to stream
       addLogEntry({
         timestamp: new Date().toISOString(),
         type: 'straddle-res',
-        statusCode: response.status,
-        responseBody: responseData,
+        statusCode: 200,
+        responseBody: bridgeToken.data,
         duration,
         requestId: req.requestId,
       });
@@ -600,17 +584,14 @@ router.post('/initialize', (req: Request, res: Response): void => {
         req.correlationId,
         'bridge/initialize',
         'POST',
-        response.status,
+        200,
         duration,
         { customer_id },
-        responseData
+        bridgeToken.data
       );
 
-      if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to generate bridge token');
-      }
-
-      res.status(200).json(responseData);
+      // SDK wraps response in .data
+      res.status(200).json({ data: bridgeToken.data });
     } catch (error: unknown) {
       const err = toExpressError(error);
       logger.error('Error generating bridge token', err);
