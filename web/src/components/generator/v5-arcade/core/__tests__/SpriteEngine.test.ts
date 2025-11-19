@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+// web/src/components/generator/v5-arcade/core/__tests__/SpriteEngine.test.ts
+import { vi } from 'vitest';
 import { SpriteEngine } from '../SpriteEngine';
 
 describe('SpriteEngine', () => {
@@ -10,50 +11,38 @@ describe('SpriteEngine', () => {
     canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
-    // Mock context methods used by SpriteEngine
-    ctx = {
-      canvas: canvas,
-      fillStyle: '',
-      strokeStyle: '',
-      font: '',
-      shadowColor: '',
-      shadowBlur: 0,
-      textAlign: '',
-      textBaseline: '',
-      lineWidth: 1,
-      save: vi.fn(),
-      restore: vi.fn(),
-      fillText: vi.fn(),
-      fillRect: vi.fn(),
-      beginPath: vi.fn(),
-      arc: vi.fn(),
-      fill: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-    } as unknown as CanvasRenderingContext2D;
-
+    ctx = canvas.getContext('2d')!;
     engine = new SpriteEngine(ctx);
   });
 
   it('should draw text with arcade font', () => {
-    engine.drawText('HELLO', 100, 100, '#00FFFF', 24);
+    const fillTextSpy = vi.spyOn(ctx, 'fillText');
 
-    expect(ctx.fillText).toHaveBeenCalledWith('HELLO', 100, 100);
-    expect(ctx.fillStyle).toBe('#00FFFF');
+    engine.drawText('HELLO', 100, 100, '#00FFFF', 24);
+    engine.flush(); // Flush batched draw calls
+
+    expect(fillTextSpy).toHaveBeenCalledWith('HELLO', 100, 100);
+    expect(ctx.fillStyle).toBe('#00ffff');
     expect(ctx.font).toContain('Press Start 2P');
   });
 
   it('should draw rectangle with neon glow', () => {
-    engine.drawRect(50, 50, 100, 100, '#FF00FF', true);
+    const fillRectSpy = vi.spyOn(ctx, 'fillRect');
+    const shadowColor = vi.spyOn(ctx, 'shadowColor', 'set');
 
-    expect(ctx.shadowColor).toBe('#FF00FF');
-    expect(ctx.fillRect).toHaveBeenCalledWith(50, 50, 100, 100);
+    engine.drawRect(50, 50, 100, 100, '#FF00FF', true);
+    engine.flush(); // Flush batched draw calls
+
+    expect(shadowColor).toHaveBeenCalledWith('#FF00FF');
+    expect(fillRectSpy).toHaveBeenCalledWith(50, 50, 100, 100);
   });
 
   it('should draw circle sprite', () => {
-    engine.drawCircle(200, 200, 50, '#FFFF00');
+    const arcSpy = vi.spyOn(ctx, 'arc');
 
-    expect(ctx.arc).toHaveBeenCalled();
+    engine.drawCircle(200, 200, 50, '#FFFF00');
+    engine.flush(); // Flush batched draw calls
+
+    expect(arcSpy).toHaveBeenCalled();
   });
 });

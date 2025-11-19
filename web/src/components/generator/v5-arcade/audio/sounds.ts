@@ -1,3 +1,4 @@
+// web/src/components/generator/v5-arcade/audio/sounds.ts
 export interface Sound {
   type: 'beep' | 'laser' | 'lock' | 'chomp' | 'coin' | 'fanfare';
   frequency: number;

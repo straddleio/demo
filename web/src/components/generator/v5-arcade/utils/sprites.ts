@@ -1,3 +1,4 @@
+// web/src/components/generator/v5-arcade/utils/sprites.ts
 export const SPRITE_CONFIG = {
   font: {
     family: '"Press Start 2P", monospace',

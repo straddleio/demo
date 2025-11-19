@@ -1,3 +1,4 @@
+// web/src/components/generator/v5-arcade/audio/SoundManager.ts
 import { SOUNDS } from './sounds';
 
 export class SoundManager {
@@ -5,8 +6,8 @@ export class SoundManager {
   private muted: boolean = false;
 
   constructor() {
-    // Lazy init AudioContext (requires user interaction usually, but we init here)
-    if (typeof window !== 'undefined' && typeof window.AudioContext !== 'undefined') {
+    // Lazy init AudioContext (requires user interaction)
+    if (typeof window !== 'undefined') {
       this.audioContext = new AudioContext();
     }
   }
@@ -42,9 +43,6 @@ export class SoundManager {
 
   public setMuted(muted: boolean): void {
     this.muted = muted;
-    if (this.audioContext && this.audioContext.state === 'suspended' && !muted) {
-      void this.audioContext.resume();
-    }
   }
 
   public cleanup(): void {

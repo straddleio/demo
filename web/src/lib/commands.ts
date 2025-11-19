@@ -286,13 +286,6 @@ async function handleCreateBusiness(args: string[]): Promise<CommandResult> {
       outcome, // Pass outcome to API config if supported, otherwise address drives it
     };
 
-    // Log the request being sent
-    const { addTerminalLine } = useDemoStore.getState();
-    addTerminalLine({
-      text: `→ Creating business customer with data: ${JSON.stringify(businessData, null, 2)}`,
-      type: 'info',
-    });
-
     const customer = await api.createCustomer(businessData);
 
     // Update state
@@ -304,17 +297,6 @@ async function handleCreateBusiness(args: string[]): Promise<CommandResult> {
       data: customer,
     };
   } catch (error) {
-    // Log detailed error
-    const { addTerminalLine } = useDemoStore.getState();
-    addTerminalLine({
-      text: `✗ Business customer creation failed: ${error instanceof Error ? error.message : JSON.stringify(error)}`,
-      type: 'error',
-    });
-    addTerminalLine({
-      text: `→ Request data was: ${JSON.stringify(businessData, null, 2)}`,
-      type: 'error',
-    });
-
     return {
       success: false,
       message: `✗ Failed to create business customer: ${error instanceof Error ? error.message : 'Unknown error'}`,

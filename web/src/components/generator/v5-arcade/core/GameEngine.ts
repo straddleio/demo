@@ -1,11 +1,5 @@
 import { CRTEffect } from '../effects/CRTEffect';
-import { SpriteEngine } from './SpriteEngine';
-import { GameStage, StageContext } from './Stage';
-import { WaldoStage } from '../stages/WaldoStage';
-import { Blake3Stage } from '../stages/Blake3Stage';
-import { MintingStage } from '../stages/MintingStage';
-import { SoundManager } from '../audio/SoundManager';
-import type { GeneratorData } from '../../../../lib/state';
+import { FPSMonitor, PerformanceStats } from '../utils/performance';
 
 type UpdateCallback = (deltaTime: number, totalTime: number) => void;
 
@@ -16,34 +10,13 @@ export class GameEngine {
   private totalTime: number = 0;
   private animationFrameId: number | null = null;
   private listeners: Map<string, UpdateCallback[]> = new Map();
-
-  // Systems
   private crtEffect: CRTEffect;
-  private spriteEngine: SpriteEngine;
-  private soundManager: SoundManager;
-
-  // Game State
-  private stages: GameStage[] = [];
-  private currentStageIndex: number = 0;
-  private data: GeneratorData | null = null;
-  private onComplete: (() => void) | null = null;
+  private fpsMonitor: FPSMonitor;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
     this.crtEffect = new CRTEffect();
-    this.spriteEngine = new SpriteEngine(ctx);
-    this.soundManager = new SoundManager();
-
-    // Initialize Stages
-    this.stages = [new WaldoStage(), new Blake3Stage(), new MintingStage()];
-  }
-
-  public setData(data: GeneratorData): void {
-    this.data = data;
-  }
-
-  public setOnComplete(callback: () => void): void {
-    this.onComplete = callback;
+    this.fpsMonitor = new FPSMonitor(60);
   }
 
   public start(): void {
@@ -51,35 +24,10 @@ export class GameEngine {
       return;
     }
 
-    // Resume audio context on interaction/start
-    this.soundManager.setMuted(false);
-
     this.running = true;
     this.lastFrameTime = performance.now();
     this.totalTime = 0;
-    this.currentStageIndex = 0;
-
-    // Start first stage
-    this.startStage(0);
-
     this.gameLoop();
-  }
-
-  private startStage(index: number): void {
-    if (index >= this.stages.length || !this.data) {
-      return;
-    }
-
-    const stage = this.stages[index];
-    const context: StageContext = {
-      spriteEngine: this.spriteEngine,
-      width: this.ctx.canvas.width,
-      height: this.ctx.canvas.height,
-      data: this.data,
-      playSound: (sound) => this.soundManager.play(sound),
-    };
-
-    stage.start(context);
   }
 
   public stop(): void {
@@ -88,7 +36,6 @@ export class GameEngine {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
-    this.soundManager.cleanup();
   }
 
   public on(event: string, callback: UpdateCallback): void {
@@ -122,43 +69,37 @@ export class GameEngine {
 
     const currentTime = performance.now();
     const deltaTimeMs = currentTime - this.lastFrameTime;
-    const safeDeltaTimeMs = Math.min(deltaTimeMs, 100);
-    const deltaTime = safeDeltaTimeMs / 1000;
+    const deltaTime = deltaTimeMs / 1000; // Convert to seconds
 
     this.lastFrameTime = currentTime;
     this.totalTime += deltaTime;
 
-    // Clear canvas
-    this.ctx.fillStyle = '#000000';
-    this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+    // Update FPS monitoring
+    this.fpsMonitor.update();
 
-    // Update Stage
-    if (this.currentStageIndex < this.stages.length) {
-      const currentStage = this.stages[this.currentStageIndex];
-      currentStage.update(deltaTime, this.totalTime);
-      currentStage.render(this.ctx);
-
-      // Check for completion
-      if (currentStage.isComplete) {
-        this.currentStageIndex++;
-        if (this.currentStageIndex < this.stages.length) {
-          this.startStage(this.currentStageIndex);
-        } else {
-          // All stages complete
-          if (this.onComplete) {
-            // Add small delay before closing
-            setTimeout(() => this.onComplete?.(), 1000);
-          }
-        }
-      }
+    // Clear canvas (skip if ctx or canvas is null, e.g., in test environment)
+    if (this.ctx && this.ctx.canvas) {
+      this.ctx.fillStyle = '#000000';
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
-    // Emit update event
+    // Emit update event for game logic
     this.emit('update', deltaTime, this.totalTime);
 
-    // Apply CRT effects
-    this.crtEffect.render(this.ctx);
+    // Apply CRT effects as post-processing
+    if (this.ctx && this.ctx.canvas) {
+      this.crtEffect.render(this.ctx);
+    }
 
+    // Schedule next frame
     this.animationFrameId = requestAnimationFrame(this.gameLoop);
   };
+
+  public getPerformanceStats(): PerformanceStats {
+    return this.fpsMonitor.getStats();
+  }
+
+  public resetPerformanceStats(): void {
+    this.fpsMonitor.reset();
+  }
 }

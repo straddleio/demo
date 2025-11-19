@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WALDO Stage Demo</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background: #000;
+        color: #00ffff;
+        font-family: 'Press Start 2P', monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      canvas {
+        border: 2px solid #00ffff;
+        box-shadow: 0 0 10px #00ffff;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        background: #000;
+        color: #00ffff;
+        border: 2px solid #00ffff;
+        padding: 10px 20px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 12px;
+        cursor: pointer;
+        text-shadow: 0 0 4px #00ffff;
+      }
+
+      button:hover {
+        background: #00ffff;
+        color: #000;
+      }
+
+      .info {
+        font-size: 10px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WALDO IDENTITY MATCH - STAGE 1</h1>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div class="controls">
+      <button id="startBtn">START ANIMATION</button>
+      <button id="resetBtn">RESET</button>
+    </div>
+    <div class="info">
+      <p>Animation Duration: 4 seconds</p>
+      <p>
+        Phase 1 (0.0-0.5s): Typewriter | Phase 2 (0.5-1.5s): Pixelate | Phase 3
+        (1.5-2.5s): Shoot
+      </p>
+      <p>Phase 4 (2.5-3.5s): Lock | Phase 5 (3.5-4.0s): Score</p>
+    </div>
+
+    <script type="module">
+      // This is a demonstration - in production, import from TypeScript modules
+      // For now, we'll create a simplified inline version
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Sprite config
+      const SPRITE_CONFIG = {
+        font: {
+          family: '"Press Start 2P", monospace',
+          sizes: { small: 12, medium: 16, large: 24, xlarge: 32 },
+        },
+        colors: {
+          cyan: '#00FFFF',
+          magenta: '#FF00FF',
+          yellow: '#FFFF00',
+          green: '#00FF00',
+          white: '#FFFFFF',
+        },
+      };
+
+      // Simple sprite engine
+      const sprite = {
+        drawText(text, x, y, color, size = 16, glow = true) {
+          ctx.save();
+          ctx.font = `${size}px ${SPRITE_CONFIG.font.family}`;
+          ctx.fillStyle = color;
+          if (glow) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 4;
+          }
+          ctx.fillText(text, x, y);
+          ctx.restore();
+        },
+        drawRect(x, y, w, h, color, glow = false) {
+          ctx.save();
+          ctx.fillStyle = color;
+          if (glow) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 4;
+          }
+          ctx.fillRect(x, y, w, h);
+          ctx.restore();
+        },
+        drawCircle(x, y, r, color, glow = false) {
+          ctx.save();
+          ctx.fillStyle = color;
+          if (glow) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 4;
+          }
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        },
+        drawLine(x1, y1, x2, y2, color, width = 2, glow = false) {
+          ctx.save();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          if (glow) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 4;
+          }
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          ctx.restore();
+        },
+      };
+
+      // Simple sound manager (uses Web Audio API)
+      const sound = {
+        ctx: new AudioContext(),
+        play(type) {
+          const sounds = {
+            beep: { freq: 800, dur: 0.05, vol: 0.3, wave: 'square' },
+            laser: { freq: 1200, dur: 0.15, vol: 0.4, wave: 'sawtooth' },
+            lock: { freq: 600, dur: 0.2, vol: 0.5, wave: 'triangle' },
+          };
+          const s = sounds[type];
+          if (!s) return;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = s.wave;
+          osc.frequency.value = s.freq;
+          gain.gain.value = s.vol;
+          gain.gain.exponentialRampToValueAtTime(
+            0.01,
+            this.ctx.currentTime + s.dur
+          );
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + s.dur);
+        },
+      };
+
+      // Stage data
+      const data = {
+        customerName: 'Alberta Bobbeth Charleson',
+        matchedName: 'Alberta B Charleson',
+        confidence: 98,
+      };
+
+      // Animation state
+      let running = false;
+      let startTime = 0;
+      let typewriterIndex = 0;
+      let pixelateAmount = 0;
+      let targets = [];
+      let currentTargetIndex = 0;
+      let matchLocked = false;
+      let score = 0;
+
+      function generateTargets() {
+        const name = data.customerName.toUpperCase();
+        const matched = data.matchedName.toUpperCase();
+        const parts = name.split(' ');
+
+        const variations = [
+          matched,
+          `${parts[0]} ${parts[1][0]} ${parts[parts.length - 1]}`,
+          `MR ${parts[0]} ${parts[parts.length - 1]}`,
+          `${parts[parts.length - 1]}, ${parts[0]} ${parts[1][0]}`,
+        ];
+
+        // Shuffle
+        for (let i = variations.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [variations[i], variations[j]] = [variations[j], variations[i]];
+        }
+
+        targets = variations.slice(0, 4).map((text, i) => ({
+          text,
+          x: 320,
+          y: 150 + i * 50,
+          isMatch: text === matched,
+          shot: false,
+          opacity: 1.0,
+        }));
+      }
+
+      function render() {
+        const elapsed = (performance.now() - startTime) / 1000;
+
+        // Clear
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 640, 480);
+
+        // Title
+        sprite.drawText(
+          'STAGE 1: WALDO IDENTITY MATCH',
+          50,
+          40,
+          SPRITE_CONFIG.colors.cyan,
+          16,
+          true
+        );
+
+        if (elapsed < 0.5) {
+          // Phase 1: Typewriter
+          const text = data.customerName.substring(0, typewriterIndex);
+          sprite.drawText(text, 100, 150, SPRITE_CONFIG.colors.yellow, 16, true);
+          if (typewriterIndex < data.customerName.length) {
+            sprite.drawRect(100 + typewriterIndex * 10, 150, 8, 16, SPRITE_CONFIG.colors.yellow, true);
+          }
+        } else if (elapsed < 1.5) {
+          // Phase 2: Pixelate
+          const text = data.customerName.toUpperCase();
+          const pixelSize = Math.floor(pixelateAmount * 10);
+          if (pixelSize < 1) {
+            sprite.drawText(text, 100, 150, SPRITE_CONFIG.colors.yellow, 16, true);
+          } else {
+            for (let i = 0; i < text.length; i++) {
+              const ox = (Math.random() - 0.5) * pixelSize;
+              const oy = (Math.random() - 0.5) * pixelSize;
+              sprite.drawText(
+                text[i],
+                100 + i * 10 + ox,
+                150 + oy,
+                SPRITE_CONFIG.colors.yellow,
+                16,
+                true
+              );
+            }
+          }
+        } else if (elapsed < 2.5) {
+          // Phase 3: Targets
+          targets.forEach((t, i) => {
+            if (t.shot && t.opacity <= 0) return;
+
+            sprite.drawCircle(t.x - 20, t.y + 8, 8, SPRITE_CONFIG.colors.magenta, true);
+            ctx.globalAlpha = t.opacity;
+            sprite.drawText(
+              t.text,
+              t.x,
+              t.y,
+              t.isMatch ? SPRITE_CONFIG.colors.green : SPRITE_CONFIG.colors.white,
+              12,
+              true
+            );
+            ctx.globalAlpha = 1.0;
+
+            if (i === currentTargetIndex && !t.isMatch && !t.shot) {
+              sprite.drawLine(50, 240, t.x - 20, t.y + 8, SPRITE_CONFIG.colors.cyan, 2, true);
+            }
+          });
+        } else if (elapsed < 4.0) {
+          // Phase 4 & 5: Match Lock + Score
+          const match = targets.find((t) => t.isMatch);
+          if (match) {
+            sprite.drawText('✓', match.x - 40, match.y, SPRITE_CONFIG.colors.green, 24, true);
+            sprite.drawText(match.text, match.x, match.y, SPRITE_CONFIG.colors.green, 16, true);
+
+            const barX = 100, barY = match.y + 40, barW = 200, barH = 20;
+            const fillW = (barW * data.confidence) / 100;
+            sprite.drawRect(barX, barY, barW, barH, SPRITE_CONFIG.colors.white, false);
+            sprite.drawRect(barX + 2, barY + 2, fillW - 4, barH - 4, SPRITE_CONFIG.colors.green, true);
+            sprite.drawText(`MATCH: ${data.confidence}%`, barX + barW + 20, barY, SPRITE_CONFIG.colors.green, 12, true);
+
+            sprite.drawText(
+              `+${score.toString().padStart(5, '0')}`,
+              200,
+              350,
+              SPRITE_CONFIG.colors.yellow,
+              24,
+              true
+            );
+          }
+        }
+
+        if (running && elapsed < 4.0) {
+          requestAnimationFrame(update);
+        } else if (elapsed >= 4.0) {
+          running = false;
+        }
+      }
+
+      function update() {
+        const elapsed = (performance.now() - startTime) / 1000;
+
+        // Phase 1: Typewriter
+        if (elapsed < 0.5) {
+          const targetIdx = Math.floor((elapsed / 0.5) * data.customerName.length);
+          if (targetIdx > typewriterIndex) {
+            typewriterIndex = targetIdx;
+            sound.play('beep');
+          }
+        }
+        // Phase 2: Pixelate
+        else if (elapsed < 1.5) {
+          const e = elapsed - 0.5;
+          pixelateAmount = e < 0.5 ? e / 0.5 : 1 - (e - 0.5) / 0.5;
+        }
+        // Phase 3: Shooting
+        else if (elapsed < 2.5) {
+          const e = elapsed - 1.5;
+          const interval = 1.0 / targets.length;
+          const idx = Math.floor(e / interval);
+          if (idx > currentTargetIndex && idx < targets.length) {
+            currentTargetIndex = idx;
+            const t = targets[idx];
+            if (!t.isMatch) {
+              t.shot = true;
+              sound.play('laser');
+            }
+          }
+          targets.forEach((t) => {
+            if (t.shot && t.opacity > 0) t.opacity -= 0.05;
+          });
+        }
+        // Phase 4: Lock
+        else if (elapsed < 3.5) {
+          if (!matchLocked) {
+            matchLocked = true;
+            sound.play('lock');
+          }
+        }
+        // Phase 5: Score
+        else if (elapsed < 4.0) {
+          const e = elapsed - 3.5;
+          const progress = Math.min(e / 0.5, 1.0);
+          score = Math.floor(data.confidence * 100 * progress);
+        }
+
+        render();
+      }
+
+      function start() {
+        if (running) return;
+        running = true;
+        startTime = performance.now();
+        typewriterIndex = 0;
+        pixelateAmount = 0;
+        currentTargetIndex = 0;
+        matchLocked = false;
+        score = 0;
+        generateTargets();
+        requestAnimationFrame(update);
+      }
+
+      function reset() {
+        running = false;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 640, 480);
+        sprite.drawText(
+          'PRESS START',
+          200,
+          240,
+          SPRITE_CONFIG.colors.cyan,
+          16,
+          true
+        );
+      }
+
+      document.getElementById('startBtn').addEventListener('click', start);
+      document.getElementById('resetBtn').addEventListener('click', reset);
+
+      // Initial render
+      reset();
+    </script>
+  </body>
+</html>

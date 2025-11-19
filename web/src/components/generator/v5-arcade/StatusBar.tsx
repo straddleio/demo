@@ -1,12 +1,66 @@
 import React from 'react';
+import { ScoreDisplay } from './components/ScoreDisplay';
+import { StageIndicator } from './components/StageIndicator';
+import { ComboMeter } from './components/ComboMeter';
+import { StarRating } from './components/StarRating';
+import { SPRITE_CONFIG } from './utils/sprites';
 
-export const StatusBar: React.FC = () => {
+interface StatusBarProps {
+  score: number;
+  currentStage: number;
+  totalStages: number;
+  comboMultiplier: number;
+  stars: number;
+}
+
+/**
+ * StatusBar - Arcade HUD displaying score, stage, combo, and star rating
+ *
+ * Enhanced with frontend-design principles:
+ * - CRT scanline overlay (authentic monitor effect)
+ * - Inset shadow for arcade bezel depth
+ * - Dual-layer border glow (neon tube effect)
+ */
+export const StatusBar: React.FC<StatusBarProps> = ({
+  score,
+  currentStage,
+  totalStages,
+  comboMultiplier,
+  stars,
+}) => {
   return (
-    <div className="w-full border-t-2 border-cyan-400 bg-black p-2 mt-4 flex justify-between font-arcade text-xs text-green-400">
-      <div className="border-r border-cyan-900 pr-4">SCORE: 0000</div>
-      <div className="border-r border-cyan-900 pr-4">STAGE: 1/3</div>
-      <div className="border-r border-cyan-900 pr-4">COMBO: x1</div>
-      <div>★★★☆☆</div>
+    <div
+      data-testid="status-bar"
+      style={{
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: SPRITE_CONFIG.colors.black,
+        border: `2px solid ${SPRITE_CONFIG.colors.cyan}`,
+        padding: '8px',
+        gap: '16px',
+        boxShadow: `inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 255, 255, 0.3)`,
+        overflow: 'hidden',
+      }}
+    >
+      {/* CRT Scanline overlay */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background:
+            'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.15) 2px, rgba(0, 0, 0, 0.15) 4px)',
+          pointerEvents: 'none',
+        }}
+      />
+      <ScoreDisplay score={score} />
+      <StageIndicator currentStage={currentStage} totalStages={totalStages} />
+      <ComboMeter comboMultiplier={comboMultiplier} />
+      <StarRating stars={stars} />
     </div>
   );
 };
