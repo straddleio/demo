@@ -1,0 +1,890 @@
+/**
+ * Ayu Light Theme - Warm Daylight Terminal Aesthetic
+ * A sophisticated light mode using the Ayu Light color palette
+ * Contrasts with the neon night dark theme while maintaining retro vibes
+ */
+
+/* Ayu Light Color Palette - Official Colors from Ayu Theme */
+[data-theme='light'] {
+  /* Primary UI Colors - Using actual Ayu Light palette */
+  --color-primary: #399EE6;        /* syntax.entity - sky blue primary */
+  --color-secondary: #55B4D4;      /* syntax.tag - cyan secondary */
+  --color-accent: #86B300;         /* syntax.string - lime green for highlights */
+  --color-gold: #F2AE49;           /* syntax.func - golden yellow */
+
+  /* Background Layers - Official Ayu backgrounds */
+  --color-background: #FCFCFC;             /* editor.bg - pristine white */
+  --color-background-dark: #F8F9FA;        /* ui.bg - soft paper */
+  --color-background-card: #F3F4F5;        /* ui.panel.bg - subtle gray */
+  --color-background-elevated: #FFFFFF;    /* Pure white for elevation */
+
+  /* Text Colors - Official Ayu text */
+  --color-text-primary: #5C6166;           /* editor.fg - charcoal text */
+  --color-text-secondary: #8A9199;         /* ui.fg - muted slate */
+  --color-text-muted: #ABB0B6;             /* Lighter muted text */
+  --color-text-inverse: #FCFCFC;           /* Text on dark backgrounds */
+
+  /* Syntax & Code Colors - Exact Ayu Light syntax palette */
+  --color-syntax-tag: #55B4D4;             /* syntax.tag - cyan */
+  --color-syntax-func: #F2AE49;            /* syntax.func - golden */
+  --color-syntax-entity: #399EE6;          /* syntax.entity - blue */
+  --color-syntax-string: #86B300;          /* syntax.string - lime green */
+  --color-syntax-regexp: #4CBF99;          /* syntax.regexp - teal */
+  --color-syntax-markup: #F07171;          /* syntax.markup - salmon */
+  --color-syntax-keyword: #FA8D3E;         /* syntax.keyword - burnt orange */
+  --color-syntax-special: #E6BA7E;         /* syntax.special - tan */
+  --color-syntax-comment: #ABB0B6;         /* Muted for comments */
+  --color-syntax-constant: #A37ACC;        /* syntax.constant - purple */
+  --color-syntax-operator: #ED9366;        /* syntax.operator - peach */
+
+  /* Semantic Colors - Using Ayu VCS and error colors */
+  --color-success: #6CBF43;        /* vcs.added - bright green */
+  --color-warning: #F2AE49;        /* syntax.func - amber warning */
+  --color-error: #E65050;          /* common.error - red */
+  --color-info: #478ACC;           /* vcs.modified - info blue */
+
+  /* Border & Divider Colors */
+  --color-border: #E6E7E8;
+  --color-border-hover: #FFAA33;   /* Use primary accent */
+  --color-divider: #F0F0F0;
+
+  /* Shadows - Subtle and refined for light mode */
+  --shadow-sm: 0 1px 2px 0 rgba(92, 97, 102, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(92, 97, 102, 0.08), 0 2px 4px -1px rgba(92, 97, 102, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(92, 97, 102, 0.1), 0 4px 6px -2px rgba(92, 97, 102, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(92, 97, 102, 0.12), 0 10px 10px -5px rgba(92, 97, 102, 0.04);
+
+  /* Glow Effects - Using Ayu accent colors */
+  --effect-glow-primary: 0 0 8px rgba(57, 158, 230, 0.2), 0 0 16px rgba(57, 158, 230, 0.15);   /* Sky blue glow */
+  --effect-glow-accent: 0 0 8px rgba(134, 179, 0, 0.2), 0 0 16px rgba(134, 179, 0, 0.15);      /* Green glow */
+  --effect-glow-cyan: 0 0 8px rgba(85, 180, 212, 0.15), 0 0 16px rgba(85, 180, 212, 0.1);       /* Cyan glow */
+  --effect-glow-gold: 0 0 8px rgba(242, 174, 73, 0.15), 0 0 16px rgba(242, 174, 73, 0.1);       /* Gold glow */
+
+  /* Selection Colors - Using Ayu blue */
+  --color-selection-bg: rgba(57, 158, 230, 0.15);
+  --color-selection-inactive: rgba(57, 158, 230, 0.07);
+}
+
+/* Base Styles for Light Theme */
+[data-theme='light'] body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+[data-theme='light'] ::selection {
+  background-color: var(--color-selection-bg);
+  color: var(--color-text-primary);
+}
+
+/* Card Components - Refined borders with subtle depth */
+[data-theme='light'] .retro-card {
+  background-color: var(--color-background-elevated);
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+}
+
+[data-theme='light'] .retro-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-lg), var(--effect-glow-primary);
+  transform: translateY(-2px);
+}
+
+[data-theme='light'] .retro-card-blue {
+  background-color: var(--color-background-elevated);
+  border: 2px solid rgba(57, 158, 230, 0.3);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme='light'] .retro-card-blue:hover {
+  border-color: var(--color-secondary);
+  box-shadow: var(--shadow-lg), var(--effect-glow-blue);
+  transform: translateY(-2px);
+}
+
+[data-theme='light'] .retro-card-magenta {
+  background-color: var(--color-background-elevated);
+  border: 2px solid rgba(134, 179, 0, 0.3);
+  box-shadow: var(--shadow-md);
+}
+
+[data-theme='light'] .retro-card-magenta:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-lg), var(--effect-glow-accent);
+  transform: translateY(-2px);
+}
+
+/* Button Styles - Crisp and tactile */
+[data-theme='light'] .retro-button {
+  background-color: var(--color-background-elevated);
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme='light'] .retro-button:hover:not(:disabled) {
+  background-color: rgba(57, 158, 230, 0.08);
+  box-shadow: var(--shadow-md), var(--effect-glow-primary);
+}
+
+[data-theme='light'] .retro-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme='light'] .retro-button-secondary {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+[data-theme='light'] .retro-button-secondary:hover:not(:disabled) {
+  background-color: rgba(57, 158, 230, 0.08);
+  box-shadow: var(--shadow-md), var(--effect-glow-blue);
+}
+
+[data-theme='light'] .retro-button-accent {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+[data-theme='light'] .retro-button-accent:hover:not(:disabled) {
+  background-color: rgba(134, 179, 0, 0.08);
+  box-shadow: var(--shadow-md), var(--effect-glow-accent);
+}
+
+[data-theme='light'] .retro-button-gold {
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+[data-theme='light'] .retro-button-gold:hover:not(:disabled) {
+  background-color: rgba(242, 174, 73, 0.08);
+  box-shadow: var(--shadow-md), var(--effect-glow-gold);
+}
+
+[data-theme='light'] .retro-button-filled {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-color: var(--color-primary);
+}
+
+[data-theme='light'] .retro-button-filled:hover:not(:disabled) {
+  background-color: #E69829;
+  box-shadow: var(--shadow-lg), var(--effect-glow-primary);
+}
+
+/* Typography - Clear and readable */
+[data-theme='light'] .pixel-text {
+  color: var(--color-primary);
+  text-shadow: 1px 1px 0px rgba(92, 97, 102, 0.15);
+}
+
+[data-theme='light'] .pixel-text-blue {
+  color: var(--color-secondary);
+}
+
+[data-theme='light'] .pixel-text-magenta {
+  color: var(--color-accent);
+}
+
+[data-theme='light'] .pixel-text-gold {
+  color: var(--color-gold);
+}
+
+[data-theme='light'] .pixel-text-glow {
+  text-shadow:
+    0 0 8px currentColor,
+    0 0 16px currentColor,
+    1px 1px 0px rgba(92, 97, 102, 0.15);
+}
+
+/* Terminal Styles - Warm paper terminal aesthetic */
+[data-theme='light'] .terminal-output {
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+}
+
+[data-theme='light'] .terminal-input {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Grid Background - Subtle blueprint style */
+[data-theme='light'] .retro-grid {
+  background-image:
+    linear-gradient(rgba(57, 158, 230, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 158, 230, 0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Scanlines - Very subtle for light mode */
+[data-theme='light'] .scanlines::before {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(92, 97, 102, 0.02) 0px,
+    rgba(92, 97, 102, 0.02) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* CRT Effect - Subtle vignette */
+[data-theme='light'] .crt-screen::after {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(92, 97, 102, 0.03) 100%
+  );
+}
+
+/* Badges - Clean and minimal */
+[data-theme='light'] .retro-badge {
+  border-color: var(--color-primary);
+  background-color: rgba(57, 158, 230, 0.08);
+  color: var(--color-primary);
+}
+
+/* Dividers - Gentle separation */
+[data-theme='light'] .retro-divider {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-divider),
+    transparent
+  );
+  box-shadow: none;
+}
+
+/* Input Fields - Clean with focus states */
+[data-theme='light'] .retro-input {
+  background-color: var(--color-background-elevated);
+  border: 2px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+[data-theme='light'] .retro-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: var(--effect-glow-cyan);
+  outline: none;
+}
+
+[data-theme='light'] .retro-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* Scrollbar - Minimal and refined */
+[data-theme='light'] .scrollbar-retro {
+  scrollbar-color: var(--color-primary) var(--color-background-card);
+}
+
+[data-theme='light'] .scrollbar-retro::-webkit-scrollbar-track {
+  background: var(--color-background-card);
+  border: 1px solid var(--color-border);
+}
+
+[data-theme='light'] .scrollbar-retro::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border: 1px solid var(--color-background-elevated);
+}
+
+[data-theme='light'] .scrollbar-retro::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+/* Neon Heading - Becomes warm glow heading */
+[data-theme='light'] .neon-heading {
+  color: var(--color-primary);
+  text-shadow:
+    0 0 4px rgba(85, 180, 212, 0.2),
+    0 0 8px rgba(57, 158, 230, 0.15),
+    0 0 12px rgba(57, 158, 230, 0.1);
+}
+
+/* Glitch Effect - Toned down for light mode */
+[data-theme='light'] .glitch::before {
+  text-shadow: -2px 0 var(--color-accent);
+  opacity: 0.7;
+}
+
+[data-theme='light'] .glitch::after {
+  text-shadow: -2px 0 var(--color-primary);
+  opacity: 0.7;
+}
+
+/* Pixel Border - Warm gradient */
+[data-theme='light'] .pixel-border {
+  border-image:
+    linear-gradient(
+      45deg,
+      var(--color-primary) 0%,
+      var(--color-secondary) 50%,
+      var(--color-accent) 100%
+    ) 1;
+}
+
+/* Text Glow Utilities for Light Mode */
+[data-theme='light'] .text-glow-cyan {
+  text-shadow: var(--effect-glow-primary);
+}
+
+[data-theme='light'] .text-glow-blue {
+  text-shadow: var(--effect-glow-blue);
+}
+
+[data-theme='light'] .text-glow-magenta,
+[data-theme='light'] .text-glow-orange {
+  text-shadow: var(--effect-glow-accent);
+}
+
+[data-theme='light'] .text-glow-gold {
+  text-shadow: var(--effect-glow-gold);
+}
+
+[data-theme='light'] .text-glow-primary {
+  text-shadow: var(--effect-glow-primary);
+}
+
+/* Status Colors - Enhanced readability */
+[data-theme='light'] .text-success {
+  color: var(--color-success);
+}
+
+[data-theme='light'] .text-warning {
+  color: var(--color-warning);
+}
+
+[data-theme='light'] .text-error {
+  color: var(--color-error);
+}
+
+[data-theme='light'] .text-info {
+  color: var(--color-info);
+}
+
+/* Background variants */
+[data-theme='light'] .bg-success {
+  background-color: rgba(108, 191, 67, 0.1);
+  color: var(--color-success);
+}
+
+[data-theme='light'] .bg-warning {
+  background-color: rgba(242, 174, 73, 0.1);
+  color: var(--color-warning);
+}
+
+[data-theme='light'] .bg-error {
+  background-color: rgba(230, 80, 80, 0.1);
+  color: var(--color-error);
+}
+
+[data-theme='light'] .bg-info {
+  background-color: rgba(57, 158, 230, 0.1);
+  color: var(--color-info);
+}
+
+/* Border utilities */
+[data-theme='light'] .border-primary {
+  border-color: var(--color-primary);
+}
+
+[data-theme='light'] .border-secondary {
+  border-color: var(--color-secondary);
+}
+
+[data-theme='light'] .border-accent {
+  border-color: var(--color-accent);
+}
+
+[data-theme='light'] .border-muted {
+  border-color: var(--color-border);
+}
+
+/* Tailwind color overrides for light mode */
+[data-theme='light'] .text-neutral-100 {
+  color: #5C6166; /* Darker text for better readability - Ayu editor.fg */
+}
+
+[data-theme='light'] .text-neutral-400 {
+  color: #6B7D8F; /* Darker for better readability in light mode */
+}
+
+[data-theme='light'] .text-neutral-500 {
+  color: #6B7D8F; /* Same darker color for labels - better readability */
+}
+
+[data-theme='light'] .bg-background {
+  background-color: var(--color-background);
+}
+
+[data-theme='light'] .bg-background-dark {
+  background-color: var(--color-background-dark);
+}
+
+[data-theme='light'] .bg-background-card {
+  background-color: var(--color-background-card);
+}
+
+[data-theme='light'] .bg-background-elevated {
+  background-color: var(--color-background-elevated);
+}
+
+[data-theme='light'] .border-neutral-800 {
+  border-color: var(--color-border);
+}
+
+/* Override cyan/magenta/blue text colors with Ayu colors */
+[data-theme='light'] .text-primary {
+  color: var(--color-primary) !important;
+}
+
+[data-theme='light'] .text-secondary {
+  color: var(--color-secondary) !important;
+}
+
+[data-theme='light'] .text-accent {
+  color: var(--color-accent) !important;
+}
+
+[data-theme='light'] .border-primary {
+  border-color: var(--color-primary) !important;
+}
+
+[data-theme='light'] .border-secondary {
+  border-color: var(--color-secondary) !important;
+}
+
+[data-theme='light'] .border-accent {
+  border-color: var(--color-accent) !important;
+}
+
+[data-theme='light'] .bg-primary {
+  background-color: var(--color-primary) !important;
+}
+
+[data-theme='light'] .bg-secondary {
+  background-color: var(--color-secondary) !important;
+}
+
+[data-theme='light'] .bg-accent {
+  background-color: var(--color-accent) !important;
+}
+
+/* Command menu button backgrounds */
+[data-theme='light'] .bg-primary\/20 {
+  background-color: rgba(85, 180, 212, 0.2) !important;
+}
+
+[data-theme='light'] .bg-primary\/30 {
+  background-color: rgba(57, 158, 230, 0.3) !important;
+}
+
+[data-theme='light'] .bg-secondary\/20 {
+  background-color: rgba(85, 180, 212, 0.2) !important;
+}
+
+[data-theme='light'] .bg-secondary\/30 {
+  background-color: rgba(57, 158, 230, 0.3) !important;
+}
+
+[data-theme='light'] .bg-gold\/20 {
+  background-color: rgba(242, 174, 73, 0.2) !important;
+}
+
+[data-theme='light'] .bg-gold\/30 {
+  background-color: rgba(242, 174, 73, 0.3) !important;
+}
+
+/* Theme Toggle Button */
+[data-theme='light'] .theme-toggle-btn {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-color: var(--color-border);
+}
+
+[data-theme='light'] .theme-toggle-btn:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(255, 255, 255, 1);
+}
+
+/* CommandMenu Styles */
+[data-theme='light'] #command-menu-panel {
+  background: linear-gradient(to bottom right, var(--color-background-elevated), var(--color-background-card));
+  border-top: 2px solid var(--color-primary);
+  box-shadow: 0 -4px 20px rgba(57, 158, 230, 0.15);
+}
+
+[data-theme='light'] .shadow-neon-primary {
+  box-shadow: var(--effect-glow-primary);
+}
+
+/* Connection Status Badge */
+[data-theme='light'] .bg-background-dark\/80 {
+  background-color: rgba(248, 249, 250, 0.95);
+}
+
+[data-theme='light'] .border-primary\/20 {
+  border-color: rgba(57, 158, 230, 0.2);
+}
+
+[data-theme='light'] .border-primary\/30 {
+  border-color: rgba(57, 158, 230, 0.3);
+}
+
+[data-theme='light'] .border-primary\/60 {
+  border-color: rgba(57, 158, 230, 0.6);
+}
+
+[data-theme='light'] .text-neutral-300 {
+  color: var(--color-text-primary);
+}
+
+/* Accent Colors for Status Indicators */
+[data-theme='light'] .bg-accent-green {
+  background-color: var(--color-success);
+}
+
+[data-theme='light'] .text-accent-green {
+  color: var(--color-success) !important;
+}
+
+[data-theme='light'] .bg-accent-red {
+  background-color: var(--color-error);
+}
+
+[data-theme='light'] .text-accent-red {
+  color: var(--color-error) !important;
+}
+
+/* Sound Toggle Button - Use Ayu colors */
+[data-theme='light'] .border-gold {
+  border-color: var(--color-gold);
+}
+
+[data-theme='light'] .bg-gold\/20 {
+  background-color: rgba(242, 174, 73, 0.15);
+}
+
+[data-theme='light'] .bg-gold\/30 {
+  background-color: rgba(242, 174, 73, 0.25);
+}
+
+[data-theme='light'] .text-gold {
+  color: var(--color-gold);
+}
+
+[data-theme='light'] .border-neutral-600 {
+  border-color: var(--color-border);
+}
+
+[data-theme='light'] .bg-neutral-900\/60 {
+  background-color: rgba(243, 244, 245, 0.9);
+}
+
+[data-theme='light'] .bg-neutral-800\/60 {
+  background-color: rgba(238, 239, 240, 0.9);
+}
+
+[data-theme='light'] .text-neutral-400 {
+  color: var(--color-text-secondary);
+}
+
+/* Hide NerdCon logo watermark in light mode */
+[data-theme='light'] img[src='/assets/nerdcon-logo.avif'] {
+  display: none;
+}
+
+/* Menu Button - Use Ayu accent color (green) */
+[data-theme='light'] .from-accent {
+  --tw-gradient-from: var(--color-accent) !important;
+}
+
+[data-theme='light'] .to-accent\/80 {
+  --tw-gradient-to: rgba(134, 179, 0, 0.8) !important;
+}
+
+[data-theme='light'] .hover\:from-accent\/90:hover {
+  --tw-gradient-from: rgba(134, 179, 0, 0.9) !important;
+}
+
+[data-theme='light'] .hover\:to-accent\/70:hover {
+  --tw-gradient-to: rgba(134, 179, 0, 0.7) !important;
+}
+
+[data-theme='light'] .shadow-neon-accent {
+  box-shadow: var(--effect-glow-accent) !important;
+}
+
+[data-theme='light'] .shadow-neon-accent-lg {
+  box-shadow: 0 0 12px rgba(134, 179, 0, 0.3), 0 0 24px rgba(134, 179, 0, 0.2) !important;
+}
+
+/* Card Expand/Collapse Components - Using Ayu Light colors */
+
+/* Expanded section backgrounds - lighter for readability */
+[data-theme='light'] .bg-background-dark\/50 {
+  background-color: rgba(248, 249, 250, 0.5) !important;
+}
+
+[data-theme='light'] .bg-background-dark\/30 {
+  background-color: rgba(248, 249, 250, 0.3) !important;
+}
+
+/* SHOW/HIDE and INFO buttons on CustomerCard and PaykeyCard */
+[data-theme='light'] .border-primary\/40 {
+  border-color: rgba(57, 158, 230, 0.4) !important; /* Sky blue */
+}
+
+[data-theme='light'] .bg-primary\/10 {
+  background-color: rgba(57, 158, 230, 0.1) !important; /* Sky blue tint */
+}
+
+[data-theme='light'] .hover\:bg-primary\/20:hover {
+  background-color: rgba(57, 158, 230, 0.2) !important; /* Sky blue on hover */
+}
+
+[data-theme='light'] .hover\:shadow-glow-primary:hover {
+  box-shadow: var(--effect-glow-primary) !important;
+}
+
+/* Module header hover states */
+[data-theme='light'] .hover\:bg-primary\/5:hover {
+  background-color: rgba(57, 158, 230, 0.05) !important; /* Very subtle sky blue */
+}
+
+/* Expanded section borders */
+[data-theme='light'] .border-primary\/10 {
+  border-color: rgba(57, 158, 230, 0.1) !important; /* Sky blue divider */
+}
+
+/* Chevron/arrow colors for expand/collapse indicators */
+[data-theme='light'] .text-neutral-500 {
+  color: #6B7D8F !important; /* Darker for better readability */
+}
+
+[data-theme='light'] .text-neutral-600 {
+  color: #8A9199 !important; /* Slightly lighter muted */
+}
+
+/* Button hover states - primary color transitions */
+[data-theme='light'] .hover\:border-primary:hover {
+  border-color: var(--color-primary) !important;
+}
+
+[data-theme='light'] .hover\:text-primary:hover {
+  color: var(--color-primary) !important;
+}
+
+/* Gold variant for review status buttons */
+[data-theme='light'] .border-gold\/40 {
+  border-color: rgba(242, 174, 73, 0.4) !important;
+}
+
+[data-theme='light'] .border-gold\/60 {
+  border-color: rgba(242, 174, 73, 0.6) !important;
+}
+
+[data-theme='light'] .hover\:border-gold\/60:hover {
+  border-color: rgba(242, 174, 73, 0.6) !important;
+}
+
+/* Modal Component Overrides - Ayu Light Theme */
+
+/* ArcadeGeneratorModal (Paykey Generator) */
+[data-theme='light'] .border-cyan-500 {
+  border-color: var(--color-primary) !important;
+}
+
+[data-theme='light'] .border-cyan-900 {
+  border-color: rgba(57, 158, 230, 0.4) !important;
+}
+
+[data-theme='light'] .text-cyan-500 {
+  color: var(--color-primary) !important;
+}
+
+[data-theme='light'] .bg-black\/50 {
+  background-color: rgba(243, 244, 245, 0.8) !important;
+}
+
+/* Override inline box-shadow with cyan glow in arcade modal */
+[data-theme='light'] canvas[style*='border: 2px solid'] {
+  border-color: var(--color-primary) !important;
+}
+
+/* BridgeModal Styles */
+[data-theme='light'] .bg-accent-dark {
+  background-color: rgba(134, 179, 0, 0.8) !important;
+}
+
+[data-theme='light'] .border-accent-dark {
+  border-color: rgba(134, 179, 0, 0.9) !important;
+}
+
+/* ReviewDecisionModal Styles */
+[data-theme='light'] .border-green-500 {
+  border-color: var(--color-success) !important;
+}
+
+[data-theme='light'] .bg-green-500\/10 {
+  background-color: rgba(108, 191, 67, 0.1) !important;
+}
+
+[data-theme='light'] .bg-green-500\/20 {
+  background-color: rgba(108, 191, 67, 0.15) !important;
+}
+
+[data-theme='light'] .text-green-500 {
+  color: var(--color-success) !important;
+}
+
+[data-theme='light'] .bg-accent\/10 {
+  background-color: rgba(134, 179, 0, 0.1) !important;
+}
+
+[data-theme='light'] .bg-accent\/20 {
+  background-color: rgba(134, 179, 0, 0.15) !important;
+}
+
+[data-theme='light'] .text-accent-red {
+  color: var(--color-error) !important;
+}
+
+[data-theme='light'] .bg-accent-red\/10 {
+  background-color: rgba(230, 80, 80, 0.1) !important;
+}
+
+[data-theme='light'] .bg-accent-red\/20 {
+  background-color: rgba(230, 80, 80, 0.15) !important;
+}
+
+[data-theme='light'] .bg-accent-red\/30 {
+  background-color: rgba(230, 80, 80, 0.2) !important;
+}
+
+[data-theme='light'] .border-accent-red {
+  border-color: var(--color-error) !important;
+}
+
+/* BusinessOutcomeModal Styles */
+[data-theme='light'] .bg-accent-green {
+  background-color: var(--color-success) !important;
+}
+
+[data-theme='light'] .bg-accent-green\/20 {
+  background-color: rgba(108, 191, 67, 0.15) !important;
+}
+
+[data-theme='light'] .bg-accent-green\/30 {
+  background-color: rgba(108, 191, 67, 0.2) !important;
+}
+
+[data-theme='light'] .text-accent-green {
+  color: var(--color-success) !important;
+}
+
+[data-theme='light'] .border-accent-green {
+  border-color: var(--color-success) !important;
+}
+
+/* Modal backdrop styles */
+[data-theme='light'] .bg-black\/80 {
+  background-color: rgba(248, 249, 250, 0.95) !important;
+}
+
+/* Modal glow shadow overrides - use Ayu colors */
+[data-theme='light'] .shadow-\[0_0_20px_rgba\(0\,255\,255\,0\.5\)\] {
+  box-shadow: 0 0 20px rgba(57, 158, 230, 0.3) !important;
+}
+
+[data-theme='light'] .shadow-\[0_0_30px_rgba\(0\,255\,255\,0\.3\)\] {
+  box-shadow: 0 0 30px rgba(57, 158, 230, 0.2) !important;
+}
+
+[data-theme='light'] .shadow-\[0_0_15px_rgba\(0\,102\,255\,0\.5\)\] {
+  box-shadow: 0 0 15px rgba(57, 158, 230, 0.25) !important;
+}
+
+[data-theme='light'] .shadow-\[0_0_15px_rgba\(57\,255\,20\,0\.5\)\] {
+  box-shadow: 0 0 15px rgba(108, 191, 67, 0.3) !important;
+}
+
+[data-theme='light'] .shadow-\[0_0_15px_rgba\(255\,195\,0\,0\.5\)\] {
+  box-shadow: 0 0 15px rgba(242, 174, 73, 0.3) !important;
+}
+
+[data-theme='light'] .shadow-\[0_0_15px_rgba\(255\,0\,64\,0\.5\)\] {
+  box-shadow: 0 0 15px rgba(230, 80, 80, 0.3) !important;
+}
+
+[data-theme='light'] .hover\:shadow-\[0_0_10px_\#00FFFF\]:hover {
+  box-shadow: 0 0 10px rgba(57, 158, 230, 0.4) !important;
+}
+
+/* Override hover state for button borders */
+[data-theme='light'] .hover\:border-green-400:hover {
+  border-color: rgba(108, 191, 67, 0.8) !important;
+}
+
+/* Smooth theme transition */
+body,
+.retro-card,
+.retro-button,
+.terminal-output,
+.retro-input {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Progressive Disclosure - Light Theme Enhancements */
+
+/* Embedded Paykey in ChargeCard */
+[data-theme='light'] .bg-green-500\/5 {
+  background-color: rgba(108, 191, 67, 0.05) !important;
+}
+
+[data-theme='light'] .bg-green-500\/10 {
+  background-color: rgba(108, 191, 67, 0.1) !important;
+}
+
+[data-theme='light'] .bg-green-500\/20 {
+  background-color: rgba(108, 191, 67, 0.15) !important;
+}
+
+[data-theme='light'] .border-green-500\/20 {
+  border-color: rgba(108, 191, 67, 0.2) !important;
+}
+
+[data-theme='light'] .border-green-500\/40 {
+  border-color: rgba(108, 191, 67, 0.4) !important;
+}
+
+[data-theme='light'] .border-green-500\/60 {
+  border-color: rgba(108, 191, 67, 0.6) !important;
+}
+
+[data-theme='light'] .text-green-500 {
+  color: var(--color-success) !important;
+}
+
+/* Circular Charge Tracker - Light Theme */
+[data-theme='light'] .text-neutral-800 {
+  color: #D0D2D4 !important; /* Lighter for progress ring background */
+}
+
+/* Progress ring animations - same timing in both themes */
+[data-theme='light'] circle[stroke-dashoffset] {
+  transition: stroke-dashoffset 1s ease-out, stroke 0.3s ease;
+}
+
+/* Grid layout transitions */
+[data-theme='light'] .grid {
+  transition: grid-template-columns 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth width transitions for cards */
+[data-theme='light'] [data-layout] > div {
+  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Key icon pulse animation works in both themes */
+[data-theme='light'] .animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
