@@ -307,7 +307,10 @@ async function handleCreateBusiness(args: string[]): Promise<CommandResult> {
 /**
  * /create-paykey - Link bank account
  */
-async function handleCreatePaykey(args: string[]): Promise<CommandResult> {
+async function handleCreatePaykey(
+  args: string[],
+  options: { skipGenerator?: boolean } = {}
+): Promise<CommandResult> {
   try {
     const { customer } = useDemoStore.getState();
     if (!customer) {
@@ -361,17 +364,22 @@ async function handleCreatePaykey(args: string[]): Promise<CommandResult> {
     const accountLast4 = paykey.bank_data?.account_number?.slice(-4) ?? '****';
     const routingNumber = paykey.bank_data?.routing_number ?? '';
 
-    // Show generator modal BEFORE state update
-    useDemoStore.getState().setGeneratorData({
-      customerName,
-      waldoData,
-      paykeyToken: paykey.paykey,
-      accountLast4,
-      routingNumber,
-    });
+    // Show generator modal BEFORE state update if not skipped
+    if (!options.skipGenerator) {
+      useDemoStore.getState().setGeneratorData({
+        customerName,
+        waldoData,
+        paykeyToken: paykey.paykey,
+        accountLast4,
+        routingNumber,
+      });
+    }
 
     // State will update automatically via SSE
     // Modal will auto-close after animations complete (~14 seconds)
+
+    // Update state manually as well for immediate feedback/testing
+    useDemoStore.getState().setPaykey(paykey);
 
     return {
       success: true,
@@ -641,7 +649,9 @@ async function handleDemo(): Promise<CommandResult> {
 
     // Step 2: Create paykey via Plaid
     addTerminalLine({ text: '→ Linking bank account via Plaid...', type: 'info' });
-    const paykeyResult = await handleCreatePaykey(['plaid', '--outcome', 'active']);
+    const paykeyResult = await handleCreatePaykey(['plaid', '--outcome', 'active'], {
+      skipGenerator: true,
+    });
     if (!paykeyResult.success) {
       return paykeyResult;
     }

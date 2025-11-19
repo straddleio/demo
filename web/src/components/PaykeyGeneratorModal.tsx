@@ -1,9 +1,9 @@
 /**
  * Paykey Generator Modal
  *
- * Re-exports the V5 GeneratorModal "God Tier" edition.
- * Features full 3D visualization using React Three Fiber, WebGL shaders,
- * and GPU-accelerated particle systems.
+ * Re-exports the V5-Arcade GeneratorModal.
+ * Features 1980s arcade aesthetic using Canvas 2D, gamified scoring,
+ * and 8-bit sound effects for an engaging verification experience.
  */
 
-export { GeneratorModalV5 as PaykeyGeneratorModal } from './generator/v5/GeneratorModal';
+export { ArcadeGeneratorModal as PaykeyGeneratorModal } from './generator/v5-arcade/GeneratorModal';

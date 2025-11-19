@@ -20,6 +20,8 @@ describe('handleCreatePaykey with review data', () => {
       customer: mockCustomer as Customer,
       paykey: null,
       charge: null,
+      showPaykeyGenerator: false,
+      generatorData: null,
     });
   });
 
@@ -190,5 +192,45 @@ describe('handleCreatePaykey with review data', () => {
 
     // Verify success result
     expect(result.success).toBe(true);
+  });
+
+  it('should skip generator modal when running /demo command', async () => {
+    const mockPaykey: Partial<Paykey> = {
+      id: 'pk_demo',
+      status: 'active',
+      paykey: 'token_demo',
+      source: 'plaid' as const,
+      bank_data: {
+        account_number: '****1234',
+        account_type: 'checking',
+        routing_number: '021000021',
+      },
+    };
+
+    // Mock API calls
+    vi.spyOn(api, 'createCustomer').mockResolvedValueOnce({
+      id: 'cust_demo',
+      name: 'Demo User',
+    } as Customer);
+    vi.spyOn(api, 'createPaykey').mockResolvedValueOnce(mockPaykey as Paykey);
+    vi.spyOn(api, 'createCharge').mockResolvedValueOnce({
+      id: 'ch_demo',
+      status: 'paid',
+      amount: 5000,
+    } as any);
+
+    // Execute the demo command
+    const result = await executeCommand('/demo');
+
+    if (!result.success) {
+      console.error('Demo command failed:', result.message);
+    }
+
+    // Verify success
+    expect(result.success).toBe(true);
+
+    // Verify generator modal was NOT shown
+    expect(useDemoStore.getState().showPaykeyGenerator).toBe(false);
+    expect(useDemoStore.getState().generatorData).toBeNull();
   });
 });
