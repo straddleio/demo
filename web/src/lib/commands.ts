@@ -261,8 +261,36 @@ async function handleCreatePaykey(args: string[]): Promise<CommandResult> {
       outcome,
     });
 
-    // Update state with paykey (includes review data from server)
-    useDemoStore.getState().setPaykey(paykey);
+    // Extract data for generator modal
+    const customerName = customer.name || 'Customer';
+
+    // Extract WALDO data (only for Plaid paykeys with name_match data)
+    const waldoData =
+      method === 'plaid' && paykey.review?.verification_details?.breakdown?.name_match
+        ? {
+            correlationScore:
+              paykey.review.verification_details.breakdown.name_match.correlation_score ?? 0,
+            matchedName: paykey.review.verification_details.breakdown.name_match.matched_name ?? '',
+            namesOnAccount:
+              paykey.review.verification_details.breakdown.name_match.names_on_account ?? [],
+          }
+        : undefined;
+
+    // Extract account details
+    const accountLast4 = paykey.bank_data?.account_number?.slice(-4) ?? '****';
+    const routingNumber = paykey.bank_data?.routing_number ?? '';
+
+    // Show generator modal BEFORE state update
+    useDemoStore.getState().setGeneratorData({
+      customerName,
+      waldoData,
+      paykeyToken: paykey.paykey,
+      accountLast4,
+      routingNumber,
+    });
+
+    // State will update automatically via SSE
+    // Modal will auto-close after animations complete (~14 seconds)
 
     return {
       success: true,

@@ -79,15 +79,15 @@ describe('Review Status Button', () => {
       return mockPaykey;
     });
 
-    const { queryByText } = render(<PaykeyCard />);
+    const { getByRole } = render(<PaykeyCard />);
 
-    // Should show REVIEW as button
-    const reviewButton = queryByText('REVIEW');
+    // Should show REVIEW as button with accessible role
+    const reviewButton = getByRole('button', { name: /REVIEW/i });
     expect(reviewButton).toBeInTheDocument();
-    expect(reviewButton?.tagName).toBe('BUTTON');
+    expect(reviewButton.tagName).toBe('BUTTON');
 
     // Should have pulse animation class
-    expect(reviewButton?.className).toContain('animate-pulse');
+    expect(reviewButton.className).toContain('animate-pulse');
   });
 
   it('should show normal badge when status is not review', () => {

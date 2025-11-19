@@ -47,6 +47,11 @@ describe('handleCreatePaykey with review data', () => {
       status: 'active',
       paykey: 'token_123',
       source: 'bank_account' as const,
+      bank_data: {
+        account_number: '****1234',
+        account_type: 'checking',
+        routing_number: '021000021',
+      },
       review: mockReview as PaykeyReview,
     };
 
@@ -59,21 +64,60 @@ describe('handleCreatePaykey with review data', () => {
     // Verify only createPaykey was called (review fetch happens server-side)
     expect(api.createPaykey).toHaveBeenCalledTimes(1);
 
-    // Verify paykey with review data was passed to state
-    const storePaykey = useDemoStore.getState().paykey;
-    expect(storePaykey).toEqual(mockPaykey);
+    // Verify generator modal data was set
+    const generatorData = useDemoStore.getState().generatorData;
+    expect(generatorData).toBeDefined();
+    expect(generatorData?.customerName).toBe('Test Customer');
+    expect(generatorData?.paykeyToken).toBe('token_123');
+    expect(generatorData?.accountLast4).toBe('1234');
+    expect(generatorData?.routingNumber).toBe('021000021');
+    expect(generatorData?.waldoData).toBeUndefined(); // Bank account method has no WALDO
+
+    // Verify modal is shown
+    expect(useDemoStore.getState().showPaykeyGenerator).toBe(true);
 
     // Verify success result
     expect(result.success).toBe(true);
   });
 
-  it('should handle paykey creation without review data', async () => {
+  it('should handle Plaid paykey creation with WALDO data', async () => {
+    const mockReview: Partial<PaykeyReview> = {
+      verification_details: {
+        id: 'vd_456',
+        decision: 'accept',
+        created_at: '2025-11-16T00:00:00Z',
+        updated_at: '2025-11-16T00:00:00Z',
+        messages: {},
+        breakdown: {
+          account_validation: {
+            decision: 'accept',
+            codes: [],
+            reason: null,
+          },
+          name_match: {
+            decision: 'accept',
+            codes: [],
+            correlation_score: 95,
+            customer_name: 'Test Customer',
+            matched_name: 'T. Customer',
+            names_on_account: ['Test Customer', 'T. Customer'],
+            reason: null,
+          },
+        },
+      },
+    };
+
     const mockPaykey: Partial<Paykey> = {
       id: 'pk_456',
       status: 'active',
       paykey: 'token_456',
       source: 'plaid' as const,
-      // No review data included
+      bank_data: {
+        account_number: '****5678',
+        account_type: 'checking',
+        routing_number: '021000022',
+      },
+      review: mockReview as PaykeyReview,
     };
 
     // Mock paykey creation
@@ -82,9 +126,67 @@ describe('handleCreatePaykey with review data', () => {
     // Execute the command
     const result = await executeCommand('/create-paykey plaid --outcome active');
 
-    // Verify paykey was updated
-    const storePaykey = useDemoStore.getState().paykey;
-    expect(storePaykey).toEqual(mockPaykey);
+    // Verify generator modal data was set with WALDO data
+    const generatorData = useDemoStore.getState().generatorData;
+    expect(generatorData).toBeDefined();
+    expect(generatorData?.customerName).toBe('Test Customer');
+    expect(generatorData?.paykeyToken).toBe('token_456');
+    expect(generatorData?.accountLast4).toBe('5678');
+    expect(generatorData?.routingNumber).toBe('021000022');
+    expect(generatorData?.waldoData).toBeDefined();
+    expect(generatorData?.waldoData?.correlationScore).toBe(95);
+    expect(generatorData?.waldoData?.matchedName).toBe('T. Customer');
+    expect(generatorData?.waldoData?.namesOnAccount).toEqual(['Test Customer', 'T. Customer']);
+
+    // Verify modal is shown
+    expect(useDemoStore.getState().showPaykeyGenerator).toBe(true);
+
+    // Verify success result
+    expect(result.success).toBe(true);
+  });
+
+  it('should handle Plaid paykey creation without WALDO data', async () => {
+    const mockReview: Partial<PaykeyReview> = {
+      verification_details: {
+        id: 'vd_789',
+        decision: 'accept',
+        created_at: '2025-11-16T00:00:00Z',
+        updated_at: '2025-11-16T00:00:00Z',
+        messages: {},
+        breakdown: {
+          account_validation: {
+            decision: 'accept',
+            codes: [],
+            reason: null,
+          },
+          // No name_match data
+        },
+      },
+    };
+
+    const mockPaykey: Partial<Paykey> = {
+      id: 'pk_789',
+      status: 'active',
+      paykey: 'token_789',
+      source: 'plaid' as const,
+      bank_data: {
+        account_number: '****9999',
+        account_type: 'savings',
+        routing_number: '021000023',
+      },
+      review: mockReview as PaykeyReview,
+    };
+
+    // Mock paykey creation
+    vi.spyOn(api, 'createPaykey').mockResolvedValueOnce(mockPaykey as Paykey);
+
+    // Execute the command
+    const result = await executeCommand('/create-paykey plaid --outcome active');
+
+    // Verify generator modal data was set WITHOUT WALDO data
+    const generatorData = useDemoStore.getState().generatorData;
+    expect(generatorData).toBeDefined();
+    expect(generatorData?.waldoData).toBeUndefined();
 
     // Verify success result
     expect(result.success).toBe(true);

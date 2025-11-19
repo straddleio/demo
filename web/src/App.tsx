@@ -6,6 +6,7 @@ import { DashboardView } from './components/dashboard/DashboardView';
 import { LogsTab } from './components/LogsTab';
 import { SoundToggle } from './components/settings/SoundToggle';
 import { ConnectionStatus } from './components/ConnectionStatus';
+import { PaykeyGeneratorModal } from './components/PaykeyGeneratorModal';
 import { useSSE } from './lib/useSSE';
 
 /**
@@ -27,6 +28,7 @@ function App(): React.ReactElement {
         right={<RightPanel demoView={<DashboardView />} logsView={<LogsTab />} />}
       />
       <SoundToggle />
+      <PaykeyGeneratorModal />
     </>
   );
 }

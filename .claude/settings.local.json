@@ -58,6 +58,12 @@
       "Bash(node /home/keith/nerdcon/debug-frontend-detailed.js:*)",
       "Bash(npm run lint:*)",
       "Bash(git push:*)",
+<<<<<<< HEAD
+      "Bash(node -e \"\nconst { normalizeNameString, generateNameVariations } = require(''./web/src/lib/name-variations.ts'');\n\n// This won''t work directly - let me create a test script instead\n\")",
+      "Bash(node test-name-variations.mjs:*)",
+      "Bash(npm run build:*)",
+=======
+>>>>>>> origin/master
       "mcp__plugin_episodic-memory_episodic-memory__search"
     ],
     "deny": [],
