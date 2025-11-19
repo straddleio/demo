@@ -1,94 +1,135 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { playRejectSound, playApproveSound, setSoundEnabled } from '../sounds';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import {
+  setSoundEnabled,
+  isSoundEnabled,
+  playApproveSound,
+  playRejectSound,
+  playReviewAlertSound,
+  playEndDemoSound,
+} from '../sounds';
 
 describe('Sound System', () => {
-  afterEach(() => {
-    // Reset sound state after each test
-    setSoundEnabled(false);
+  beforeEach(() => {
+    // Mock HTMLAudioElement
+    global.Audio = vi.fn().mockImplementation(() => ({
+      play: vi.fn().mockResolvedValue(undefined),
+      pause: vi.fn(),
+      load: vi.fn(),
+      volume: 0,
+    })) as unknown as typeof Audio;
+
+    // Enable sound for tests
+    setSoundEnabled(true);
   });
 
-  describe('sound disabled by default', () => {
-    it('should have sound disabled by default', async () => {
-      const result = await playRejectSound();
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('sound enabled/disabled control', () => {
-    it('should play reject sound when enabled', async () => {
-      const mockPlayFn = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlayFn;
-        pause(): void {}
-      } as unknown as typeof Audio;
-
-      setSoundEnabled(true);
-      const result = await playRejectSound();
-
-      expect(result).toBe(true);
-      expect(mockPlayFn).toHaveBeenCalled();
+  describe('sound system state', () => {
+    it('should be enabled by default', () => {
+      expect(isSoundEnabled()).toBe(true);
     });
 
-    it('should not play reject sound when disabled', async () => {
+    it('should allow enabling/disabling', () => {
       setSoundEnabled(false);
-      const result = await playRejectSound();
+      expect(isSoundEnabled()).toBe(false);
 
-      expect(result).toBe(false);
+      setSoundEnabled(true);
+      expect(isSoundEnabled()).toBe(true);
+    });
+  });
+
+  describe('playReviewAlertSound', () => {
+    it('should create audio element with correct path', async () => {
+      await playReviewAlertSound();
+
+      expect(global.Audio).toHaveBeenCalledWith('/sounds/review_alert.mp3');
     });
 
-    it('should play approve sound when enabled', async () => {
-      const mockPlayFn = vi.fn().mockResolvedValue(undefined);
+    it('should play the audio', async () => {
+      const mockPlay = vi.fn().mockResolvedValue(undefined);
       global.Audio = class {
         volume = 1;
-        play = mockPlayFn;
+        play = mockPlay;
         pause(): void {}
       } as unknown as typeof Audio;
 
-      setSoundEnabled(true);
-      const result = await playApproveSound();
+      const result = await playReviewAlertSound();
 
+      expect(mockPlay).toHaveBeenCalled();
       expect(result).toBe(true);
-      expect(mockPlayFn).toHaveBeenCalled();
     });
 
-    it('should not play approve sound when disabled', async () => {
+    it('should not play when sound is disabled', async () => {
       setSoundEnabled(false);
-      const result = await playApproveSound();
 
+      const result = await playReviewAlertSound();
+
+      expect(global.Audio).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+    });
+
+    it('should handle errors gracefully', async () => {
+      const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
+      global.Audio = class {
+        volume = 1;
+        play = mockPlay;
+        pause(): void {}
+      } as unknown as typeof Audio;
+
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = await playReviewAlertSound();
+
+      expect(result).toBe(false);
+      expect(consoleWarn).toHaveBeenCalledWith(
+        'Review alert sound failed to play:',
+        expect.any(Error)
+      );
+
+      consoleWarn.mockRestore();
+    });
+  });
+
+  describe('playEndDemoSound', () => {
+    it('should create audio element with correct path', async () => {
+      await playEndDemoSound();
+
+      expect(global.Audio).toHaveBeenCalledWith('/sounds/end_demo.mp3');
+    });
+
+    it('should play the audio', async () => {
+      const mockPlay = vi.fn().mockResolvedValue(undefined);
+      global.Audio = class {
+        volume = 1;
+        play = mockPlay;
+        pause(): void {}
+      } as unknown as typeof Audio;
+
+      const result = await playEndDemoSound();
+
+      expect(mockPlay).toHaveBeenCalled();
+      expect(result).toBe(true);
+    });
+
+    it('should not play when sound is disabled', async () => {
+      setSoundEnabled(false);
+
+      const result = await playEndDemoSound();
+
+      expect(global.Audio).not.toHaveBeenCalled();
       expect(result).toBe(false);
     });
   });
 
-  describe('error handling', () => {
-    it('should handle missing sound files gracefully', async () => {
-      global.Audio = class {
-        volume = 1;
-        play(): void {
-          throw new Error('Sound file not found');
-        }
-        pause(): void {}
-      } as unknown as typeof Audio;
+  describe('existing sounds still work', () => {
+    it('should play approve sound', async () => {
+      await playApproveSound();
 
-      setSoundEnabled(true);
-      const result = await playRejectSound();
-
-      // Should not throw, returns false
-      expect(result).toBe(false);
+      expect(global.Audio).toHaveBeenCalledWith('/sounds/approve.mp3');
     });
 
-    it('should handle rejected audio play promise', async () => {
-      const mockPlayFn = vi.fn().mockRejectedValue(new Error('Network error'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlayFn;
-        pause(): void {}
-      } as unknown as typeof Audio;
+    it('should play reject sound', async () => {
+      await playRejectSound();
 
-      setSoundEnabled(true);
-      const result = await playApproveSound();
-
-      expect(result).toBe(false);
+      expect(global.Audio).toHaveBeenCalledWith('/sounds/reject.mp3');
     });
   });
 });
