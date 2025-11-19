@@ -105,32 +105,9 @@ export const PaykeyCard: React.FC = () => {
               </RetroButton>
             </div>
           ) : (
-            <div className="space-y-2">
-              <p className="text-neutral-400 text-xs mb-2">Create a customer first:</p>
-              <RetroButton
-                variant="primary"
-                onClick={() => {
-                  void handleLinkAccount('/customer-create', 'Individual Customer');
-                }}
-                disabled={isExecuting}
-                className="w-full"
-              >
-                {executingCommand === 'Individual Customer'
-                  ? '⏳ Creating...'
-                  : '👤 Create Individual'}
-              </RetroButton>
-
-              <RetroButton
-                variant="secondary"
-                onClick={() => {
-                  void handleLinkAccount('/create-business', 'Business Customer');
-                }}
-                disabled={isExecuting}
-                className="w-full"
-              >
-                {executingCommand === 'Business Customer' ? '⏳ Creating...' : '🏢 Create Business'}
-              </RetroButton>
-            </div>
+            <p className="text-neutral-400 text-xs">
+              Create a customer first using the command menu
+            </p>
           )}
         </RetroCardContent>
       </RetroCard>
