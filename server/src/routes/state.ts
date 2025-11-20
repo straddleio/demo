@@ -49,6 +49,11 @@ router.get('/logs', (_req: Request, res: Response) => {
  * Filtered to show only Straddle API interactions
  */
 router.get('/log-stream', (_req: Request, res: Response) => {
+  if (!config.features.enableLogStream) {
+    res.status(404).json({ error: 'Log stream is disabled' });
+    return;
+  }
+
   const stream = getLogStream().filter(
     (entry) =>
       entry.type === 'straddle-req' || entry.type === 'straddle-res' || entry.type === 'webhook'
@@ -106,6 +111,10 @@ router.get('/config', (_req: Request, res: Response) => {
   res.json({
     environment: config.straddle.environment,
     generatorUrl: config.generator.url,
+    features: {
+      enableUnmask: config.features.enableUnmask,
+      enableLogStream: config.features.enableLogStream,
+    },
   });
 });
 

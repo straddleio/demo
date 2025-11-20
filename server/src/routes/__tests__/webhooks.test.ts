@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
+import { Webhook } from 'svix';
 
 // Set environment variables before importing config
 process.env.STRADDLE_API_KEY = 'test_api_key';
@@ -18,11 +19,15 @@ jest.mock('../../config.js', () => ({
       corsOrigin: 'http://localhost:5173',
     },
     webhook: {
-      secret: '',
+      secret: 'whsec_test_secret',
       ngrokUrl: '',
     },
     plaid: {
       processorToken: '',
+    },
+    features: {
+      enableUnmask: true,
+      enableLogStream: true,
     },
   },
 }));
@@ -65,6 +70,27 @@ import { eventBroadcaster } from '../../domain/events.js';
 
 describe('Webhooks Routes', () => {
   let app: express.Application;
+  const secret = 'whsec_test_secret';
+
+  const signPayload = (payload: unknown): Record<string, string> => {
+    const payloadString = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const msgId = `msg_${timestamp}`;
+    const signature = new Webhook(secret).sign(
+      msgId,
+      new Date(Number(timestamp) * 1000),
+      payloadString
+    );
+
+    return {
+      'svix-id': msgId,
+      'svix-timestamp': timestamp,
+      'svix-signature': signature,
+    };
+  };
+
+  const postWebhook = (payload: unknown) =>
+    request(app).post('/api/webhooks/straddle').set(signPayload(payload)).send(payload);
 
   beforeEach(() => {
     app = express();
@@ -87,6 +113,43 @@ describe('Webhooks Routes', () => {
   });
 
   describe('POST /api/webhooks/straddle', () => {
+    it('should reject requests without signature headers', async () => {
+      const webhookPayload = {
+        event_type: 'customer.created.v1',
+        event_id: 'evt_sig_1',
+        data: { id: 'cust_123' },
+      };
+
+      const response = await request(app)
+        .post('/api/webhooks/straddle')
+        .send(webhookPayload)
+        .expect(400);
+
+      expect(response.body).toEqual({ error: 'Missing webhook signature headers' });
+    });
+
+    it('should reject requests with invalid signatures', async () => {
+      const webhookPayload = {
+        event_type: 'customer.created.v1',
+        event_id: 'evt_sig_2',
+        data: { id: 'cust_123' },
+      };
+
+      const badHeaders = {
+        'svix-id': 'msg_bad',
+        'svix-timestamp': Math.floor(Date.now() / 1000).toString(),
+        'svix-signature': 'v1,badsignature',
+      };
+
+      const response = await request(app)
+        .post('/api/webhooks/straddle')
+        .set(badHeaders)
+        .send(webhookPayload)
+        .expect(401);
+
+      expect(response.body).toEqual({ error: 'Invalid webhook signature' });
+    });
+
     it('should process customer.created.v1 webhook and update state', async () => {
       const webhookPayload = {
         event_type: 'customer.created.v1',
@@ -113,10 +176,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(webhookPayload)
-        .expect(200);
+      const response = await postWebhook(webhookPayload).expect(200);
 
       expect(response.body).toEqual({ received: true });
 
@@ -152,10 +212,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(webhookPayload)
-        .expect(200);
+      const response = await postWebhook(webhookPayload).expect(200);
 
       expect(response.body).toEqual({ received: true });
       expect(stateManager.updateCustomer).toHaveBeenCalledWith({
@@ -186,7 +243,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.updateCustomer).not.toHaveBeenCalled();
     });
@@ -215,10 +272,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(webhookPayload)
-        .expect(200);
+      const response = await postWebhook(webhookPayload).expect(200);
 
       expect(response.body).toEqual({ received: true });
 
@@ -254,7 +308,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.setPaykey).toHaveBeenCalled();
     });
@@ -296,10 +350,7 @@ describe('Webhooks Routes', () => {
         },
       });
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(webhookPayload)
-        .expect(200);
+      const response = await postWebhook(webhookPayload).expect(200);
 
       expect(response.body).toEqual({ received: true });
 
@@ -367,7 +418,7 @@ describe('Webhooks Routes', () => {
         },
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.updateCharge).toHaveBeenCalledWith({
         status: 'failed',
@@ -424,7 +475,7 @@ describe('Webhooks Routes', () => {
         },
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       // Verify that status_history was NOT updated (duplicate detected)
       expect(stateManager.updateCharge).toHaveBeenCalledWith({
@@ -468,7 +519,7 @@ describe('Webhooks Routes', () => {
         },
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.updateCharge).toHaveBeenCalledWith({
         status: 'paid',
@@ -495,10 +546,7 @@ describe('Webhooks Routes', () => {
         },
       };
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(webhookPayload)
-        .expect(200);
+      const response = await postWebhook(webhookPayload).expect(200);
 
       expect(response.body).toEqual({ received: true });
 
@@ -515,10 +563,7 @@ describe('Webhooks Routes', () => {
         some_field: 'value',
       };
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(invalidPayload)
-        .expect(400);
+      const response = await postWebhook(invalidPayload).expect(400);
 
       expect(response.body).toEqual({ error: 'Invalid webhook payload' });
 
@@ -532,10 +577,7 @@ describe('Webhooks Routes', () => {
         data: { id: 'test_123' },
       };
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(invalidPayload)
-        .expect(400);
+      const response = await postWebhook(invalidPayload).expect(400);
 
       expect(response.body).toEqual({ error: 'Invalid webhook payload' });
     });
@@ -546,10 +588,7 @@ describe('Webhooks Routes', () => {
         data: { id: 'test_123' },
       };
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(invalidPayload)
-        .expect(400);
+      const response = await postWebhook(invalidPayload).expect(400);
 
       expect(response.body).toEqual({ error: 'Invalid webhook payload' });
     });
@@ -560,10 +599,7 @@ describe('Webhooks Routes', () => {
         event_id: 'evt_134',
       };
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(invalidPayload)
-        .expect(400);
+      const response = await postWebhook(invalidPayload).expect(400);
 
       expect(response.body).toEqual({ error: 'Invalid webhook payload' });
     });
@@ -598,10 +634,7 @@ describe('Webhooks Routes', () => {
         throw new Error('State manager error');
       });
 
-      const response = await request(app)
-        .post('/api/webhooks/straddle')
-        .send(webhookPayload)
-        .expect(500);
+      const response = await postWebhook(webhookPayload).expect(500);
 
       expect(response.body).toEqual({
         error: 'Webhook processing failed',
@@ -631,7 +664,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.updateCustomer).not.toHaveBeenCalled();
     });
@@ -658,7 +691,7 @@ describe('Webhooks Routes', () => {
         charge: null,
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.setPaykey).not.toHaveBeenCalled();
     });
@@ -688,7 +721,7 @@ describe('Webhooks Routes', () => {
         },
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.updateCharge).not.toHaveBeenCalled();
     });
@@ -719,7 +752,7 @@ describe('Webhooks Routes', () => {
         },
       });
 
-      await request(app).post('/api/webhooks/straddle').send(webhookPayload).expect(200);
+      await postWebhook(webhookPayload).expect(200);
 
       expect(stateManager.updateCharge).toHaveBeenCalledWith({
         status: 'paid',

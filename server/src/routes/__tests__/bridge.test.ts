@@ -27,6 +27,10 @@ jest.mock('../../config.js', () => ({
     plaid: {
       processorToken: 'processor-sandbox-test-token',
     },
+    features: {
+      enableUnmask: true,
+      enableLogStream: true,
+    },
   },
 }));
 

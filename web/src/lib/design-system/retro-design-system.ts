@@ -5,6 +5,26 @@
  * Use with shadcn/ui components for a pixel-perfect retro vibe
  */
 
+type ColorScale = Record<string | number, string>;
+
+const hexToRgb = (hex: string): string => {
+  const normalized = hex.replace('#', '');
+  const value =
+    normalized.length === 3
+      ? normalized
+          .split('')
+          .map((char) => `${char}${char}`)
+          .join('')
+      : normalized;
+  const int = parseInt(value, 16);
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return `${r} ${g} ${b}`;
+};
+
+const colorVar = (variable: string): string => `rgb(var(${variable}) / <alpha-value>)`;
+
 export const designSystem = {
   // Core Color Palette
   colors: {
@@ -114,6 +134,7 @@ export const designSystem = {
       pixelAlt: '"VT323", monospace',
       body: '"Space Mono", "Roboto Mono", monospace',
       display: '"Orbitron", sans-serif',
+      kyu: '"Kyu", "Orbitron", sans-serif',
       sans: 'system-ui, -apple-system, sans-serif',
     },
 
@@ -196,42 +217,325 @@ export const designSystem = {
   },
 } as const;
 
-// Tailwind CSS configuration extension
+type ThemePalette = {
+  primary: string;
+  secondary: string;
+  accent: string;
+  gold: string;
+  accentGreen: string;
+  accentRed: string;
+  accentBlue: string;
+  background: {
+    base: string;
+    dark: string;
+    card: string;
+    elevated: string;
+  };
+  neutral: ColorScale;
+  text: {
+    primary: string;
+    secondary: string;
+    muted: string;
+    inverse: string;
+  };
+  selection: {
+    background: string;
+    text: string;
+  };
+  effects: {
+    glowPrimary: string;
+    glowSecondary: string;
+    glowAccent: string;
+    glowGold: string;
+    scanlines: string;
+    crt: string;
+  };
+  shadows?: {
+    sm: string;
+    md: string;
+    lg: string;
+    xl: string;
+  };
+};
+
+const defaultShadows = {
+  sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
+  md: '0 6px 14px rgba(0, 0, 0, 0.4)',
+  lg: '0 14px 30px rgba(0, 0, 0, 0.5)',
+  xl: '0 24px 48px rgba(0, 0, 0, 0.6)',
+};
+
+const darkTheme: ThemePalette = {
+  primary: designSystem.colors.primary.DEFAULT,
+  secondary: designSystem.colors.secondary.DEFAULT,
+  accent: designSystem.colors.accent.DEFAULT,
+  gold: designSystem.colors.gold.DEFAULT,
+  accentGreen: designSystem.colors['accent-green'].DEFAULT,
+  accentRed: designSystem.colors['accent-red'].DEFAULT,
+  accentBlue: designSystem.colors['accent-blue'].DEFAULT,
+  background: {
+    base: designSystem.colors.background.DEFAULT,
+    dark: designSystem.colors.background.dark,
+    card: designSystem.colors.background.card,
+    elevated: designSystem.colors.background.elevated,
+  },
+  neutral: designSystem.colors.neutral,
+  text: {
+    primary: designSystem.colors.neutral[100],
+    secondary: designSystem.colors.neutral[300],
+    muted: designSystem.colors.neutral[500],
+    inverse: '#0A0E1A',
+  },
+  selection: {
+    background: 'rgba(0, 255, 255, 0.18)',
+    text: designSystem.colors.primary.DEFAULT,
+  },
+  effects: {
+    glowPrimary: designSystem.effects.glowCyan,
+    glowSecondary: designSystem.effects.glowBlue,
+    glowAccent: designSystem.effects.glowMagenta,
+    glowGold: designSystem.effects.glowGold,
+    scanlines: designSystem.effects.scanlines,
+    crt: designSystem.effects.crt,
+  },
+  shadows: defaultShadows,
+};
+
+const flexokiNeutral: ColorScale = {
+  50: '#F2F0E5',
+  100: '#E6E4D9',
+  150: '#DAD8CE',
+  200: '#CECDC3',
+  300: '#B7B5AC',
+  400: '#9F9D96',
+  500: '#878580',
+  600: '#6F6E69',
+  700: '#575653',
+  800: '#403E3C',
+  900: '#282726',
+  DEFAULT: '#6F6E69',
+};
+
+const flexokiLightTheme: ThemePalette = {
+  primary: '#205EA6',      // Blue
+  secondary: '#24837B',    // Cyan
+  accent: '#A02F6F',       // Magenta
+  gold: '#AD8301',         // Yellow
+  accentGreen: '#66800B',  // Green
+  accentRed: '#AF3029',    // Red
+  accentBlue: '#205EA6',   // Blue
+  background: {
+    base: '#FFFCF0',       // Paper
+    dark: '#F2F0E5',       // Base-50
+    card: '#F2F0E5',       // Base-50
+    elevated: '#FFFCF0',   // Paper
+  },
+  neutral: flexokiNeutral,
+  text: {
+    primary: '#100F0F',    // Black
+    secondary: '#575653',  // Base-700
+    muted: '#6F6E69',      // Base-600
+    inverse: '#FFFCF0',    // Paper
+  },
+  selection: {
+    background: 'rgba(32, 94, 166, 0.15)',
+    text: '#100F0F',
+  },
+  effects: {
+    glowPrimary: '0 0 8px rgba(32, 94, 166, 0.2), 0 0 16px rgba(32, 94, 166, 0.15)',
+    glowSecondary: '0 0 8px rgba(36, 131, 123, 0.2), 0 0 16px rgba(36, 131, 123, 0.15)',
+    glowAccent: '0 0 8px rgba(160, 47, 111, 0.2), 0 0 16px rgba(160, 47, 111, 0.15)',
+    glowGold: '0 0 8px rgba(173, 131, 1, 0.2), 0 0 16px rgba(173, 131, 1, 0.15)',
+    scanlines:
+      'repeating-linear-gradient(0deg, rgba(16, 15, 15, 0.02) 0px, rgba(16, 15, 15, 0.02) 1px, transparent 1px, transparent 2px)',
+    crt: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0) 0%, rgba(16, 15, 15, 0.03) 100%)',
+  },
+  shadows: {
+    sm: '0 1px 2px 0 rgba(16, 15, 15, 0.06)',
+    md: '0 4px 6px -1px rgba(16, 15, 15, 0.08), 0 2px 4px -1px rgba(16, 15, 15, 0.04)',
+    lg: '0 10px 15px -3px rgba(16, 15, 15, 0.1), 0 4px 6px -2px rgba(16, 15, 15, 0.05)',
+    xl: '0 20px 25px -5px rgba(16, 15, 15, 0.12), 0 10px 10px -5px rgba(16, 15, 15, 0.04)',
+  },
+};
+
+const fontVars = `
+  --font-pixel: ${designSystem.typography.fonts.pixel};
+  --font-pixel-alt: ${designSystem.typography.fonts.pixelAlt};
+  --font-body: ${designSystem.typography.fonts.body};
+  --font-display: ${designSystem.typography.fonts.display};
+  --font-kyu: ${designSystem.typography.fonts.kyu};
+`;
+
+const themeDefinitions = [
+  { id: 'dark', selector: ':root', palette: darkTheme },
+  {
+    id: 'light',
+    selector: "[data-theme='light']",
+    palette: flexokiLightTheme,
+  },
+  // Future palettes can be added here
+  {
+    id: 'flexoki',
+    selector: "[data-theme='flexoki']",
+    palette: flexokiLightTheme,
+  },
+] as const;
+
+const buildCssVarBlock = (selector: string, theme: ThemePalette): string => {
+  const baseColors: Array<[string, string]> = [
+    ['primary', theme.primary],
+    ['secondary', theme.secondary],
+    ['accent', theme.accent],
+    ['gold', theme.gold],
+    ['accent-green', theme.accentGreen],
+    ['accent-red', theme.accentRed],
+    ['accent-blue', theme.accentBlue],
+  ];
+
+  const baseLines = baseColors
+    .map(
+      ([name, value]) =>
+        `  --color-${name}: ${value};\n  --color-${name}-rgb: ${hexToRgb(value)};`
+    )
+    .join('\n');
+
+  const neutralLines = Object.entries(theme.neutral)
+    .filter(([shade]) => shade !== 'DEFAULT')
+    .map(
+      ([shade, value]) =>
+        `  --color-neutral-${shade}: ${value};\n  --color-neutral-${shade}-rgb: ${hexToRgb(value)};`
+    )
+    .join('\n');
+
+  return `
+${selector} {
+  ${fontVars.trim()}
+  ${baseLines}
+  --color-background: ${theme.background.base};
+  --color-background-rgb: ${hexToRgb(theme.background.base)};
+  --color-background-dark: ${theme.background.dark};
+  --color-background-dark-rgb: ${hexToRgb(theme.background.dark)};
+  --color-background-card: ${theme.background.card};
+  --color-background-card-rgb: ${hexToRgb(theme.background.card)};
+  --color-background-elevated: ${theme.background.elevated};
+  --color-background-elevated-rgb: ${hexToRgb(theme.background.elevated)};
+  ${neutralLines}
+  --color-text-primary: ${theme.text.primary};
+  --color-text-primary-rgb: ${hexToRgb(theme.text.primary)};
+  --color-text-secondary: ${theme.text.secondary};
+  --color-text-secondary-rgb: ${hexToRgb(theme.text.secondary)};
+  --color-text-muted: ${theme.text.muted};
+  --color-text-muted-rgb: ${hexToRgb(theme.text.muted)};
+  --color-text-inverse: ${theme.text.inverse};
+  --color-text-inverse-rgb: ${hexToRgb(theme.text.inverse)};
+  --color-selection-bg: ${theme.selection.background};
+  --color-selection-text: ${theme.selection.text};
+  --shadow-sm: ${theme.shadows?.sm ?? defaultShadows.sm};
+  --shadow-md: ${theme.shadows?.md ?? defaultShadows.md};
+  --shadow-lg: ${theme.shadows?.lg ?? defaultShadows.lg};
+  --shadow-xl: ${theme.shadows?.xl ?? defaultShadows.xl};
+  --effect-glow-primary: ${theme.effects.glowPrimary};
+  --effect-glow-secondary: ${theme.effects.glowSecondary};
+  --effect-glow-accent: ${theme.effects.glowAccent};
+  --effect-glow-gold: ${theme.effects.glowGold};
+  --effect-scanlines: ${theme.effects.scanlines};
+  --effect-crt: ${theme.effects.crt};
+}
+`.trim();
+};
+
+export const cssVariables = themeDefinitions
+  .map(({ selector, palette }) => buildCssVarBlock(selector, palette))
+  .join('\n\n');
+
+export const injectCssVariables = (): void => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+  if (document.getElementById('retro-design-system-vars')) {
+    return;
+  }
+  const style = document.createElement('style');
+  style.id = 'retro-design-system-vars';
+  style.innerHTML = cssVariables;
+  document.head.append(style);
+};
+
+const neutralPalette = Object.fromEntries(
+  Object.keys(designSystem.colors.neutral)
+    .filter((key) => key !== 'DEFAULT')
+    .map((shade) => [shade, colorVar(`--color-neutral-${shade}-rgb`)])
+);
+
+const surfacePalette = {
+  DEFAULT: colorVar('--color-background-rgb'),
+  dark: colorVar('--color-background-dark-rgb'),
+  card: colorVar('--color-background-card-rgb'),
+  elevated: colorVar('--color-background-elevated-rgb'),
+};
+
+const textPalette = {
+  primary: colorVar('--color-text-primary-rgb'),
+  secondary: colorVar('--color-text-secondary-rgb'),
+  muted: colorVar('--color-text-muted-rgb'),
+  inverse: colorVar('--color-text-inverse-rgb'),
+};
+
 export const tailwindConfig = {
   theme: {
     extend: {
       colors: {
-        primary: designSystem.colors.primary,
-        secondary: designSystem.colors.secondary,
-        accent: designSystem.colors.accent,
-        gold: designSystem.colors.gold,
-        'accent-green': designSystem.colors['accent-green'],
-        'accent-red': designSystem.colors['accent-red'],
-        'accent-blue': designSystem.colors['accent-blue'],
-        background: designSystem.colors.background,
-        neutral: designSystem.colors.neutral,
+        primary: colorVar('--color-primary-rgb'),
+        secondary: colorVar('--color-secondary-rgb'),
+        accent: colorVar('--color-accent-rgb'),
+        gold: colorVar('--color-gold-rgb'),
+        'accent-green': {
+          DEFAULT: colorVar('--color-accent-green-rgb'),
+          dark: colorVar('--color-accent-green-rgb'),
+        },
+        'accent-red': {
+          DEFAULT: colorVar('--color-accent-red-rgb'),
+          dark: colorVar('--color-accent-red-rgb'),
+        },
+        'accent-blue': {
+          DEFAULT: colorVar('--color-accent-blue-rgb'),
+          dark: colorVar('--color-accent-blue-rgb'),
+        },
+        background: surfacePalette,
+        neutral: neutralPalette,
+        text: textPalette,
+        success: colorVar('--color-accent-green-rgb'),
+        warning: colorVar('--color-gold-rgb'),
+        error: colorVar('--color-accent-red-rgb'),
+        info: colorVar('--color-accent-blue-rgb'),
       },
       fontFamily: {
-        pixel: designSystem.typography.fonts.pixel.split(','),
-        'pixel-alt': designSystem.typography.fonts.pixelAlt.split(','),
-        body: designSystem.typography.fonts.body.split(','),
-        display: designSystem.typography.fonts.display.split(','),
+        pixel: ['var(--font-pixel)', '"Press Start 2P"', '"Courier New"', 'monospace'],
+        'pixel-alt': ['var(--font-pixel-alt)', '"VT323"', 'monospace'],
+        body: ['var(--font-body)', '"Space Mono"', '"Roboto Mono"', 'monospace'],
+        display: ['var(--font-display)', '"Orbitron"', 'sans-serif'],
+        kyu: ['var(--font-kyu)', '"Orbitron"', 'sans-serif'],
       },
       fontSize: designSystem.typography.sizes,
       spacing: designSystem.spacing,
       borderRadius: designSystem.borderRadius,
       boxShadow: {
-        'glow-cyan': designSystem.effects.glowCyan,
-        'glow-blue': designSystem.effects.glowBlue,
-        'glow-magenta': designSystem.effects.glowMagenta,
-        'glow-gold': designSystem.effects.glowGold,
-        'glow-primary': designSystem.effects.glowCyan,
-        'glow-accent': designSystem.effects.glowMagenta,
-        'glow-green': '0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3)',
-        'neon-primary': '0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3)',
-        'neon-primary-lg': '0 0 15px rgba(0, 255, 255, 0.7), 0 0 30px rgba(0, 255, 255, 0.5)',
-        'neon-accent': '0 0 10px rgba(255, 0, 153, 0.5), 0 0 20px rgba(255, 0, 153, 0.3)',
-        'neon-accent-lg': '0 0 15px rgba(255, 0, 153, 0.7), 0 0 30px rgba(255, 0, 153, 0.5)',
+        'glow-cyan': 'var(--effect-glow-primary)',
+        'glow-blue': 'var(--effect-glow-secondary)',
+        'glow-magenta': 'var(--effect-glow-accent)',
+        'glow-gold': 'var(--effect-glow-gold)',
+        'glow-primary': 'var(--effect-glow-primary)',
+        'glow-accent': 'var(--effect-glow-accent)',
+        'glow-green':
+          '0 0 10px rgb(var(--color-accent-green-rgb) / 0.5), 0 0 20px rgb(var(--color-accent-green-rgb) / 0.3)',
+        'neon-primary':
+          '0 0 10px rgb(var(--color-primary-rgb) / 0.5), 0 0 20px rgb(var(--color-primary-rgb) / 0.3)',
+        'neon-primary-lg':
+          '0 0 15px rgb(var(--color-primary-rgb) / 0.7), 0 0 30px rgb(var(--color-primary-rgb) / 0.5)',
+        'neon-accent':
+          '0 0 10px rgb(var(--color-accent-rgb) / 0.5), 0 0 20px rgb(var(--color-accent-rgb) / 0.3)',
+        'neon-accent-lg':
+          '0 0 15px rgb(var(--color-accent-rgb) / 0.7), 0 0 30px rgb(var(--color-accent-rgb) / 0.5)',
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
@@ -248,11 +552,12 @@ export const tailwindConfig = {
       keyframes: {
         'pulse-glow': {
           '0%, 100%': {
-            boxShadow: '0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3)',
+            boxShadow:
+              '0 0 10px rgb(var(--color-primary-rgb) / 0.5), 0 0 20px rgb(var(--color-primary-rgb) / 0.3)',
           },
           '50%': {
             boxShadow:
-              '0 0 20px rgba(0, 255, 255, 0.8), 0 0 30px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.3)',
+              '0 0 20px rgb(var(--color-primary-rgb) / 0.8), 0 0 30px rgb(var(--color-primary-rgb) / 0.5), 0 0 40px rgb(var(--color-primary-rgb) / 0.3)',
           },
         },
         flicker: {
@@ -316,46 +621,20 @@ export const tailwindConfig = {
     }) {
       addUtilities({
         '.text-glow-primary': {
-          textShadow: '0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.4)',
+          textShadow:
+            '0 0 10px rgb(var(--color-primary-rgb) / 0.8), 0 0 20px rgb(var(--color-primary-rgb) / 0.4)',
         },
         '.text-glow-secondary': {
-          textShadow: '0 0 10px rgba(0, 102, 255, 0.8), 0 0 20px rgba(0, 102, 255, 0.4)',
+          textShadow:
+            '0 0 10px rgb(var(--color-secondary-rgb) / 0.8), 0 0 20px rgb(var(--color-secondary-rgb) / 0.4)',
         },
         '.text-glow-accent': {
-          textShadow: '0 0 10px rgba(255, 0, 153, 0.8), 0 0 20px rgba(255, 0, 153, 0.4)',
+          textShadow:
+            '0 0 10px rgb(var(--color-accent-rgb) / 0.8), 0 0 20px rgb(var(--color-accent-rgb) / 0.4)',
         },
       });
     },
   ],
 };
-
-// CSS Variables for use in components
-export const cssVariables = `
-  :root {
-    /* Colors */
-    --color-primary: ${designSystem.colors.primary.DEFAULT};
-    --color-secondary: ${designSystem.colors.secondary.DEFAULT};
-    --color-accent: ${designSystem.colors.accent.DEFAULT};
-    --color-gold: ${designSystem.colors.gold.DEFAULT};
-    --color-background: ${designSystem.colors.background.DEFAULT};
-    --color-background-dark: ${designSystem.colors.background.dark};
-    --color-background-card: ${designSystem.colors.background.card};
-    --color-background-elevated: ${designSystem.colors.background.elevated};
-    
-    /* Typography */
-    --font-pixel: ${designSystem.typography.fonts.pixel};
-    --font-pixel-alt: ${designSystem.typography.fonts.pixelAlt};
-    --font-body: ${designSystem.typography.fonts.body};
-    --font-display: ${designSystem.typography.fonts.display};
-    
-    /* Effects */
-    --effect-glow-cyan: ${designSystem.effects.glowCyan};
-    --effect-glow-blue: ${designSystem.effects.glowBlue};
-    --effect-glow-magenta: ${designSystem.effects.glowMagenta};
-    --effect-glow-gold: ${designSystem.effects.glowGold};
-    --effect-scanlines: ${designSystem.effects.scanlines};
-    --effect-crt: ${designSystem.effects.crt};
-  }
-`;
 
 export type DesignSystem = typeof designSystem;

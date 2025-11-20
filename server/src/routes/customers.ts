@@ -11,6 +11,7 @@ import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logStraddleCall } from '../domain/logs.js';
 import { toExpressError } from '../domain/errors.js';
 import { logger } from '../lib/logger.js';
+import { config } from '../config.js';
 
 const router = Router();
 
@@ -601,6 +602,11 @@ router.patch('/:id/review', (req: Request, res: Response) => {
 router.get('/:id/unmask', (req: Request, res: Response) => {
   void (async () => {
     try {
+      if (!config.features.enableUnmask) {
+        res.status(404).json({ error: 'Unmask feature is disabled' });
+        return;
+      }
+
       // Log outbound Straddle request to stream
       addLogEntry({
         timestamp: new Date().toISOString(),

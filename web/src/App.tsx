@@ -13,7 +13,8 @@ import { BridgeModal } from './components/modals/BridgeModal';
 import { ReviewDecisionModal } from './components/ReviewDecisionModal';
 import { EndDemoBanner } from './components/EndDemoBanner';
 import { useDemoStore } from './lib/state';
-import { paykeyReviewDecision, customerReviewDecision } from './lib/api';
+import { paykeyReviewDecision, customerReviewDecision, API_BASE_URL } from './lib/api';
+import { useEffect } from 'react';
 
 /**
  * Main App - Straddle NerdCon Live Demo
@@ -34,7 +35,46 @@ function App(): React.ReactElement {
     setShowEndDemoBanner,
     addAPILogEntry,
     addTerminalLine,
+    setFeatureFlags,
+    setGeneratorUrl,
   } = useDemoStore();
+
+  useEffect(() => {
+    const fetchConfig = async (): Promise<void> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/config`);
+        if (!response.ok) {
+          throw new Error('Config fetch failed');
+        }
+        const data = (await response.json()) as {
+          generatorUrl?: string;
+          features?: { enableUnmask?: boolean; enableLogStream?: boolean };
+        };
+        if (data.features) {
+          setFeatureFlags({
+            enableUnmask: !!data.features.enableUnmask,
+            enableLogStream: !!data.features.enableLogStream,
+          });
+        }
+        const candidate = data.generatorUrl || '/api/generator';
+        const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
+        const isHttpCandidate = candidate.startsWith('http://');
+        const sameOrigin =
+          typeof window !== 'undefined' &&
+          isHttpCandidate &&
+          candidate.includes(window.location.hostname);
+
+        // Avoid mixed content on HTTPS pages; fall back to proxy unless it's same-origin
+        const safeUrl =
+          protocol === 'https:' && isHttpCandidate && !sameOrigin ? '/api/generator' : candidate;
+        setGeneratorUrl(safeUrl);
+      } catch (error) {
+        console.warn('Failed to load server config', error);
+      }
+    };
+
+    void fetchConfig();
+  }, [setFeatureFlags, setGeneratorUrl]);
 
   const handleReviewDecision = async (
     decision: 'verified' | 'rejected' | 'approved'

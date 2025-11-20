@@ -28,6 +28,13 @@ jest.mock('../../config.js', () => ({
     plaid: {
       processorToken: '',
     },
+    generator: {
+      url: 'http://localhost:8081',
+    },
+    features: {
+      enableUnmask: true,
+      enableLogStream: true,
+    },
   },
 }));
 
@@ -153,11 +160,16 @@ describe('State Routes', () => {
   });
 
   describe('GET /api/config', () => {
-    it('should return public config (environment only)', async () => {
+    it('should return public config (environment and safe flags)', async () => {
       const response = await request(app).get('/api/config').expect(200);
 
       expect(response.body).toEqual({
         environment: 'sandbox',
+        generatorUrl: 'http://localhost:8081',
+        features: {
+          enableUnmask: true,
+          enableLogStream: true,
+        },
       });
     });
 
@@ -171,8 +183,8 @@ describe('State Routes', () => {
       expect(response.body).not.toHaveProperty('plaid');
       expect(response.body).not.toHaveProperty('processorToken');
 
-      // Only environment should be present
-      expect(Object.keys(response.body)).toEqual(['environment']);
+      // Only safe fields should be present
+      expect(Object.keys(response.body)).toEqual(['environment', 'generatorUrl', 'features']);
     });
   });
 

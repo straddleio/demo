@@ -8,6 +8,7 @@ declare module 'express-serve-static-core' {
     correlationId: string;
     idempotencyKey?: string;
     startTime: number;
+    rawBody?: string;
   }
 }
 

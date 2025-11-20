@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SPRITE_CONFIG } from '../utils/sprites';
+import { cn } from '@/components/ui/utils';
 
 interface ScoreDisplayProps {
   score: number;
@@ -30,16 +30,7 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score }) => {
   return (
     <div
       data-testid="score-display"
-      style={{
-        fontFamily: SPRITE_CONFIG.font.family,
-        fontSize: `${SPRITE_CONFIG.font.sizes.medium}px`,
-        color: SPRITE_CONFIG.colors.cyan,
-        textShadow: isAnimating
-          ? `0 0 8px ${SPRITE_CONFIG.colors.cyan}, 0 0 16px rgba(0, 255, 255, 0.6)`
-          : `0 0 ${SPRITE_CONFIG.glow.blur}px ${SPRITE_CONFIG.colors.cyan}`,
-        transform: isAnimating ? 'scale(1.1)' : 'scale(1)',
-        transition: 'transform 0.2s ease-out, text-shadow 0.3s ease-out',
-      }}
+      className={cn('arcade-score', isAnimating && 'arcade-score--active')}
     >
       SCORE: {paddedScore}
     </div>

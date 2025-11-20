@@ -37,10 +37,7 @@ export const ArcadeCanvas: React.FC<Props> = ({ width = 640, height = 480 }) => 
       height={height}
       role="img"
       aria-label="Arcade game canvas"
-      style={{
-        imageRendering: 'pixelated', // Crisp pixels
-        border: '2px solid #00FFFF',
-      }}
+      className="arcade-canvas"
     />
   );
 };

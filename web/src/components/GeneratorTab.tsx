@@ -1,27 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useDemoStore } from '@/lib/state';
 
 /**
  * Generator Tab - Embeds the Paykey Generator Python app via iframe
  */
 export const GeneratorTab: React.FC = () => {
-  const [generatorUrl, setGeneratorUrl] = useState<string>('');
+  const generatorUrl = useDemoStore((state) => state.generatorUrl);
+  const iframeUrl = useMemo(() => generatorUrl || '/api/generator', [generatorUrl]);
 
-  useEffect(() => {
-    const fetchConfig = async (): Promise<void> => {
-      try {
-        const response = await fetch('http://localhost:3001/api/config');
-        const config = (await response.json()) as { generatorUrl?: string };
-        setGeneratorUrl(config.generatorUrl ?? 'http://localhost:8081');
-      } catch (error) {
-        console.error('Failed to fetch generator URL, using default', error);
-        setGeneratorUrl('http://localhost:8081');
-      }
-    };
-
-    void fetchConfig();
-  }, []);
-
-  if (!generatorUrl) {
+  if (!iframeUrl) {
     return (
       <div className="w-full h-full flex items-center justify-center text-cyan-400">
         Loading generator...
@@ -31,7 +18,7 @@ export const GeneratorTab: React.FC = () => {
 
   return (
     <div className="w-full h-full">
-      <iframe src={generatorUrl} className="w-full h-full border-0" title="Paykey Generator" />
+      <iframe src={iframeUrl} className="w-full h-full border-0" title="Paykey Generator" />
     </div>
   );
 };

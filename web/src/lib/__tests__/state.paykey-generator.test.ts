@@ -9,6 +9,11 @@ describe('Paykey Generator State Management', () => {
       customer: null,
       paykey: null,
       charge: null,
+      featureFlags: {
+        enableUnmask: false,
+        enableLogStream: false,
+      },
+      generatorUrl: 'http://localhost:8081',
       terminalHistory: [],
       isExecuting: false,
       apiLogs: [],

@@ -24,8 +24,8 @@ pnpm add tailwindcss @tailwindcss/typography
 
 Copy these files to your project:
 - `retro-design-system.ts` → `@/lib/design-system/`
-- `retro-styles.css` → `@/styles/`
 - `retro-components.tsx` → `@/components/ui/`
+- Use the single source of truth for styles from `web/src/styles/retro-styles.css` (already wired to Tailwind base in this repo).
 
 ### 3. Update tailwind.config.ts
 

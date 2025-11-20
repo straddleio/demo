@@ -19,7 +19,7 @@ export const ChargeCard: React.FC = () => {
   const charge = useDemoStore((state) => state.charge);
   const paykey = useDemoStore((state) => state.paykey);
   const displayState = useDemoStore((state) => state.getCardDisplayState());
-  const [paykeyExpanded, setPaykeyExpanded] = useState(false);
+  const [paykeyExpanded, setPaykeyExpanded] = useState(true); // Default to expanded
 
   if (!charge) {
     return (

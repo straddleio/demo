@@ -4,8 +4,14 @@ import { stateManager } from '../domain/state.js';
 import { addLogEntry, parseStraddleError } from '../domain/log-stream.js';
 import { logger } from '../lib/logger.js';
 import { ChargeStatusHistory } from '../domain/types.js';
+import { Webhook } from 'svix';
+import { config } from '../config.js';
 
 const router = Router();
+
+interface RawWebhookRequest extends Request {
+  rawBody?: string;
+}
 
 /**
  * TypeScript interfaces for webhook payloads
@@ -81,8 +87,50 @@ function isChargeWebhookData(data: unknown): data is ChargeWebhookData {
 router.post('/straddle', (req: Request, res: Response): void => {
   // Process synchronously - no async needed for webhook handling
   try {
+    // Enforce configured webhook secret
+    if (!config.webhook.secret) {
+      res.status(400).json({ error: 'Webhook signing secret not configured' });
+      return;
+    }
+
+    const svixHeaders = {
+      'svix-id': req.header('webhook-id') || '',
+      'svix-timestamp': req.header('webhook-timestamp') || '',
+      'svix-signature': req.header('webhook-signature') || '',
+    };
+
+    if (!svixHeaders['svix-id'] || !svixHeaders['svix-timestamp'] || !svixHeaders['svix-signature']) {
+      res.status(400).json({ error: 'Missing webhook signature headers' });
+      return;
+    }
+
+    const rawPayload = (req as RawWebhookRequest).rawBody || JSON.stringify(req.body);
+
+    if (!rawPayload) {
+      res.status(400).json({ error: 'Webhook payload missing' });
+      return;
+    }
+
+    try {
+      const verifier = new Webhook(config.webhook.secret);
+      verifier.verify(rawPayload, svixHeaders);
+    } catch (err) {
+      logger.warn('Invalid webhook signature', err);
+      res.status(401).json({ error: 'Invalid webhook signature' });
+      return;
+    }
+
     // Validate webhook payload structure
-    const body = req.body as unknown;
+    let parsedPayload: unknown;
+    try {
+      parsedPayload = JSON.parse(rawPayload);
+    } catch {
+      res.status(400).json({ error: 'Invalid webhook payload' });
+      return;
+    }
+
+    // Validate webhook payload structure
+    const body = parsedPayload;
     if (!isWebhookEvent(body)) {
       logger.warn('Invalid webhook payload', { body });
       res.status(400).json({ error: 'Invalid webhook payload' });

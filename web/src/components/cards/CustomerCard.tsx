@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CommandCard } from '../CommandCard';
+import { ThemeField, ThemeInput } from '@/components/ui/theme-primitives';
 import { cn } from '@/components/ui/utils';
 
 interface CustomerCardProps {
@@ -123,165 +124,121 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
       <div className="space-y-2">
         {/* Individual Name Fields */}
         <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-pixel text-primary mb-0.5">First Name</label>
-            <input
+          <ThemeField label="First Name" htmlFor="customer-first-name">
+            <ThemeInput
+            id="customer-first-name"
+            inputSize="sm"
               type="text"
               value={formData.first_name}
               onChange={(e) => updateField('first_name', e.target.value)}
-              className={cn(
-                'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                'rounded text-neutral-200 font-body text-sm',
-                'focus:border-primary focus:outline-none'
-              )}
             />
-          </div>
-          <div>
-            <label className="block text-xs font-pixel text-primary mb-0.5">Last Name</label>
-            <input
+          </ThemeField>
+          <ThemeField label="Last Name" htmlFor="customer-last-name">
+            <ThemeInput
+            id="customer-last-name"
+            inputSize="sm"
               type="text"
               value={formData.last_name}
               onChange={(e) => updateField('last_name', e.target.value)}
-              className={cn(
-                'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                'rounded text-neutral-200 font-body text-sm',
-                'focus:border-primary focus:outline-none'
-              )}
             />
-          </div>
+          </ThemeField>
         </div>
 
         {/* Email */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-0.5">Email</label>
-          <input
+        <ThemeField label="Email" htmlFor="customer-email">
+          <ThemeInput
+            id="customer-email"
+            inputSize="sm"
             type="email"
             value={formData.email}
             onChange={(e) => updateField('email', e.target.value)}
-            className={cn(
-              'w-full px-2 py-1 bg-background-dark border border-primary/30',
-              'rounded text-neutral-200 font-body text-sm',
-              'focus:border-primary focus:outline-none'
-            )}
           />
-        </div>
+        </ThemeField>
 
         {/* Phone */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-0.5">Phone</label>
-          <input
+        <ThemeField label="Phone" htmlFor="customer-phone">
+          <ThemeInput
+            id="customer-phone"
+            inputSize="sm"
             type="tel"
             value={formData.phone}
             onChange={(e) => updateField('phone', e.target.value)}
-            className={cn(
-              'w-full px-2 py-1 bg-background-dark border border-primary/30',
-              'rounded text-neutral-200 font-body text-sm',
-              'focus:border-primary focus:outline-none'
-            )}
           />
-        </div>
+        </ThemeField>
 
 
         {/* Address */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-0.5">Address</label>
-          <input
+        <ThemeField label="Address" htmlFor="customer-address1">
+          <ThemeInput
+            id="customer-address1"
+            inputSize="sm"
             type="text"
             value={formData.address?.address1 || ''}
             onChange={(e) => updateNestedField('address', 'address1', e.target.value)}
-            className={cn(
-              'w-full px-2 py-1 bg-background-dark border border-primary/30',
-              'rounded text-neutral-200 font-body text-sm mb-1.5',
-              'focus:border-primary focus:outline-none'
-            )}
             placeholder="Street Address"
           />
-          <div className="grid grid-cols-3 gap-2">
-            <input
-              type="text"
-              value={formData.address?.city || ''}
-              onChange={(e) => updateNestedField('address', 'city', e.target.value)}
-              className={cn(
-                'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                'rounded text-neutral-200 font-body text-sm',
-                'focus:border-primary focus:outline-none'
-              )}
-              placeholder="City"
-            />
-            <input
-              type="text"
-              value={formData.address?.state || ''}
-              onChange={(e) => updateNestedField('address', 'state', e.target.value)}
-              className={cn(
-                'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                'rounded text-neutral-200 font-body text-sm',
-                'focus:border-primary focus:outline-none'
-              )}
-              placeholder="State"
-            />
-            <input
-              type="text"
-              value={formData.address?.zip || ''}
-              onChange={(e) => updateNestedField('address', 'zip', e.target.value)}
-              className={cn(
-                'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                'rounded text-neutral-200 font-body text-sm',
-                'focus:border-primary focus:outline-none'
-              )}
-              placeholder="ZIP"
-            />
-          </div>
+        </ThemeField>
+        <div className="grid grid-cols-3 gap-2">
+          <ThemeInput
+            inputSize="sm"
+            type="text"
+            value={formData.address?.city || ''}
+            onChange={(e) => updateNestedField('address', 'city', e.target.value)}
+            placeholder="City"
+          />
+          <ThemeInput
+            inputSize="sm"
+            type="text"
+            value={formData.address?.state || ''}
+            onChange={(e) => updateNestedField('address', 'state', e.target.value)}
+            placeholder="State"
+          />
+          <ThemeInput
+            inputSize="sm"
+            type="text"
+            value={formData.address?.zip || ''}
+            onChange={(e) => updateNestedField('address', 'zip', e.target.value)}
+            placeholder="ZIP"
+          />
         </div>
 
         {/* KYC Fields - Only show in KYC mode for Individuals */}
         {mode === 'kyc' && formData.type === 'individual' && (
           <>
             {/* SSN */}
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-0.5">SSN</label>
-              <input
+            <ThemeField label="SSN" htmlFor="customer-ssn">
+              <ThemeInput
+                id="customer-ssn"
+                inputSize="sm"
                 type="text"
                 value={formData.compliance_profile?.ssn || ''}
                 onChange={(e) => updateNestedField('compliance_profile', 'ssn', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
               />
-            </div>
+            </ThemeField>
 
             {/* DOB */}
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-0.5">Date of Birth</label>
-              <input
+            <ThemeField label="Date of Birth" htmlFor="customer-dob">
+              <ThemeInput
+                id="customer-dob"
+                inputSize="sm"
                 type="date"
                 value={formData.compliance_profile?.dob || ''}
                 onChange={(e) => updateNestedField('compliance_profile', 'dob', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
               />
-            </div>
+            </ThemeField>
           </>
         )}
 
         {/* IP Address */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-0.5">IP Address</label>
-          <input
+        <ThemeField label="IP Address" htmlFor="customer-ip-address">
+          <ThemeInput
+            id="customer-ip-address"
+            inputSize="sm"
             type="text"
             value={formData.device.ip_address}
             onChange={(e) => updateNestedField('device', 'ip_address', e.target.value)}
-            className={cn(
-              'w-full px-2 py-1 bg-background-dark border border-primary/30',
-              'rounded text-neutral-200 font-body text-sm',
-              'focus:border-primary focus:outline-none'
-            )}
           />
-        </div>
+        </ThemeField>
       </div>
 
       {/* Sandbox Outcome Buttons - Street Fighter Style */}
@@ -293,7 +250,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
             className={cn(
               'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-secondary/20 border-2 border-secondary text-secondary',
-              'hover:bg-secondary/30 hover:shadow-[0_0_15px_rgba(0,102,255,0.5)]',
+              'hover:bg-secondary/30 hover:shadow-glow-blue',
               'transition-all duration-200 uppercase'
             )}
           >
@@ -304,7 +261,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
             className={cn(
               'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-accent-green/20 border-2 border-accent-green text-accent-green',
-              'hover:bg-accent-green/30 hover:shadow-[0_0_15px_rgba(57,255,20,0.5)]',
+              'hover:bg-accent-green/30 hover:shadow-glow-green',
               'transition-all duration-200 uppercase'
             )}
           >
@@ -315,7 +272,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
             className={cn(
               'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-gold/20 border-2 border-gold text-gold',
-              'hover:bg-gold/30 hover:shadow-[0_0_15px_rgba(255,195,0,0.5)]',
+              'hover:bg-gold/30 hover:shadow-glow-gold',
               'transition-all duration-200 uppercase'
             )}
           >
@@ -326,7 +283,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
             className={cn(
               'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-accent-red/20 border-2 border-accent-red text-accent-red',
-              'hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgba(255,0,64,0.5)]',
+              'hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgb(var(--color-accent-red-rgb)/0.5)]',
               'transition-all duration-200 uppercase'
             )}
           >

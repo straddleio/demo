@@ -43,8 +43,11 @@ class PaykeyHandler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(result).encode('utf-8'))
 
             except Exception as e:
+                print(f"ERROR: {type(e).__name__}: {str(e)}", file=sys.stderr)
+                print(f"Request data: {post_data.decode('utf-8')[:500]}", file=sys.stderr)
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
         else:

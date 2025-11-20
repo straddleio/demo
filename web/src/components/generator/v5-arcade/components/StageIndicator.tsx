@@ -1,5 +1,4 @@
 import React from 'react';
-import { SPRITE_CONFIG } from '../utils/sprites';
 
 interface StageIndicatorProps {
   currentStage: number;
@@ -8,15 +7,7 @@ interface StageIndicatorProps {
 
 export const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, totalStages }) => {
   return (
-    <div
-      data-testid="stage-indicator"
-      style={{
-        fontFamily: SPRITE_CONFIG.font.family,
-        fontSize: `${SPRITE_CONFIG.font.sizes.medium}px`,
-        color: SPRITE_CONFIG.colors.magenta,
-        textShadow: `0 0 ${SPRITE_CONFIG.glow.blur}px ${SPRITE_CONFIG.colors.magenta}`,
-      }}
-    >
+    <div data-testid="stage-indicator" className="arcade-stage">
       STAGE: {currentStage}/{totalStages}
     </div>
   );

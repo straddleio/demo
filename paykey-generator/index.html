@@ -740,25 +740,31 @@
     </div>
 
     <script>
-        // Load sample data with Alberta Bobbeth Charleson
-        document.getElementById('customerJson').value = JSON.stringify({
-            "customer_details": {
-                "id": "019a9b85-cabe-75ee-9620-ad86f528fc12",
-                "name": "Alberta Bobbeth Charleson",
-                "email": "customer.1763545827390@example.com",
-                "phone": "+12125550123",
-                "status": "verified",
-                "created_at": "2025-11-19T09:50:28"
-            },
-            "identity_details": {
-                "review_id": "019a9b85-cabf-7632-abac-55bd81e11fe3",
-                "decision": "accept",
-                "breakdown": {
-                    "email": { "decision": "accept", "risk_score": 0.01 },
-                    "fraud": { "decision": "accept", "risk_score": 0.304 }
-                }
+        // Wait for DOM to be ready before initializing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load sample data with Alberta Bobbeth Charleson
+            const textarea = document.getElementById('customerJson');
+            if (textarea && !textarea.value.trim()) {
+                textarea.value = JSON.stringify({
+                    "customer_details": {
+                        "id": "019a9b85-cabe-75ee-9620-ad86f528fc12",
+                        "name": "Alberta Bobbeth Charleson",
+                        "email": "customer.1763545827390@example.com",
+                        "phone": "+12125550123",
+                        "status": "verified",
+                        "created_at": "2025-11-19T09:50:28"
+                    },
+                    "identity_details": {
+                        "review_id": "019a9b85-cabf-7632-abac-55bd81e11fe3",
+                        "decision": "accept",
+                        "breakdown": {
+                            "email": { "decision": "accept", "risk_score": 0.01 },
+                            "fraud": { "decision": "accept", "risk_score": 0.304 }
+                        }
+                    }
+                }, null, 2);
             }
-        }, null, 2);
+        });
 
         async function generate() {
             const errorDiv = document.getElementById('error');
@@ -770,8 +776,18 @@
             technicalDiv.innerHTML = '';
 
             try {
-                const customerJsonStr = document.getElementById('customerJson').value;
-                const customerJson = JSON.parse(customerJsonStr);
+                const customerJsonStr = document.getElementById('customerJson').value.trim();
+
+                if (!customerJsonStr) {
+                    throw new Error('Customer JSON is required. Please enter customer data.');
+                }
+
+                let customerJson;
+                try {
+                    customerJson = JSON.parse(customerJsonStr);
+                } catch (jsonError) {
+                    throw new Error('Invalid JSON format: ' + jsonError.message);
+                }
 
                 const response = await fetch('/generate', {
                     method: 'POST',

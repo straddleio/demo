@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDemoStore } from '@/lib/state';
+import '@/styles/arcade.css';
 import { GameEngine } from './core/GameEngine';
 import { SpriteEngine } from './core/SpriteEngine';
 import { SoundManager } from './audio/SoundManager';
@@ -134,25 +135,15 @@ export const ArcadeGeneratorModal: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background-dark/90 backdrop-blur-sm">
       <div className="relative">
         <div className="flex flex-col items-center justify-center">
-          <div className="border-4 border-cyan-500 p-1 bg-black shadow-[0_0_30px_rgba(0,255,255,0.3)] rounded-lg">
+          <div className="arcade-shell rounded-lg">
             <ArcadeHeader />
             <div className="relative">
               {/* Screen reflection overlay */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none rounded-sm" />
-              <canvas
-                ref={canvasRef}
-                width={640}
-                height={480}
-                role="img"
-                aria-label="Arcade game canvas"
-                style={{
-                  imageRendering: 'pixelated',
-                  border: '2px solid #00FFFF',
-                }}
-              />
+              <div className="absolute inset-0 bg-gradient-to-b from-text-inverse/10 to-transparent pointer-events-none rounded-sm" />
+              <canvas ref={canvasRef} width={640} height={480} role="img" aria-label="Arcade game canvas" className="arcade-canvas" />
             </div>
             <StatusBar
               score={score}
@@ -165,7 +156,7 @@ export const ArcadeGeneratorModal: React.FC = () => {
 
           <button
             onClick={clearGeneratorData}
-            className="mt-6 text-cyan-500 font-arcade text-xs hover:text-white hover:shadow-[0_0_10px_#00FFFF] transition-all border border-cyan-900 px-4 py-2 rounded bg-black/50"
+            className="arcade-cta mt-6 px-4 py-2"
           >
             [ CANCEL ]
           </button>

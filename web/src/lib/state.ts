@@ -87,6 +87,11 @@ export interface DemoState {
   customer: Customer | null;
   paykey: Paykey | null;
   charge: Charge | null;
+  featureFlags: {
+    enableUnmask: boolean;
+    enableLogStream: boolean;
+  };
+  generatorUrl: string;
 
   // Terminal
   terminalHistory: TerminalLine[];
@@ -107,6 +112,8 @@ export interface DemoState {
   setCustomer: (customer: Customer | null) => void;
   setPaykey: (paykey: Paykey | null) => void;
   setCharge: (charge: Charge | null) => void;
+  setFeatureFlags: (flags: Partial<DemoState['featureFlags']>) => void;
+  setGeneratorUrl: (url: string) => void;
 
   addTerminalLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => string;
   addAPILogEntry: (entry: { type: 'ui-action'; text: string }) => string;
@@ -152,21 +159,29 @@ export interface DemoState {
 /**
  * Global demo store
  */
+const MAX_API_LOGS = 200;
+
 export const useDemoStore = create<DemoState>((set, get) => ({
   // Initial state
   customer: null,
   paykey: null,
   charge: null,
+  featureFlags: {
+    enableUnmask: false,
+    enableLogStream: true, // Always enabled - never show "disabled" message
+  },
+  generatorUrl: '/api/generator',
   terminalHistory: [
     {
       id: uuid(),
-      text: 'STRADDLE DEMO TERMINAL v1.0',
-      type: 'success',
-      timestamp: new Date(),
-    },
-    {
-      id: uuid(),
-      text: 'Type /help for available commands',
+      text: `Session started: ${new Date().toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      })}`,
       type: 'info',
       timestamp: new Date(),
     },
@@ -182,6 +197,11 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   setCustomer: (customer) => set({ customer }),
   setPaykey: (paykey) => set({ paykey }),
   setCharge: (charge) => set({ charge }),
+  setFeatureFlags: (flags) =>
+    set((state) => ({
+      featureFlags: { ...state.featureFlags, ...flags },
+    })),
+  setGeneratorUrl: (url) => set({ generatorUrl: url }),
 
   addTerminalLine: (line) => {
     const id = uuid();
@@ -237,7 +257,10 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       return { terminalHistory: updatedHistory };
     }),
 
-  setApiLogs: (apiLogs) => set({ apiLogs }),
+  setApiLogs: (apiLogs) =>
+    set({
+      apiLogs: apiLogs.slice(0, MAX_API_LOGS),
+    }),
   setConnected: (isConnected) => set({ isConnected }),
   setConnectionError: (connectionError) => set({ connectionError }),
 
@@ -301,23 +324,9 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       };
     }
 
-    // Check if charge is scheduled/pending/paid - show featured tracker
-    const isScheduled = charge.status === 'scheduled' ||
-                       charge.status === 'pending' ||
-                       charge.status === 'paid';
-
-    if (isScheduled) {
-      return {
-        layout: 'tracker-featured' as const,
-        customerWidth: 'compact' as const,
-        paykeyVisible: false,
-        paykeyMode: 'in-tracker' as const,
-        chargeMode: 'hidden' as const,
-        showCircularTracker: true,
-      };
-    }
-
-    // Customer + Charge (created) - paykey embedded in charge card
+    // Customer + Charge - paykey embedded in charge card
+    // Show this layout for ALL charge states (created, scheduled, pending, paid, etc.)
+    // The PizzaTracker below will show the sequential progress
     return {
       layout: 'customer-charge' as const,
       customerWidth: '50' as const,
@@ -335,6 +344,11 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       charge: null,
       isExecuting: false,
       apiLogs: [],
+      featureFlags: {
+        enableUnmask: false,
+        enableLogStream: true, // Always enabled - never show "disabled" message
+      },
+      generatorUrl: '/api/generator',
       terminalHistory: [
         {
           id: uuid(),

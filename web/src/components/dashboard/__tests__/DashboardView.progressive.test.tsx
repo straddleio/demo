@@ -93,7 +93,7 @@ describe('DashboardView Progressive Disclosure', () => {
     expect(container.querySelector('[data-layout="customer-paykey"]')).toBeInTheDocument();
   });
 
-  it('customer-charge state shows 50/50 with embedded paykey', () => {
+  it('customer-charge state shows 50/50 with embedded paykey and sequential tracker', () => {
     mockState = {
       customer: { id: 'cust_123' } as any,
       paykey: { id: 'pk_123', status: 'active' } as any,
@@ -110,25 +110,6 @@ describe('DashboardView Progressive Disclosure', () => {
 
     const { container } = render(<DashboardView />);
     expect(container.querySelector('[data-layout="customer-charge"]')).toBeInTheDocument();
-  });
-
-  it('tracker-featured state shows circular tracker', () => {
-    mockState = {
-      customer: { id: 'cust_123' } as any,
-      paykey: { id: 'pk_123', status: 'active' } as any,
-      charge: { id: 'chg_123', status: 'scheduled', amount: 5000 } as any,
-      getCardDisplayState: () => ({
-        layout: 'tracker-featured',
-        customerWidth: 'compact',
-        paykeyVisible: false,
-        paykeyMode: 'in-tracker',
-        chargeMode: 'hidden',
-        showCircularTracker: true,
-      }),
-    };
-
-    const { container } = render(<DashboardView />);
-    expect(container.querySelector('[data-layout="tracker-featured"]')).toBeInTheDocument();
-    expect(container.querySelector('[data-component="circular-tracker"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-component="pizza-tracker"]')).toBeInTheDocument();
   });
 });

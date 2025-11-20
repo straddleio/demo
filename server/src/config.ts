@@ -22,11 +22,8 @@ export const config = {
   generator: {
     url: process.env.GENERATOR_URL || 'http://localhost:8081',
   },
+  features: {
+    enableUnmask: process.env.ENABLE_UNMASK === 'true',
+    enableLogStream: process.env.ENABLE_LOG_STREAM === 'true',
+  },
 } as const;
-
-// Validate required environment variables
-if (!config.straddle.apiKey) {
-  console.error('ERROR: STRADDLE_API_KEY is required in .env file');
-  console.error('Copy .env.example to .env and add your Straddle sandbox API key');
-  process.exit(1);
-}

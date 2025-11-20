@@ -1,6 +1,7 @@
 import { useDemoStore } from './state';
 import * as api from './api';
-import { playEndDemoSound, playAutoAttackSound } from './sounds';
+import { playEndDemoSound } from './sounds';
+// DISABLED: playAutoAttackSound
 
 /**
  * Command execution result
@@ -702,7 +703,8 @@ async function handleDemo(): Promise<CommandResult> {
 
   try {
     // Play auto attack sound at start of demo
-    void playAutoAttackSound();
+    // DISABLED: Demo auto attack sound
+    // void playAutoAttackSound();
 
     // Step 1: Create customer
     addTerminalLine({ text: '→ Creating customer...', type: 'info' });

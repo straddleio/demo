@@ -2,6 +2,7 @@ import React from 'react';
 import { StraddleBridge } from '@straddleio/bridge-react';
 import { useDemoStore } from '../../lib/state';
 import { Paykey } from '../../lib/api';
+import '@/styles/bridge.css';
 
 export const BridgeModal: React.FC = () => {
   const {
@@ -122,24 +123,12 @@ export const BridgeModal: React.FC = () => {
     return null;
   }
 
-  // Determine theme-aware colors
-  const isDarkMode = document.documentElement.getAttribute('data-theme') !== 'light';
-  const borderColor = isDarkMode ? '#FF0099' : '#F2AE49'; // Magenta for dark, Gold for light
-  const glowColor = isDarkMode
-    ? 'rgba(255, 0, 153, 0.5)'
-    : 'rgba(242, 174, 73, 0.4)';
-
   return (
     <>
       {/* Backdrop */}
       {isBridgeModalOpen && (
         <div
-          className="fixed inset-0 backdrop-blur-sm"
-          style={{
-            zIndex: 2147483646,
-            background:
-              'linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 102, 255, 0.3) 100%)',
-          }}
+          className="bridge-backdrop fixed inset-0 backdrop-blur-sm bg-gradient-to-br from-background-dark/80 via-primary/30 to-background/90"
           onClick={handleExit}
         />
       )}
@@ -153,18 +142,7 @@ export const BridgeModal: React.FC = () => {
           onSuccess={handleSuccess}
           onClose={handleExit}
           onLoadError={handleLoadError}
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '335px',
-            height: '656px',
-            zIndex: 2147483647,
-            border: `3px solid ${borderColor}`,
-            borderRadius: '12px',
-            boxShadow: `0 0 30px ${glowColor}`,
-          }}
+          className="bridge-frame"
         />
       )}
 
@@ -172,7 +150,7 @@ export const BridgeModal: React.FC = () => {
       {isBridgeModalOpen && (
         <button
           onClick={handleExit}
-          className="fixed top-4 right-4 z-[2147483648] px-3 py-2 bg-accent text-white font-pixel text-xs rounded hover:bg-accent/80 transition-colors border-2 border-accent-dark shadow-lg"
+          className="fixed top-4 right-4 z-[2147483648] px-3 py-2 bg-accent text-background font-pixel text-xs rounded border-2 border-accent shadow-glow-accent hover:bg-accent/90 transition-colors"
           aria-label="Close Bridge widget"
         >
           ✕ ESC

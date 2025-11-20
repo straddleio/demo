@@ -83,15 +83,15 @@ export const KeyFlyout: React.FC<KeyFlyoutProps> = ({ onComplete }) => {
         >
           <div className="relative">
             {/* Glow effect */}
-            <div className="absolute inset-0 -m-4 bg-[#00FF41] rounded-full blur-xl opacity-60 animate-pulse" />
+            <div className="absolute inset-0 -m-4 bg-accent-green rounded-full blur-xl opacity-60 animate-pulse" />
             {/* Key icon */}
-            <div className="relative bg-[#00FF41] rounded-full p-4 shadow-glow-green">
+            <div className="relative bg-accent-green rounded-full p-4 shadow-glow-green">
               <FiKey className="w-8 h-8 text-background-dark" />
             </div>
             {/* Particle trail */}
             {stage === 'fly' && (
               <div className="absolute inset-0 animate-ping">
-                <div className="w-full h-full bg-[#00FF41] rounded-full opacity-20" />
+                <div className="w-full h-full bg-accent-green rounded-full opacity-20" />
               </div>
             )}
           </div>
@@ -116,15 +116,15 @@ export const KeyFlyout: React.FC<KeyFlyoutProps> = ({ onComplete }) => {
         >
           <div className="relative">
             {/* Glow effect */}
-            <div className="absolute inset-0 -m-4 bg-[#00FF41] rounded-full blur-xl opacity-60 animate-pulse" />
+            <div className="absolute inset-0 -m-4 bg-accent-green rounded-full blur-xl opacity-60 animate-pulse" />
             {/* Key icon */}
-            <div className="relative bg-[#00FF41] rounded-full p-4 shadow-glow-green">
+            <div className="relative bg-accent-green rounded-full p-4 shadow-glow-green">
               <FiKey className="w-8 h-8 text-background-dark" />
             </div>
             {/* Particle trail */}
             {stage === 'fly' && (
               <div className="absolute inset-0 animate-ping">
-                <div className="w-full h-full bg-[#00FF41] rounded-full opacity-20" />
+                <div className="w-full h-full bg-accent-green rounded-full opacity-20" />
               </div>
             )}
           </div>
@@ -144,12 +144,12 @@ export const KeyFlyout: React.FC<KeyFlyoutProps> = ({ onComplete }) => {
             {/* Glow effect - extra strong during materialize */}
             <div
               className={cn(
-                'absolute inset-0 -m-8 bg-[#00FF41] rounded-full blur-2xl animate-pulse',
+                'absolute inset-0 -m-8 bg-accent-green rounded-full blur-2xl animate-pulse',
                 stage === 'materialize' ? 'opacity-40' : 'opacity-80'
               )}
             />
             {/* Key icon */}
-            <div className="relative bg-[#00FF41] rounded-full p-6 shadow-glow-green">
+            <div className="relative bg-accent-green rounded-full p-6 shadow-glow-green">
               <FiKey className="w-12 h-12 text-background-dark" />
             </div>
           </div>
@@ -165,7 +165,7 @@ export const KeyFlyout: React.FC<KeyFlyoutProps> = ({ onComplete }) => {
           )}
         >
           <div className="text-center space-y-2">
-            <div className="font-pixel text-sm text-[#00FF41] uppercase tracking-wider">
+            <div className="font-pixel text-sm text-accent-green uppercase tracking-wider">
               {stage === 'materialize' && 'Generating Keys'}
               {stage === 'split' && 'Keys Created'}
               {stage === 'fly' && 'Deploying'}
@@ -174,7 +174,7 @@ export const KeyFlyout: React.FC<KeyFlyoutProps> = ({ onComplete }) => {
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-[#00FF41] animate-pulse"
+                  className="w-1.5 h-1.5 rounded-full bg-accent-green animate-pulse"
                   style={{ animationDelay: `${i * 150}ms` }}
                 />
               ))}

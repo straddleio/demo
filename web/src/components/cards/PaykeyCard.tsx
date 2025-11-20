@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CommandCard } from '../CommandCard';
+import { ThemeField, ThemeInput } from '@/components/ui/theme-primitives';
 import { cn } from '@/components/ui/utils';
 
 interface PaykeyCardProps {
@@ -76,88 +77,69 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
       {/* Form Fields */}
       <div className="space-y-3">
         {/* Customer ID */}
-        <div>
-          <label className="block text-xs font-pixel text-primary mb-1">Customer ID</label>
-          <input
+        <ThemeField label="Customer ID" htmlFor="paykey-customer">
+          <ThemeInput
+            id="paykey-customer"
+            inputSize="sm"
             type="text"
             value={formData.customer_id}
             onChange={(e) => updateField('customer_id', e.target.value)}
-            className={cn(
-              'w-full px-2 py-1 bg-background-dark border border-primary/30',
-              'rounded text-neutral-200 font-body text-sm',
-              'focus:border-primary focus:outline-none'
-            )}
             placeholder="customer_xxx"
           />
-        </div>
+        </ThemeField>
 
         {type === 'plaid' ? (
           /* Plaid Token */
-          <div>
-            <label className="block text-xs font-pixel text-primary mb-1">Plaid Token</label>
+          <ThemeField label="Plaid Token" htmlFor="paykey-plaid">
             <div className="relative">
-              <input
+              <ThemeInput
+                id="paykey-plaid"
+                inputSize="sm"
                 type="text"
                 value={formData.plaid_token}
                 onChange={(e) => updateField('plaid_token', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm pl-8',
-                  'focus:border-primary focus:outline-none'
-                )}
+                className="pl-8"
                 placeholder="Leave empty to use server default"
               />
-              <img
-                src="https://img.logo.dev/plaid.com?token=pk_CLM39wkpRgSIYbu6L-lzNw&format=webp&retina=true"
-                alt="Plaid"
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4"
-              />
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-primary/10 rounded-sm flex items-center justify-center">
+                <span className="text-[10px] font-pixel text-primary">P</span>
+              </div>
             </div>
-          </div>
+          </ThemeField>
         ) : (
           /* Bank Account Fields */
           <>
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">Account Number</label>
-              <input
+            <ThemeField label="Account Number" htmlFor="paykey-account-number">
+              <ThemeInput
+                id="paykey-account-number"
+                inputSize="sm"
                 type="text"
                 value={formData.account_number}
                 onChange={(e) => updateField('account_number', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
               />
-            </div>
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">Routing Number</label>
-              <input
+            </ThemeField>
+            <ThemeField label="Routing Number" htmlFor="paykey-routing-number">
+              <ThemeInput
+                id="paykey-routing-number"
+                inputSize="sm"
                 type="text"
                 value={formData.routing_number}
                 onChange={(e) => updateField('routing_number', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
               />
-            </div>
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">Account Type</label>
+            </ThemeField>
+            <ThemeField label="Account Type" htmlFor="paykey-account-type">
               <select
+                id="paykey-account-type"
                 value={formData.account_type}
                 onChange={(e) => updateField('account_type', e.target.value)}
                 className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
+                  'w-full px-2 py-1 rounded bg-background-dark border border-primary/30 text-neutral-200 font-body text-sm focus:border-primary focus:outline-none'
                 )}
               >
                 <option value="checking">Checking</option>
                 <option value="savings">Savings</option>
               </select>
-            </div>
+            </ThemeField>
           </>
         )}
       </div>
@@ -171,7 +153,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
             className={cn(
               'px-2 py-3 rounded-pixel font-pixel text-[10px]',
               'bg-secondary/20 border-2 border-secondary text-secondary',
-              'hover:bg-secondary/30 hover:shadow-[0_0_15px_rgba(0,102,255,0.5)]',
+              'hover:bg-secondary/30 hover:shadow-glow-blue',
               'transition-all duration-200 uppercase'
             )}
           >
@@ -182,7 +164,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
             className={cn(
               'px-2 py-3 rounded-pixel font-pixel text-[10px]',
               'bg-accent-green/20 border-2 border-accent-green text-accent-green',
-              'hover:bg-accent-green/30 hover:shadow-[0_0_15px_rgba(57,255,20,0.5)]',
+              'hover:bg-accent-green/30 hover:shadow-glow-green',
               'transition-all duration-200 uppercase'
             )}
           >
@@ -193,7 +175,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
             className={cn(
               'px-2 py-3 rounded-pixel font-pixel text-[10px]',
               'bg-gold/20 border-2 border-gold text-gold',
-              'hover:bg-gold/30 hover:shadow-[0_0_15px_rgba(255,195,0,0.5)]',
+              'hover:bg-gold/30 hover:shadow-glow-gold',
               'transition-all duration-200 uppercase'
             )}
           >
@@ -204,7 +186,7 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
             className={cn(
               'px-2 py-3 rounded-pixel font-pixel text-[10px]',
               'bg-accent-red/20 border-2 border-accent-red text-accent-red',
-              'hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgba(255,0,64,0.5)]',
+              'hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgb(var(--color-accent-red-rgb)/0.5)]',
               'transition-all duration-200 uppercase'
             )}
           >

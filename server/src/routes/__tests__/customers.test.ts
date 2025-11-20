@@ -24,6 +24,10 @@ jest.mock('../../config.js', () => ({
     plaid: {
       processorToken: '',
     },
+    features: {
+      enableUnmask: true,
+      enableLogStream: true,
+    },
   },
 }));
 

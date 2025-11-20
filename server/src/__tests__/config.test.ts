@@ -181,6 +181,7 @@ describe('config', () => {
       expect(config).toHaveProperty('server');
       expect(config).toHaveProperty('webhook');
       expect(config).toHaveProperty('plaid');
+      expect(config).toHaveProperty('features');
     });
   });
 
@@ -232,6 +233,32 @@ describe('config', () => {
 
       // The code doesn't validate at runtime, it just type-casts
       expect(config.straddle.environment).toBe('invalid');
+    });
+  });
+
+  describe('feature flags', () => {
+    beforeEach(() => {
+      process.env.STRADDLE_API_KEY = 'test-api-key';
+    });
+
+    it('should default feature flags to disabled', async () => {
+      delete process.env.ENABLE_UNMASK;
+      delete process.env.ENABLE_LOG_STREAM;
+
+      const { config } = await import('../config.js');
+
+      expect(config.features.enableUnmask).toBe(false);
+      expect(config.features.enableLogStream).toBe(false);
+    });
+
+    it('should enable feature flags when env vars are set', async () => {
+      process.env.ENABLE_UNMASK = 'true';
+      process.env.ENABLE_LOG_STREAM = 'true';
+
+      const { config } = await import('../config.js');
+
+      expect(config.features.enableUnmask).toBe(true);
+      expect(config.features.enableLogStream).toBe(true);
     });
   });
 });

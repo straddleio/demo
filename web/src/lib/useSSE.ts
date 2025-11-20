@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useDemoStore } from './state';
 import type { Customer, Paykey, Charge } from './api';
 import { API_BASE_URL } from './api';
-import { playReviewAlertSound, playChargeStatusSound, playCustomerVerifiedSound } from './sounds';
+import { playReviewAlertSound, playChargeStatusSound } from './sounds';
+// DISABLED: playCustomerVerifiedSound
 
 /**
  * SSE event types from backend
@@ -175,13 +176,14 @@ export function useSSE(url: string = DEFAULT_SSE_URL): void {
 
           // Play verified sound if status changed TO verified from non-review state
           // (review -> verified plays approve sound in ReviewDecisionModal)
-          if (
-            parsed.verification_status === 'verified' &&
-            previousStatus !== 'verified' &&
-            previousStatus !== 'review'
-          ) {
-            void playCustomerVerifiedSound();
-          }
+          // DISABLED: Customer verified sound
+          // if (
+          //   parsed.verification_status === 'verified' &&
+          //   previousStatus !== 'verified' &&
+          //   previousStatus !== 'review'
+          // ) {
+          //   void playCustomerVerifiedSound();
+          // }
 
           setCustomer(parsed);
         }
@@ -195,13 +197,14 @@ export function useSSE(url: string = DEFAULT_SSE_URL): void {
           console.info('[SSE] Paykey updated:', parsed);
 
           // Get previous status before updating
-          const previousPaykey = useDemoStore.getState().paykey;
-          const previousStatus = previousPaykey?.status;
+          // const previousPaykey = useDemoStore.getState().paykey; // DISABLED: no longer used
+          // const previousStatus = previousPaykey?.status; // DISABLED: no longer used
 
           // Play review alert if status changed TO review
-          if (parsed.status === 'review' && previousStatus !== 'review') {
-            void playReviewAlertSound();
-          }
+          // DISABLED: Paykey review alert sound
+          // if (parsed.status === 'review' && previousStatus !== 'review') {
+          //   void playReviewAlertSound();
+          // }
 
           setPaykey(parsed);
         }

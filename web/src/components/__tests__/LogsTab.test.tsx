@@ -50,6 +50,9 @@ describe('LogsTab', () => {
     vi.clearAllMocks();
     // Use real timers for LogsTab tests (component uses setInterval)
     vi.useRealTimers();
+    useDemoStore.setState({
+      featureFlags: { enableLogStream: true, enableUnmask: true },
+    } as any);
     // Set customer ID to match webhook payload so webhook shows up in filtered list
     useDemoStore.getState().setCustomer({ id: 'cust_123' } as any);
     useDemoStore.getState().setPaykey(null);
@@ -78,6 +81,16 @@ describe('LogsTab', () => {
       await waitFor(() => {
         expect(screen.getByText('No log entries yet...')).toBeInTheDocument();
       });
+
+      unmount();
+    });
+
+    it('should render disabled message when log stream is off', async () => {
+      useDemoStore.setState({ featureFlags: { enableLogStream: false, enableUnmask: true } } as any);
+      const { unmount } = render(<LogsTab />);
+
+      expect(screen.getByText('Log stream disabled for this demo build.')).toBeInTheDocument();
+      expect(mockFetch).not.toHaveBeenCalled();
 
       unmount();
     });

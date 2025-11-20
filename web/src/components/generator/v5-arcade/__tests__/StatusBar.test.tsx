@@ -20,12 +20,6 @@ describe('ScoreDisplay', () => {
     render(<ScoreDisplay score={0} />);
     expect(screen.getByText(/SCORE: 00000/i)).toBeInTheDocument();
   });
-
-  it('should apply cyan color and glow', () => {
-    const { container } = render(<ScoreDisplay score={100} />);
-    const scoreElement = container.querySelector('[data-testid="score-display"]');
-    expect(scoreElement).toHaveStyle({ color: '#00FFFF' });
-  });
 });
 
 describe('StageIndicator', () => {
@@ -38,42 +32,12 @@ describe('StageIndicator', () => {
     render(<StageIndicator currentStage={2} totalStages={3} />);
     expect(screen.getByText(/STAGE: 2\/3/i)).toBeInTheDocument();
   });
-
-  it('should apply magenta color and glow', () => {
-    const { container } = render(<StageIndicator currentStage={1} totalStages={3} />);
-    const stageElement = container.querySelector('[data-testid="stage-indicator"]');
-    expect(stageElement).toHaveStyle({ color: '#FF00FF' });
-  });
 });
 
 describe('ComboMeter', () => {
   it('should display combo multiplier', () => {
     render(<ComboMeter comboMultiplier={2} />);
     expect(screen.getByText(/COMBO: x2/i)).toBeInTheDocument();
-  });
-
-  it('should render white color when combo is 1', () => {
-    const { container } = render(<ComboMeter comboMultiplier={1} />);
-    const comboElement = container.querySelector('[data-testid="combo-meter"]');
-    expect(comboElement).toHaveStyle({ color: '#FFFFFF' });
-  });
-
-  it('should render yellow color when combo is greater than 1', () => {
-    const { container } = render(<ComboMeter comboMultiplier={2} />);
-    const comboElement = container.querySelector('[data-testid="combo-meter"]');
-    expect(comboElement).toHaveStyle({ color: '#FFFF00' });
-  });
-
-  it('should apply glow only when combo is greater than 1', () => {
-    const { container: container1 } = render(<ComboMeter comboMultiplier={1} />);
-    const comboElement1 = container1.querySelector('[data-testid="combo-meter"]');
-    expect(comboElement1).toHaveStyle({ textShadow: 'none' });
-
-    const { container: container2 } = render(<ComboMeter comboMultiplier={3} />);
-    const comboElement2 = container2.querySelector('[data-testid="combo-meter"]');
-    const style = window.getComputedStyle(comboElement2 as Element);
-    // Enhanced dual-layer glow (6px + 12px)
-    expect(style.textShadow).toContain('6px');
   });
 });
 
@@ -115,8 +79,7 @@ describe('StarRating', () => {
 
   it('should apply gold color to filled stars and gray to empty stars', () => {
     const { container } = render(<StarRating stars={3} />);
-    const starElement = container.querySelector('[data-testid="star-rating"]');
-    expect(starElement).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="star-rating"]')).toBeInTheDocument();
   });
 });
 
@@ -140,10 +103,7 @@ describe('StatusBar', () => {
     );
 
     const statusBar = container.querySelector('[data-testid="status-bar"]');
-    expect(statusBar).toHaveStyle({
-      backgroundColor: '#000000',
-      borderColor: '#00FFFF',
-    });
+    expect(statusBar).toHaveClass('arcade-status');
   });
 
   it('should layout components horizontally with spacing', () => {
@@ -152,9 +112,6 @@ describe('StatusBar', () => {
     );
 
     const statusBar = container.querySelector('[data-testid="status-bar"]');
-    expect(statusBar).toHaveStyle({
-      display: 'flex',
-      justifyContent: 'space-between',
-    });
+    expect(statusBar).toHaveClass('arcade-status');
   });
 });

@@ -3,7 +3,8 @@ import { cn } from '@/components/ui/utils';
 import { useDemoStore, type TerminalLine } from '@/lib/state';
 import { executeCommand, COMMAND_REGISTRY, type CommandInfo } from '@/lib/commands';
 import { API_BASE_URL, type Customer, type Paykey, type Charge } from '@/lib/api';
-import { playBridgeOpenedSound, playMenuOpenedSound, playMenuClosedSound } from '@/lib/sounds';
+import { playBridgeOpenedSound } from '@/lib/sounds';
+// DISABLED: Menu sounds - playMenuOpenedSound, playMenuClosedSound
 import { CommandMenu, CommandType } from './CommandMenu';
 import { CommandAutocomplete } from './CommandAutocomplete';
 import { CustomerCard, CustomerFormData } from './cards/CustomerCard';
@@ -277,7 +278,8 @@ export const Terminal: React.FC = () => {
       case 'paykey-bridge':
         void (async (): Promise<void> => {
           setIsMenuOpen(false);
-          void playMenuClosedSound();
+          // DISABLED: Menu closed sound
+          // void playMenuClosedSound();
 
           // Play bridge opened sound
           void playBridgeOpenedSound();
@@ -325,7 +327,8 @@ export const Terminal: React.FC = () => {
       case 'end':
         void (async (): Promise<void> => {
           setIsMenuOpen(false);
-          void playMenuClosedSound();
+          // DISABLED: Menu closed sound
+          // void playMenuClosedSound();
           const commandId = addTerminalLine({ text: '> /end', type: 'input' });
           setLastCommandId(commandId);
           setExecuting(true);
@@ -624,7 +627,8 @@ export const Terminal: React.FC = () => {
     void (async (): Promise<void> => {
       setSelectedCommand(null);
       setIsMenuOpen(false);
-      void playMenuClosedSound();
+      // DISABLED: Menu closed sound
+      // void playMenuClosedSound();
       const commandId = addTerminalLine({
         text: `> /create-business --outcome ${outcome}`,
         type: 'input',
@@ -722,7 +726,7 @@ export const Terminal: React.FC = () => {
           className={cn('leading-relaxed transition-colors duration-150', {
             'text-neutral-100 font-mono text-xs font-semibold': line.type === 'output',
             'text-primary font-display text-sm font-bold tracking-wide': line.type === 'input',
-            'text-emerald-400 font-mono text-sm font-bold': line.type === 'success',
+            'text-accent-green font-mono text-sm font-bold': line.type === 'success',
             'text-accent-red font-mono text-xs font-semibold': line.type === 'error',
             'text-secondary font-mono text-xs font-semibold': line.type === 'info' && !line.source,
             'text-blue-400 italic font-mono text-xs font-semibold':
@@ -751,25 +755,26 @@ export const Terminal: React.FC = () => {
     <div className="h-full flex flex-col bg-background-dark p-2">
       {/* Header */}
       <div className="mb-2 pb-2 border-b border-primary/20">
-        <div className="text-primary font-pixel text-xs leading-tight tracking-wider">
-          STRADDLE TERMINAL
+        <div className="text-primary font-pixel text-sm leading-tight uppercase tracking-widest">
+          straddle terminal
         </div>
-        <div className="text-[10px] text-neutral-500 font-mono font-medium mt-0.5">Type /help for commands</div>
+        <div className="text-[10px] text-neutral-500 font-body font-medium mt-0.5">
+          Type /help for commands
+        </div>
       </div>
 
       {/* Output Area - shrinks when menu opens */}
       <div
         ref={outputRef}
-        className="flex-1 overflow-y-auto scrollbar-retro font-body text-xs space-y-0 min-h-0 px-1 transition-all duration-300 relative"
+        className="terminal-output-area flex-1 overflow-y-auto scrollbar-retro font-body text-xs space-y-0 min-h-0 px-1 transition-all duration-300 relative"
         style={{
           scrollBehavior: 'smooth',
-          background: 'linear-gradient(180deg, rgba(10,14,26,0) 0%, rgba(10,14,26,0.3) 100%)',
           maxHeight: isMenuOpen ? 'calc(100% - 16rem)' : '100%',
         }}
       >
-        {/* NerdCon Logo Watermark */}
+        {/* NerdCon Logo Watermark - Dark Theme Only */}
         <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          className="terminal-logo absolute inset-0 flex items-center justify-center pointer-events-none"
           style={{
             zIndex: 0,
           }}
@@ -777,15 +782,15 @@ export const Terminal: React.FC = () => {
           <img
             src="/assets/nerdcon-logo.avif"
             alt="NerdCon Miami"
-            className="object-contain"
+            className="object-contain opacity-10 mix-blend-soft-light"
             style={{
               width: '85%',
               height: '85%',
               maxWidth: '600px',
               maxHeight: '600px',
-              opacity: 0.12,
-              mixBlendMode: 'screen',
-              filter: 'contrast(1.3) brightness(1.1) saturate(1.2)',
+              filter: 'blur(0.3px) saturate(1.1) contrast(1.1)',
+              maskImage:
+                'radial-gradient(circle at 50% 50%, rgba(0,0,0,0.7), rgba(0,0,0,0.1) 60%, transparent 75%)',
             }}
           />
         </div>
@@ -843,15 +848,16 @@ export const Terminal: React.FC = () => {
           onClick={() => {
             const newMenuState = !isMenuOpen;
             setIsMenuOpen(newMenuState);
-            if (newMenuState) {
-              void playMenuOpenedSound();
-            } else {
-              void playMenuClosedSound();
-            }
+            // DISABLED: Menu sounds
+            // if (newMenuState) {
+            //   void playMenuOpenedSound();
+            // } else {
+            //   void playMenuClosedSound();
+            // }
           }}
           aria-label="Toggle command menu"
           aria-expanded={isMenuOpen}
-          className="bg-gradient-to-r from-accent to-accent/80 text-white font-pixel text-xs px-2 py-1 rounded-pixel shadow-neon-accent hover:shadow-neon-accent-lg hover:from-accent/90 hover:to-accent/70 transition-all duration-300 flex items-center gap-1"
+          className="bg-gradient-to-r from-accent to-accent/80 text-white font-pixel text-xs px-2 py-1 rounded-pixel shadow-glow-accent hover:shadow-glow-accent-lg hover:from-accent/90 hover:to-accent/70 transition-all duration-300 flex items-center gap-1"
         >
           <span className="text-xs">{isMenuOpen ? '▼' : '▲'}</span>
           <span>MENU</span>

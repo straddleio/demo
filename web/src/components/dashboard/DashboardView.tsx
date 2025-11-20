@@ -4,7 +4,8 @@ import { CustomerCard } from './CustomerCard';
 import { PaykeyCard } from './PaykeyCard';
 import { ChargeCard } from './ChargeCard';
 import { PizzaTracker } from './PizzaTracker';
-import { CircularChargeTracker } from './CircularChargeTracker';
+// Reverted to sequential PizzaTracker - CircularChargeTracker no longer used
+// import { CircularChargeTracker } from './CircularChargeTracker';
 
 /**
  * Main Dashboard View with Progressive Disclosure
@@ -12,9 +13,8 @@ import { CircularChargeTracker } from './CircularChargeTracker';
  * Layout adapts based on payment flow state:
  * 1. Empty: All cards visible but empty (maintains existing UX)
  * 2. Customer Only: CustomerCard full-width
- * 3. Customer + Paykey: 60/40 split
- * 4. Customer + Charge: 50/50 split (paykey embedded in charge)
- * 5. Charge Scheduled: Compact customer + Featured circular tracker
+ * 3. Customer + Paykey: 50/50 split
+ * 4. Customer + Charge: 50/50 split (paykey embedded in charge, sequential tracker below)
  */
 export const DashboardView: React.FC = () => {
   const displayState = useDemoStore((state) => state.getCardDisplayState());
@@ -75,31 +75,19 @@ export const DashboardView: React.FC = () => {
         </>
       )}
 
-      {/* Layout: Customer + Charge - 50/50 split, paykey embedded */}
+      {/* Layout: Customer + Charge - 50/50 split, paykey embedded, sequential tracker below */}
       {displayState.layout === 'customer-charge' && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-pixel-fade-in">
             <CustomerCard />
             <ChargeCard />
           </div>
-          <div className="animate-pixel-fade-in" style={{ animationDelay: '0.1s' }}>
-            <PizzaTracker />
-          </div>
-        </>
-      )}
-
-      {/* Layout: Tracker Featured - compact customer + circular tracker */}
-      {displayState.layout === 'tracker-featured' && (
-        <>
-          <div className="animate-pixel-fade-in">
-            <CustomerCard />
-          </div>
           <div
             className="animate-pixel-fade-in"
             style={{ animationDelay: '0.1s' }}
-            data-component="circular-tracker"
+            data-component="pizza-tracker"
           >
-            <CircularChargeTracker />
+            <PizzaTracker />
           </div>
         </>
       )}

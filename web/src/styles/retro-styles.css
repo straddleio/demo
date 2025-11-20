@@ -3,39 +3,15 @@
  * Import this in your main CSS file or layout
  */
 
-/* Import pixel fonts from Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&display=swap');
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @layer base {
-  :root {
-    /* Colors */
-    --color-primary: #00FFFF;
-    --color-secondary: #0066FF;
-    --color-accent: #FF0099;
-    --color-gold: #FFC300;
-    --color-background: #0A0E1A;
-    --color-background-dark: #050810;
-    --color-background-card: #0F1524;
-    --color-background-elevated: #1A2032;
-    
-    /* Effects */
-    --effect-glow-cyan: 0 0 10px rgba(0, 255, 255, 0.5), 0 0 20px rgba(0, 255, 255, 0.3), 0 0 30px rgba(0, 255, 255, 0.1);
-    --effect-glow-blue: 0 0 10px rgba(0, 102, 255, 0.5), 0 0 20px rgba(0, 102, 255, 0.3), 0 0 30px rgba(0, 102, 255, 0.1);
-    --effect-glow-magenta: 0 0 10px rgba(255, 0, 153, 0.5), 0 0 20px rgba(255, 0, 153, 0.3), 0 0 30px rgba(255, 0, 153, 0.1);
-    --effect-glow-gold: 0 0 10px rgba(255, 195, 0, 0.5), 0 0 20px rgba(255, 195, 0, 0.3), 0 0 30px rgba(255, 195, 0, 0.1);
-  }
-
   * {
     @apply border-neutral-800;
   }
 
   body {
     @apply bg-background text-neutral-100 font-body antialiased;
-    background-color: var(--color-background);
+    background-color: rgb(var(--color-background-rgb));
+    color: rgb(var(--color-text-primary-rgb));
   }
 
   /* Smooth scrolling */
@@ -45,7 +21,8 @@
 
   /* Selection styling */
   ::selection {
-    @apply bg-primary/30 text-primary;
+    background-color: var(--color-selection-bg);
+    color: var(--color-selection-text);
   }
 }
 
@@ -65,7 +42,7 @@
     box-shadow: 
       0 0 2px var(--color-primary),
       inset 0 0 2px var(--color-primary),
-      var(--effect-glow-cyan),
+      var(--effect-glow-primary),
       0 8px 30px rgba(0, 0, 0, 0.7);
     transform: translateY(-2px);
   }
@@ -85,7 +62,7 @@
     box-shadow:
       0 0 2px var(--color-secondary),
       inset 0 0 2px var(--color-secondary),
-      var(--effect-glow-blue),
+      var(--effect-glow-secondary),
       0 8px 30px rgba(0, 0, 0, 0.7);
     transform: translateY(-2px);
   }
@@ -104,18 +81,27 @@
     box-shadow:
       0 0 2px var(--color-accent),
       inset 0 0 2px var(--color-accent),
-      var(--effect-glow-magenta),
+      var(--effect-glow-accent),
       0 8px 30px rgba(0, 0, 0, 0.7);
     transform: translateY(-2px);
   }
 
   /* Retro Button */
-  .retro-button {
+  :root .retro-button {
     @apply px-6 py-3 bg-background-elevated border-2 border-primary text-primary font-pixel text-xs uppercase tracking-wider;
     @apply hover:bg-primary/10 hover:shadow-glow-cyan active:translate-y-0.5;
     @apply transition-all duration-150 cursor-pointer;
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background-elevated;
     image-rendering: pixelated;
+  }
+
+  /* Light theme buttons use normal font */
+  [data-theme='light'] .retro-button {
+    @apply px-6 py-3 bg-background-elevated border-2 border-primary text-primary font-body text-xs uppercase tracking-wider;
+    @apply hover:bg-primary/10 hover:shadow-glow-cyan active:translate-y-0.5;
+    @apply transition-all duration-150 cursor-pointer;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background-elevated;
+    image-rendering: auto;
   }
 
   .retro-button-secondary {
@@ -136,29 +122,29 @@
     @apply hover:bg-primary/90 hover:shadow-glow-cyan;
   }
 
-  /* Pixel Text */
-  .pixel-text {
+  /* Pixel Text - Dark Theme Only */
+  :root .pixel-text {
     @apply font-pixel text-primary;
     image-rendering: pixelated;
     text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
   }
 
-  .pixel-text-blue {
+  :root .pixel-text-blue {
     @apply text-secondary;
   }
 
-  .pixel-text-magenta {
+  :root .pixel-text-magenta {
     @apply text-accent;
   }
 
-  .pixel-text-gold {
+  :root .pixel-text-gold {
     @apply text-gold;
   }
 
-  /* Pixel Text with Glow */
-  .pixel-text-glow {
+  /* Pixel Text with Glow - Dark Theme Only */
+  :root .pixel-text-glow {
     @apply pixel-text;
-    text-shadow: 
+    text-shadow:
       0 0 10px currentColor,
       0 0 20px currentColor,
       2px 2px 0px rgba(0, 0, 0, 0.5);
@@ -167,8 +153,8 @@
   /* Grid Background (like the perspective floor) */
   .retro-grid {
     background-image: 
-      linear-gradient(rgba(0, 102, 255, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 102, 255, 0.1) 1px, transparent 1px);
+      linear-gradient(rgb(var(--color-secondary-rgb) / 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-secondary-rgb) / 0.1) 1px, transparent 1px);
     background-size: 50px 50px;
     position: relative;
   }
@@ -177,19 +163,19 @@
   .retro-grid-perspective {
     @apply retro-grid;
     background-image: 
-      linear-gradient(rgba(0, 102, 255, 0.3) 2px, transparent 2px),
-      linear-gradient(90deg, rgba(0, 102, 255, 0.3) 2px, transparent 2px);
+      linear-gradient(rgb(var(--color-secondary-rgb) / 0.3) 2px, transparent 2px),
+      linear-gradient(90deg, rgb(var(--color-secondary-rgb) / 0.3) 2px, transparent 2px);
     background-size: 100px 100px;
     transform: perspective(500px) rotateX(60deg);
     transform-origin: center top;
   }
 
-  /* Scanline Effect */
-  .scanlines {
+  /* Scanline Effect - Dark Theme Only */
+  :root .scanlines {
     position: relative;
   }
 
-  .scanlines::before {
+  :root .scanlines::before {
     content: '';
     position: absolute;
     top: 0;
@@ -207,13 +193,18 @@
     z-index: 10;
   }
 
-  /* CRT Screen Effect */
-  .crt-screen {
+  /* Light theme: no scanlines */
+  [data-theme='light'] .scanlines::before {
+    display: none;
+  }
+
+  /* CRT Screen Effect - Dark Theme Only */
+  :root .crt-screen {
     position: relative;
     overflow: hidden;
   }
 
-  .crt-screen::after {
+  :root .crt-screen::after {
     content: '';
     position: absolute;
     top: 0;
@@ -229,15 +220,27 @@
     z-index: 10;
   }
 
-  /* Neon Heading */
-  .neon-heading {
+  /* Light theme: no CRT effect */
+  [data-theme='light'] .crt-screen::after {
+    display: none;
+  }
+
+  /* Neon Heading - Dark Theme Only */
+  :root .neon-heading {
     @apply text-primary font-pixel text-4xl md:text-5xl lg:text-6xl;
-    text-shadow: 
+    text-shadow:
       0 0 10px var(--color-primary),
       0 0 20px var(--color-primary),
       0 0 30px var(--color-primary),
       0 0 40px var(--color-primary);
     animation: flicker 3s infinite;
+  }
+
+  /* Light theme: use normal font, subtle glow */
+  [data-theme='light'] .neon-heading {
+    @apply text-primary font-display text-4xl md:text-5xl lg:text-6xl;
+    text-shadow: 0 0 8px rgb(var(--color-primary-rgb) / 0.2);
+    animation: none;
   }
 
   /* Glitch Effect */
@@ -306,36 +309,58 @@
     @apply text-neutral-500;
   }
 
-  /* Terminal Output Styles */
-  .terminal-output {
+  /* Terminal Output Area - Dark gradient background */
+  :root .terminal-output-area {
+    background: linear-gradient(180deg, rgba(10,14,26,0) 0%, rgba(10,14,26,0.3) 100%);
+  }
+
+  /* Terminal Output Styles - Dark Theme (retro monospace) */
+  :root .terminal-output {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
     font-size: 13px;
     line-height: 1.4;
     font-weight: 400;
-    font-style: normal; /* Remove italics */
-    color: #e0e0e0;
+    font-style: normal;
+    color: rgb(var(--color-text-primary-rgb));
   }
 
-  .terminal-input {
+  :root .terminal-input {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
     font-size: 14px;
     font-weight: 500;
-    color: #00ffff; /* Keep neon cyan for input */
+    color: rgb(var(--color-primary-rgb));
+  }
+
+  /* Terminal Output Styles - Light Theme (Nerd Font) */
+  [data-theme='light'] .terminal-output {
+    font-family: 'JetBrainsMono Nerd Font Mono', 'JetBrainsMono NFM', 'Monaco', 'Menlo', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    font-weight: 400;
+    font-style: normal;
+    color: rgb(var(--color-text-primary-rgb));
+  }
+
+  [data-theme='light'] .terminal-input {
+    font-family: 'JetBrainsMono Nerd Font Mono', 'JetBrainsMono NFM', 'Monaco', 'Menlo', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgb(var(--color-primary-rgb));
   }
 }
 
 @layer utilities {
   /* Text utilities */
   .text-glow-cyan {
-    text-shadow: var(--effect-glow-cyan);
+    text-shadow: var(--effect-glow-primary);
   }
 
   .text-glow-blue {
-    text-shadow: var(--effect-glow-blue);
+    text-shadow: var(--effect-glow-secondary);
   }
 
   .text-glow-magenta {
-    text-shadow: var(--effect-glow-magenta);
+    text-shadow: var(--effect-glow-accent);
   }
 
   .text-glow-gold {
@@ -343,7 +368,7 @@
   }
 
   .text-glow-primary {
-    text-shadow: var(--effect-glow-cyan);
+    text-shadow: var(--effect-glow-primary);
   }
 
   /* Animation delays for staggered effects */

@@ -29,9 +29,12 @@ const CommandButton: React.FC<CommandButtonProps> = ({
   disabled = false,
 }) => {
   const variantClasses = {
-    primary: 'bg-primary/20 border-primary text-primary hover:bg-primary/30',
-    secondary: 'bg-secondary/20 border-secondary text-secondary hover:bg-secondary/30',
-    utility: 'bg-gold/20 border-gold text-gold hover:bg-gold/30',
+    primary:
+      'text-primary border border-primary/70 bg-background-card hover:text-primary hover:border-primary hover:bg-primary/15 hover:shadow-glow-primary/80',
+    secondary:
+      'text-primary border border-secondary/70 bg-background-card hover:text-primary hover:border-secondary hover:bg-secondary/15 hover:shadow-glow-blue/80',
+    utility:
+      'text-primary border border-gold/70 bg-background-card hover:text-primary hover:border-gold hover:bg-gold/15 hover:shadow-glow-gold/80',
   };
 
   return (
@@ -39,9 +42,9 @@ const CommandButton: React.FC<CommandButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'w-full px-3 py-2 rounded-pixel border-2',
+        'w-full px-3 py-2 rounded-pixel',
         'font-pixel text-xs transition-all duration-200',
-        'hover:shadow-neon-primary disabled:opacity-50 disabled:cursor-not-allowed',
+        'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant]
       )}
     >
@@ -77,7 +80,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1 scrollbar-retro">
             {/* CUSTOMERS */}
             <div>
-              <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">Customers</h3>
+              <h3 className="font-pixel text-accent text-xs mb-2 uppercase">Customers</h3>
               <div className="space-y-2">
                 <CommandButton
                   label="Create Customer"
@@ -85,6 +88,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('customer-create');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                 />
                 <CommandButton
                   label="Create Customer (KYC)"
@@ -92,6 +96,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('customer-kyc');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                 />
                 <CommandButton
                   label="Create Business"
@@ -99,13 +104,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('customer-business');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                 />
               </div>
             </div>
 
             {/* PAYKEYS */}
             <div>
-              <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">Paykeys</h3>
+              <h3 className="font-pixel text-accent text-xs mb-2 uppercase">Paykeys</h3>
               <div className="space-y-2">
                 <CommandButton
                   label="Straddle"
@@ -113,7 +119,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('paykey-bridge');
                     // Menu stays open until user toggles button
                   }}
-                  variant="primary"
+                  variant="secondary"
                 />
                 <CommandButton
                   label="Plaid"
@@ -121,12 +127,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('paykey-plaid');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                 />
                 <CommandButton
                   label="Quiltt"
                   onClick={() => {
                     // Placeholder - no action
                   }}
+                  variant="secondary"
                 />
                 <CommandButton
                   label="Bank Account"
@@ -134,13 +142,14 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('paykey-bank');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                 />
               </div>
             </div>
 
             {/* PAYMENTS */}
             <div>
-              <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">Payments</h3>
+              <h3 className="font-pixel text-accent text-xs mb-2 uppercase">Payments</h3>
               <div className="space-y-2">
                 <CommandButton
                   label="Charge"
@@ -148,6 +157,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('charge');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                 />
                 <CommandButton
                   label="Payout"
@@ -155,6 +165,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                     onCommandSelect('payout');
                     // Menu stays open until user toggles button
                   }}
+                  variant="secondary"
                   disabled
                 />
               </div>

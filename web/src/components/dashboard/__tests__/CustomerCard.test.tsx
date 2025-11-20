@@ -18,6 +18,10 @@ vi.mock('@/lib/state', () => {
           customer: null,
           reviewModalData: null,
           isReviewModalOpen: false,
+          featureFlags: {
+            enableUnmask: true,
+            enableLogStream: true,
+          },
         };
         if (!selector) {
           return mockState;
@@ -76,6 +80,10 @@ describe('CustomerCard - SSN Display Logic', () => {
       (selector: (state: { customer: typeof mockCustomer }) => unknown) => {
         const state = {
           customer: mockCustomer,
+          featureFlags: {
+            enableUnmask: true,
+            enableLogStream: true,
+          },
         };
         return selector(state);
       }
@@ -376,6 +384,10 @@ describe('CustomerCard - Review Modal Integration', () => {
       (selector: ((state: { customer: typeof mockCustomer }) => unknown) | undefined) => {
         const state = {
           customer: mockCustomer,
+          featureFlags: {
+            enableUnmask: true,
+            enableLogStream: true,
+          },
         };
         if (!selector) {
           return state;

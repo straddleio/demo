@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useDemoStore } from '@/lib/state';
+import { useTheme } from '@/lib/theme/useTheme';
 
 /**
  * Connection status indicator with theme toggle (top-right corner)
@@ -10,19 +11,7 @@ export const ConnectionStatus: React.FC = () => {
     connectionError: state.connectionError,
   }));
 
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    const stored = localStorage.getItem('straddle_theme');
-    return (stored as 'dark' | 'light') || 'dark';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('straddle_theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="fixed top-4 right-4 z-50 flex items-center gap-2">

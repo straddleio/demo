@@ -11,6 +11,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Allow all hosts for easy demo setup (ngrok, tunneling services, etc.)
+    allowedHosts: 'all',
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

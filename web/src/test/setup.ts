@@ -84,6 +84,11 @@ vi.mock('@/lib/state', () => {
     customer: null,
     paykey: null,
     charge: null,
+    featureFlags: {
+      enableUnmask: false,
+      enableLogStream: false,
+    },
+    generatorUrl: 'http://localhost:8081',
     terminalHistory: [],
     isExecuting: false,
     apiLogs: [],
@@ -129,6 +134,11 @@ vi.mock('@/lib/state', () => {
     sharedState.customer = null;
     sharedState.paykey = null;
     sharedState.charge = null;
+    sharedState.featureFlags = {
+      enableUnmask: false,
+      enableLogStream: false,
+    };
+    sharedState.generatorUrl = 'http://localhost:8081';
     sharedState.terminalHistory = [
       {
         id: `mock-reset-${Date.now()}`,
@@ -209,6 +219,17 @@ vi.mock('@/lib/state', () => {
   });
   const mockSetReviewModalOpen = vi.fn((open: boolean) => {
     sharedState.isReviewModalOpen = open;
+  });
+  const mockSetFeatureFlags = vi.fn(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (flags: any) =>
+      (sharedState.featureFlags = {
+        ...sharedState.featureFlags,
+        ...flags,
+      })
+  );
+  const mockSetGeneratorUrl = vi.fn((url: string) => {
+    sharedState.generatorUrl = url;
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockGetCardDisplayState = vi.fn((): any => {
@@ -297,6 +318,8 @@ vi.mock('@/lib/state', () => {
           addAPILogEntry: mockAddAPILogEntry,
           setReviewModalData: mockSetReviewModalData,
           setReviewModalOpen: mockSetReviewModalOpen,
+          setFeatureFlags: mockSetFeatureFlags,
+          setGeneratorUrl: mockSetGeneratorUrl,
           setExecuting: mockSetExecuting,
           associateAPILogsWithCommand: mockAssociateAPILogsWithCommand,
           clearTerminalHistory: mockClearTerminalHistory,
@@ -321,6 +344,8 @@ vi.mock('@/lib/state', () => {
           setCharge: mockSetCharge,
           setGeneratorData: mockSetGeneratorData,
           clearGeneratorData: mockClearGeneratorData,
+          setFeatureFlags: mockSetFeatureFlags,
+          setGeneratorUrl: mockSetGeneratorUrl,
           addAPILogEntry: mockAddAPILogEntry,
           addTerminalLine: mockAddTerminalLine,
           setReviewModalData: mockSetReviewModalData,

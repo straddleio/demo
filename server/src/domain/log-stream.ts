@@ -3,6 +3,8 @@
  * Captures every request, response, and webhook as separate entries
  */
 
+import { config } from '../config.js';
+
 export type LogEntryType =
   | 'request' // Incoming request to our server
   | 'response' // Outgoing response from our server
@@ -39,6 +41,10 @@ const logStream: LogStreamEntry[] = [];
 const MAX_ENTRIES = 200;
 
 export function addLogEntry(entry: Omit<LogStreamEntry, 'id'>): void {
+  if (!config.features.enableLogStream) {
+    return;
+  }
+
   logStream.unshift({
     ...entry,
     id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -50,6 +56,10 @@ export function addLogEntry(entry: Omit<LogStreamEntry, 'id'>): void {
 }
 
 export function getLogStream(): LogStreamEntry[] {
+  if (!config.features.enableLogStream) {
+    return [];
+  }
+
   return [...logStream];
 }
 

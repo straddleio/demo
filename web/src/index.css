@@ -1,4 +1,8 @@
-/* Import retro styles from design system */
+@import './styles/fonts.css';
 @import './styles/retro-styles.css';
 @import './styles/ayu-light-theme.css';
 @import './styles/progressive-disclosure.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -34,7 +34,7 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="fixed inset-0 z-[9998] bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[9998] bg-background-dark/80 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -53,16 +53,19 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
               'fixed inset-x-0 top-0 z-[9999]',
               'flex items-center justify-center',
               'min-h-[60vh] py-16',
-              'bg-gradient-to-b from-[#0a0a14] via-[#1a1a2e] to-[#0a0a14]',
-              'border-y-8 border-primary',
-              'shadow-[0_0_100px_rgba(0,255,255,0.3)]'
+              'border-y-4 border-accent/70 ring-2 ring-primary/30',
+              'shadow-[0_0_50px_rgb(var(--color-primary-rgb)/0.2)]'
             )}
             style={{
               backgroundImage: `
-                linear-gradient(0deg, rgba(0,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px)
+                linear-gradient(135deg, rgb(var(--color-background-dark-rgb)) 0%, rgb(var(--color-background-rgb)) 70%),
+                linear-gradient(0deg, rgb(var(--color-primary-rgb) / 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgb(var(--color-primary-rgb) / 0.06) 1px, transparent 1px),
+                linear-gradient(135deg, rgb(var(--color-accent-rgb) / 0.12) 25%, transparent 25%),
+                linear-gradient(135deg, transparent 75%, rgb(var(--color-accent-rgb) / 0.12) 75%)
               `,
-              backgroundSize: '20px 20px',
+              backgroundSize: 'auto, 24px 24px, 24px 24px, 40px 40px, 40px 40px',
+              backgroundPosition: 'center',
             }}
           >
             {/* Scanline effect overlay */}
@@ -90,32 +93,30 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
               >
                 {/* Glow effect behind text */}
                 <div
-                  className="absolute inset-0 blur-3xl opacity-50"
+                  className="absolute inset-0 blur-md opacity-30"
                   style={{
-                    background: 'radial-gradient(ellipse at center, #00FFFF 0%, transparent 70%)',
+                    background: 'radial-gradient(ellipse at center, rgb(var(--color-primary-rgb)) 0%, transparent 72%)',
                   }}
                 />
 
-                {/* Main text with display font for readability */}
+                {/* Main text with logo-inspired gradient + pixel outline */}
                 <h1
                   className={cn(
-                    'relative font-display text-6xl md:text-8xl font-black',
-                    'text-transparent bg-clip-text',
-                    'bg-gradient-to-b from-primary via-cyan-300 to-primary',
-                    'drop-shadow-[0_0_20px_rgba(0,255,255,0.8)]',
-                    'tracking-wide',
-                    'animate-pulse-glow uppercase'
+                    'relative font-pixel text-4xl md:text-5xl',
+                    'text-transparent bg-clip-text bg-gradient-to-br from-primary via-accent to-secondary',
+                    'tracking-[0.35em] uppercase',
+                    'drop-shadow-[2px_2px_0_rgba(0,0,0,0.45)]'
                   )}
                   style={{
                     textShadow: `
-                      0 0 10px rgba(0, 255, 255, 0.8),
-                      0 0 20px rgba(0, 255, 255, 0.6),
-                      0 0 30px rgba(0, 255, 255, 0.4),
-                      4px 4px 0px rgba(0, 102, 255, 0.3)
+                      2px 2px 0 rgba(0,0,0,0.45),
+                      -2px -2px 0 rgba(0,0,0,0.4),
+                      0 0 10px rgb(var(--color-primary-rgb)/0.6),
+                      0 0 16px rgb(var(--color-accent-rgb)/0.4)
                     `,
                   }}
                 >
-                  Thanks Nerds!
+                  THANKS NERDS!
                 </h1>
 
                 {/* Pixel decorations */}
@@ -123,10 +124,7 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ delay: 0.5, duration: 0.4 }}
-                  className="mt-4 h-2 w-64 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent"
-                  style={{
-                    boxShadow: '0 0 20px rgba(0, 255, 255, 0.6)',
-                  }}
+                  className="mt-4 h-1 w-56 mx-auto bg-gradient-to-r from-transparent via-primary to-transparent"
                 />
               </motion.div>
 
@@ -138,49 +136,57 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                 className="space-y-4"
               >
                 {/* URL with retro computer aesthetic */}
-                <a
-                  href="https://straddle.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    'inline-block group',
-                    'font-display text-3xl md:text-5xl font-bold',
-                    'text-accent tracking-widest',
-                    'transition-all duration-300',
-                    'hover:scale-110 hover:tracking-[0.3em]'
-                  )}
-                  style={{
-                    textShadow: `
-                      0 0 10px rgba(255, 0, 153, 0.8),
-                      0 0 20px rgba(255, 0, 153, 0.5),
-                      2px 2px 0px rgba(0, 102, 255, 0.3)
-                    `,
-                  }}
-                >
-                  <span className="inline-block group-hover:animate-bounce-subtle">S</span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-75">
-                    T
-                  </span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-150">
-                    R
-                  </span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-225">
-                    A
-                  </span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-300">
-                    D
-                  </span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-375">
-                    D
-                  </span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-450">
-                    L
-                  </span>
-                  <span className="inline-block group-hover:animate-bounce-subtle animation-delay-525">
-                    E
-                  </span>
-                  <span className="inline-block text-secondary">.COM</span>
-                </a>
+                <div className="space-y-3">
+                  <a
+                    href="https://straddle.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      'inline-block group',
+                      'font-pixel text-2xl md:text-3xl',
+                      'text-transparent bg-clip-text bg-gradient-to-br from-primary via-accent to-secondary',
+                      'tracking-[0.25em]',
+                      'transition-all duration-300',
+                      'hover:scale-105 hover:tracking-[0.35em]'
+                    )}
+                    style={{
+                      textShadow: `
+                        1px 1px 0 rgba(0,0,0,0.35),
+                        -1px -1px 0 rgba(0,0,0,0.35),
+                        0 0 10px rgb(var(--color-primary-rgb)/0.45)
+                      `,
+                    }}
+                  >
+                    <span className="inline-block group-hover:animate-bounce-subtle">S</span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-75">
+                      T
+                    </span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-150">
+                      R
+                    </span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-225">
+                      A
+                    </span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-300">
+                      D
+                    </span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-375">
+                      D
+                    </span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-450">
+                      L
+                    </span>
+                    <span className="inline-block group-hover:animate-bounce-subtle animation-delay-525">
+                      E
+                    </span>
+                    <span className="inline-block text-secondary">.COM</span>
+                  </a>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-pixel border-2 border-accent bg-background-dark/80 shadow-glow-accent">
+                    <span className="font-pixel text-accent tracking-[0.2em] text-sm">MIAMI</span>
+                    <span className="h-4 w-px bg-accent/50" />
+                    <span className="font-pixel text-primary tracking-[0.12em] text-sm">2025</span>
+                  </div>
+                </div>
 
                 {/* Pixel hearts decoration */}
                 <motion.div

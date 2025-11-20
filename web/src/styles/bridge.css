@@ -1,0 +1,24 @@
+.bridge-frame {
+  --bridge-accent: rgb(var(--color-accent-rgb));
+  --bridge-glow: var(--effect-glow-accent);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 335px;
+  height: 656px;
+  z-index: 2147483647;
+  border: 3px solid var(--bridge-accent);
+  border-radius: 12px;
+  box-shadow: 0 0 30px var(--bridge-accent), var(--bridge-glow);
+}
+
+[data-theme='light'] .bridge-frame,
+[data-theme='kyu'] .bridge-frame {
+  --bridge-accent: rgb(var(--color-gold-rgb));
+  --bridge-glow: var(--effect-glow-gold);
+}
+
+.bridge-backdrop {
+  z-index: 2147483646;
+}

@@ -6,6 +6,8 @@ The Customer Unmask feature allows authorized users to view unmasked customer PI
 
 **IMPORTANT:** This feature requires the Straddle SDK method `customers.unmasked(id)`, NOT a custom GET request. The SDK method automatically handles the `.data` wrapper in responses.
 
+**Toggle:** Disabled by default in the open-source build. Set `ENABLE_UNMASK=true` in the server environment (and restart) to expose the button and enable `/api/customers/:id/unmask`. When disabled, the backend returns 404 and the frontend hides the control.
+
 ## User Flow
 
 1. Customer is created with KYC data via `/customer-KYC` terminal command
@@ -85,6 +87,12 @@ The backend uses the Straddle SDK's `customers.unmasked()` method:
 ```typescript
 const unmaskResponse = await straddleClient.customers.unmasked(req.params.id);
 ```
+
+### Configuration
+
+- Set `ENABLE_UNMASK=true` in `server/.env` to expose the endpoint and UI control.
+- API key must include `show_sensitive=true` permission, or the Straddle API will return 403.
+- When the flag is false, the frontend hides the SHOW/HIDE button and the backend returns 404.
 
 **CRITICAL BUG FIX:** The original implementation incorrectly used `straddleClient.get('/customers/:id/unmask')` which resulted in 404 errors. The correct approach is to use the dedicated SDK method `customers.unmasked(id)`.
 

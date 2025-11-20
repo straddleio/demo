@@ -25,7 +25,7 @@ export const CommandCard: React.FC<CommandCardProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 z-[60] backdrop-blur-sm"
+            className="fixed inset-0 bg-background-dark/80 z-[60] backdrop-blur-sm"
           />
 
           {/* Card - Street Fighter Style */}

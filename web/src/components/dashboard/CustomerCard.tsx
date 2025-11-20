@@ -45,6 +45,7 @@ export const CustomerCard: React.FC = () => {
   const [infoMode, setInfoMode] = useState(false);
   const [unmaskError, setUnmaskError] = useState<string | null>(null);
   const customer = useDemoStore((state) => state.customer);
+  const enableUnmask = useDemoStore((state) => state.featureFlags.enableUnmask);
 
   // Determine if customer is business or individual
   const customerType = customer?.type || 'individual';
@@ -89,14 +90,18 @@ export const CustomerCard: React.FC = () => {
 
       // Otherwise, fetch unmasked data
       if (!customer?.id) {
-        return;
-      }
+      return;
+    }
 
-      setIsUnmasking(true);
-      try {
-        setUnmaskError(null); // Clear previous errors
-        const data = await unmaskCustomer(customer.id);
-        setUnmaskedData(data);
+    if (!enableUnmask) {
+      return;
+    }
+
+    setIsUnmasking(true);
+    try {
+      setUnmaskError(null); // Clear previous errors
+      const data = await unmaskCustomer(customer.id);
+      setUnmaskedData(data);
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to unmask customer data';
         setUnmaskError(message);
@@ -446,21 +451,29 @@ export const CustomerCard: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleUnmask}
-              disabled={isUnmasking}
-              className={cn(
-                'absolute top-2 right-0 px-2 py-1 text-xs font-body border rounded-pixel transition-all flex-shrink-0',
-                unmaskedData
-                  ? 'border-primary/40 text-primary bg-primary/10 hover:bg-primary/20'
-                  : 'border-neutral-600 text-neutral-400 hover:border-primary hover:text-primary',
-                isUnmasking && 'opacity-50 cursor-not-allowed'
-              )}
-              title={unmaskedData ? 'Hide sensitive data' : 'Show unmasked data'}
-            >
-              {unmaskedData ? 'HIDE' : 'SHOW'}
-            </button>
-            {unmaskError && <p className="text-xs text-accent font-body mt-1">{unmaskError}</p>}
+            {enableUnmask ? (
+              <>
+                <button
+                  onClick={handleUnmask}
+                  disabled={isUnmasking}
+                  className={cn(
+                    'absolute top-2 right-0 px-2 py-1 text-xs font-body border rounded-pixel transition-all flex-shrink-0',
+                    unmaskedData
+                      ? 'border-primary/40 text-primary bg-primary/10 hover:bg-primary/20'
+                      : 'border-neutral-600 text-neutral-400 hover:border-primary hover:text-primary',
+                    isUnmasking && 'opacity-50 cursor-not-allowed'
+                  )}
+                  title={unmaskedData ? 'Hide sensitive data' : 'Show unmasked data'}
+                >
+                  {unmaskedData ? 'HIDE' : 'SHOW'}
+                </button>
+                {unmaskError && <p className="text-xs text-accent font-body mt-1">{unmaskError}</p>}
+              </>
+            ) : (
+              <p className="text-xs text-neutral-500 font-body mt-1">
+                Sensitive details hidden in OSS demo.
+              </p>
+            )}
           </div>
         )}
 

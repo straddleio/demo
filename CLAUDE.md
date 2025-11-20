@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Straddle NerdCon Demo - Developer Guide
 
 **Production-Ready** fintech demo showcasing Straddle's unified platform: identity verification, account connectivity, and instant payment processing.
@@ -214,12 +218,13 @@ GENERATOR_URL=http://localhost:8081  # Optional: Paykey generator service URL
 
 **Web has no environment variables** - all API calls go through backend.
 
-**Paykey Generator (Optional):**
-The Generator tab embeds a Python service for creating paykeys. To use it:
+**Paykey Generator (Auto-started):**
+The Generator tab embeds a Python service for creating paykeys. This service is automatically started when you run `npm run dev`.
 
-1. Set `GENERATOR_URL` in `server/.env` (defaults to `http://localhost:8081`)
-2. Start the generator service: `cd paykey-generator && ./start.sh`
-3. For deployed environments, update `GENERATOR_URL` to point to your hosted generator instance
+- Default URL: `http://localhost:8081`
+- Proxy endpoint: `/api/generator` (accessed through Express server)
+- Requires: Python 3.x and `b3sum` command-line tool
+- For deployed environments, update `GENERATOR_URL` to point to your hosted generator instance
 
 ### Terminal Commands Available
 

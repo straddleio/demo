@@ -183,6 +183,25 @@ describe('Demo Store', () => {
     expect(useDemoStore.getState().apiLogs).toHaveLength(2);
   });
 
+  it('should cap API logs to the newest 200 entries', () => {
+    const logs = Array.from({ length: 250 }, (_, i) => ({
+      requestId: `req_${i}`,
+      correlationId: `corr_${i}`,
+      method: 'GET',
+      path: '/test',
+      statusCode: 200,
+      duration: 10,
+      timestamp: new Date().toISOString(),
+    }));
+
+    useDemoStore.getState().setApiLogs(logs as any);
+
+    const state = useDemoStore.getState();
+    expect(state.apiLogs).toHaveLength(200);
+    // Should keep the newest items from the start of the array
+    expect(state.apiLogs[0].requestId).toBe('req_0');
+  });
+
   it('should manage connection state', () => {
     useDemoStore.getState().setConnected(true);
     expect(useDemoStore.getState().isConnected).toBe(true);

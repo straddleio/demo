@@ -1,4 +1,4 @@
-import express, { type ErrorRequestHandler } from 'express';
+import express, { type ErrorRequestHandler, type Request } from 'express';
 import cors from 'cors';
 import { config } from './config.js';
 import { tracingMiddleware } from './middleware/tracing.js';
@@ -14,12 +14,19 @@ import paykeysRouter from './routes/paykeys.js';
 import chargesRouter from './routes/charges.js';
 import webhooksRouter from './routes/webhooks.js';
 import stateRouter from './routes/state.js';
+import generatorProxyRouter from './routes/generator-proxy.js';
 
 const app = express();
 
 // Middleware
 app.use(cors({ origin: config.server.corsOrigin }));
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: Request & { rawBody?: string }, _res, buf) => {
+      req.rawBody = buf.toString('utf8');
+    },
+  })
+);
 app.use(tracingMiddleware);
 
 // Health check
@@ -38,6 +45,7 @@ app.use('/api/paykeys', paykeysRouter);
 app.use('/api/charges', chargesRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api', stateRouter);
+app.use('/api/generator', generatorProxyRouter);
 
 // Subscribe to state changes and broadcast to SSE clients
 stateManager.on('state:change', (state: DemoState) => {
@@ -101,4 +109,8 @@ app.listen(PORT, () => {
     sseEndpoint: `http://localhost:${PORT}/api/events/stream`,
     plaidConfigured: !!config.plaid.processorToken,
   });
+
+  if (!config.straddle.apiKey && config.server.nodeEnv !== 'test') {
+    logger.warn('STRADDLE_API_KEY is not set - Straddle SDK calls will fail until configured');
+  }
 });

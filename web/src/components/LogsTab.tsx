@@ -74,6 +74,7 @@ export const LogsTab: React.FC = () => {
   const customer = useDemoStore((state) => state.customer);
   const paykey = useDemoStore((state) => state.paykey);
   const charge = useDemoStore((state) => state.charge);
+  const enableLogStream = useDemoStore((state) => state.featureFlags.enableLogStream);
 
   // Memoize filtered log stream for performance
   const filteredLogStream = useMemo((): LogStreamEntry[] => {
@@ -96,6 +97,12 @@ export const LogsTab: React.FC = () => {
   }, [logStream, customer?.id, paykey?.id, charge?.id]);
 
   useEffect(() => {
+    if (!enableLogStream) {
+      setLogStream([]);
+      setSelectedEntry(null);
+      return undefined;
+    }
+
     const fetchStream = async (): Promise<void> => {
       try {
         const response = await fetch(`${API_BASE_URL}/log-stream`);
@@ -117,7 +124,7 @@ export const LogsTab: React.FC = () => {
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [enableLogStream]);
 
   const getTypeColor = (type: LogEntryType): string => {
     switch (type) {
@@ -170,9 +177,13 @@ export const LogsTab: React.FC = () => {
         </div>
 
         <div className="space-y-1">
-          {logStream.length === 0 ? (
+          {!enableLogStream && (
+            <div className="text-neutral-600">Log stream disabled for this demo build.</div>
+          )}
+          {enableLogStream && logStream.length === 0 && (
             <div className="text-neutral-600">No log entries yet...</div>
-          ) : (
+          )}
+          {enableLogStream &&
             filteredLogStream.map((entry) => (
               <div
                 key={entry.id}
@@ -212,8 +223,7 @@ export const LogsTab: React.FC = () => {
                   {entry.eventType}
                 </span>
               </div>
-            ))
-          )}
+            ))}
         </div>
       </div>
 
