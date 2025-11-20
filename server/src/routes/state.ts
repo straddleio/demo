@@ -105,6 +105,7 @@ router.get('/outcomes', (_req: Request, res: Response) => {
 router.get('/config', (_req: Request, res: Response) => {
   res.json({
     environment: config.straddle.environment,
+    generatorUrl: config.generator.url,
   });
 });
 

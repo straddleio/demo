@@ -209,9 +209,17 @@ STRADDLE_API_KEY=eyJhbGc...      # JWT token from dashboard
 STRADDLE_ENV=sandbox             # or production
 PORT=3001                        # Default
 CORS_ORIGIN=http://localhost:5173
+GENERATOR_URL=http://localhost:8081  # Optional: Paykey generator service URL
 ```
 
 **Web has no environment variables** - all API calls go through backend.
+
+**Paykey Generator (Optional):**
+The Generator tab embeds a Python service for creating paykeys. To use it:
+
+1. Set `GENERATOR_URL` in `server/.env` (defaults to `http://localhost:8081`)
+2. Start the generator service: `cd paykey-generator && ./start.sh`
+3. For deployed environments, update `GENERATOR_URL` to point to your hosted generator instance
 
 ### Terminal Commands Available
 

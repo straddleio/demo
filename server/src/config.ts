@@ -19,6 +19,9 @@ export const config = {
   plaid: {
     processorToken: process.env.PLAID_PROCESSOR_TOKEN || '',
   },
+  generator: {
+    url: process.env.GENERATOR_URL || 'http://localhost:8081',
+  },
 } as const;
 
 // Validate required environment variables
