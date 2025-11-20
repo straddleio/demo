@@ -58,6 +58,13 @@ screenshot-*.js
 *.backup
 *.old
 
+# Debug/test screenshots and images (exclude from root)
+/*.png
+/*.jpg
+/*.jpeg
+/*.avif
+/*.gif
+
 # Documentation artifacts
 docs/plans/
 docs/*REPORT.md
