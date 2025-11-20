@@ -10,9 +10,9 @@ async function inspectChargeCard() {
   // Navigate to the app
   await page.goto('http://localhost:5173');
 
-  // Wait for app to load
+  // Wait for app to load - wait for the charge card to be visible
   await page.waitForSelector('.bg-background-dark', { timeout: 10000 });
-  await page.waitForTimeout(2000);
+  await page.waitForSelector('text=Charge', { state: 'visible', timeout: 10000 });
 
   // Take full page screenshot
   await page.screenshot({

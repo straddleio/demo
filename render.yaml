@@ -1,5 +1,5 @@
 # Render Blueprint for Straddle NerdCon Demo
-# This file configures all three services needed for deployment
+# This file configures the services needed for deployment
 
 services:
   # Backend API Service (Node.js/Express)
