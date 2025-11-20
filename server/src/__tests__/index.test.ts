@@ -170,7 +170,7 @@ describe('Express Server (index.ts)', () => {
       const response1 = await request(app).get('/health');
 
       // Wait a bit
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const response2 = await request(app).get('/health');
 
@@ -180,9 +180,7 @@ describe('Express Server (index.ts)', () => {
 
   describe('CORS Configuration', () => {
     it('should include CORS headers in response', async () => {
-      const response = await request(app)
-        .get('/health')
-        .set('Origin', 'http://localhost:5173');
+      const response = await request(app).get('/health').set('Origin', 'http://localhost:5173');
 
       expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
     });
@@ -245,13 +243,18 @@ describe('Express Server (index.ts)', () => {
       const stateModule = await import('../routes/state.js');
 
       // All should have .use, .get, .post methods (Router interface)
-      [customersModule, bridgeModule, paykeysModule, chargesModule, webhooksModule, stateModule].forEach(
-        mod => {
-          expect(typeof mod.default).toBe('function');
-          // Router has stack property for middleware
-          expect(mod.default).toHaveProperty('stack');
-        }
-      );
+      [
+        customersModule,
+        bridgeModule,
+        paykeysModule,
+        chargesModule,
+        webhooksModule,
+        stateModule,
+      ].forEach((mod) => {
+        expect(typeof mod.default).toBe('function');
+        // Router has stack property for middleware
+        expect(mod.default).toHaveProperty('stack');
+      });
     });
   });
 
@@ -327,6 +330,8 @@ describe('Express Server (index.ts)', () => {
 
     it('should include stack trace in development mode', async () => {
       // Create app with development config
+      const previousEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
       const devApp = express();
       const cors = (await import('cors')).default;
 
@@ -353,11 +358,15 @@ describe('Express Server (index.ts)', () => {
         });
       }) as express.ErrorRequestHandler);
 
-      const response = await request(devApp).get('/api/error-test');
+      try {
+        const response = await request(devApp).get('/api/error-test');
 
-      expect(response.status).toBe(500);
-      expect(response.body).toHaveProperty('details');
-      expect(typeof response.body.details).toBe('string');
+        expect(response.status).toBe(500);
+        expect(response.body).toHaveProperty('details');
+        expect(typeof response.body.details).toBe('string');
+      } finally {
+        process.env.NODE_ENV = previousEnv;
+      }
     });
 
     it('should not include stack trace in test mode', async () => {
@@ -393,8 +402,8 @@ describe('Express Server (index.ts)', () => {
       const calls = errorSpy.mock.calls;
 
       // Find the call with 'Server error' message
-      const serverErrorCall = calls.find(call =>
-        call.some(arg => typeof arg === 'string' && arg.includes('Server error'))
+      const serverErrorCall = calls.find((call) =>
+        call.some((arg) => typeof arg === 'string' && arg.includes('Server error'))
       );
       expect(serverErrorCall).toBeDefined();
 

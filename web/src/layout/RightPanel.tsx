@@ -13,9 +13,11 @@ type TabId = 'demo' | 'logs' | 'generator';
  * Right panel with tabs: Demo (active) and Logs (placeholder)
  * Tab 1: Demo - Shows dashboard cards and pizza tracker
  * Tab 2: Logs - Placeholder for raw request/response + webhooks (Phase 3D)
+ * Optional: A generator tab that only renders when a generator view is provided.
  */
 export const RightPanel: React.FC<RightPanelProps> = ({ demoView, logsView, generatorView }) => {
   const [activeTab, setActiveTab] = useState<TabId>('demo');
+  const hasGeneratorTab = Boolean(generatorView);
 
   return (
     <div className="h-full flex flex-col bg-background-card">
@@ -43,37 +45,41 @@ export const RightPanel: React.FC<RightPanelProps> = ({ demoView, logsView, gene
         >
           LOGS
         </button>
-        <button
-          onClick={() => setActiveTab('generator')}
-          className={cn(
-            'px-6 py-3 font-pixel text-xs transition-colors border-b-2',
-            activeTab === 'generator'
-              ? 'text-primary border-primary bg-background-card'
-              : 'text-neutral-500 border-transparent hover:text-neutral-300'
-          )}
-        >
-          GENERATOR
-        </button>
+        {hasGeneratorTab && (
+          <button
+            onClick={() => setActiveTab('generator')}
+            className={cn(
+              'px-6 py-3 font-pixel text-xs transition-colors border-b-2',
+              activeTab === 'generator'
+                ? 'text-primary border-primary bg-background-card'
+                : 'text-neutral-500 border-transparent hover:text-neutral-300'
+            )}
+          >
+            GENERATOR
+          </button>
+        )}
       </div>
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === 'demo' && <div className="h-full overflow-y-auto scrollbar-retro">{demoView}</div>}
+        {activeTab === 'demo' && (
+          <div className="h-full overflow-y-auto scrollbar-retro">{demoView}</div>
+        )}
         {activeTab === 'logs' && (
           <div className="h-full overflow-y-auto scrollbar-retro">
             {logsView || (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center p-8">
                   <p className="text-neutral-500 font-pixel text-xs mb-2">LOGS VIEW</p>
-                  <p className="text-neutral-600 font-body text-xs">
-                    Available in Phase 3D
-                  </p>
+                  <p className="text-neutral-600 font-body text-xs">Available in Phase 3D</p>
                 </div>
               </div>
             )}
           </div>
         )}
-        {activeTab === 'generator' && <div className="h-full overflow-y-auto scrollbar-retro">{generatorView}</div>}
+        {hasGeneratorTab && activeTab === 'generator' && (
+          <div className="h-full overflow-y-auto scrollbar-retro">{generatorView}</div>
+        )}
       </div>
     </div>
   );
