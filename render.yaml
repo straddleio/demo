@@ -1,0 +1,76 @@
+# Render Blueprint for Straddle NerdCon Demo
+# This file configures all three services needed for deployment
+
+services:
+  # Backend API Service (Node.js/Express)
+  - type: web
+    name: nerdcon-backend
+    runtime: node
+    region: virginia
+    plan: starter
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/config
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: STRADDLE_ENV
+        value: sandbox
+      - key: STRADDLE_API_KEY
+        sync: false  # Set manually in Render dashboard (secret)
+      - key: WEBHOOK_SECRET
+        sync: false  # Set manually in Render dashboard (secret)
+      - key: PLAID_PROCESSOR_TOKEN
+        sync: false  # Set manually in Render dashboard (secret)
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: nerdcon-frontend
+          property: host
+      - key: GENERATOR_URL
+        fromService:
+          type: web
+          name: nerdcon-generator
+          property: host
+      - key: ENABLE_UNMASK
+        value: false
+      - key: ENABLE_LOG_STREAM
+        value: true
+
+  # Paykey Generator Service (Python/Flask)
+  - type: web
+    name: nerdcon-generator
+    runtime: python
+    region: virginia
+    plan: starter
+    rootDir: paykey-generator
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8081
+      - key: FLASK_ENV
+        value: production
+
+  # Frontend Static Site (React/Vite)
+  - type: web
+    name: nerdcon-frontend
+    runtime: static
+    region: virginia
+    rootDir: web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: nerdcon-backend
+          property: host

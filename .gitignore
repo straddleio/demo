@@ -68,6 +68,3 @@ docs/test-results.txt
 
 # Design debug scripts
 design/debug-*.js
-
-# Old/deprecated config files
-render.yaml
