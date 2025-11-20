@@ -53,6 +53,10 @@ check_production_site.py
 inspect_production.py
 debug-*.js
 inspect_*.js
+playwright-*.ts
+screenshot-*.js
+*.backup
+*.old
 
 # Documentation artifacts
 docs/plans/
