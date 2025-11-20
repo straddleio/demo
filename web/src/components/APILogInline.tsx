@@ -54,7 +54,7 @@ const highlightJSON = (jsonString: string): React.ReactNode => {
         jsonString[jsonString.indexOf(part) + part.length]?.trim() === ':';
 
       return (
-        <span key={i} className={isKey ? 'text-secondary' : 'text-accent-green'}>
+        <span key={i} className={isKey ? 'text-primary font-semibold' : 'text-amber-300'}>
           {part}
         </span>
       );
@@ -63,7 +63,7 @@ const highlightJSON = (jsonString: string): React.ReactNode => {
     // Number
     if (/^\d+$/.test(part)) {
       return (
-        <span key={i} className="text-gold">
+        <span key={i} className="text-orange-400">
           {part}
         </span>
       );
@@ -72,7 +72,7 @@ const highlightJSON = (jsonString: string): React.ReactNode => {
     // Boolean/null
     if (/^(true|false|null)$/.test(part)) {
       return (
-        <span key={i} className="text-primary">
+        <span key={i} className="text-purple-400">
           {part}
         </span>
       );
@@ -80,7 +80,7 @@ const highlightJSON = (jsonString: string): React.ReactNode => {
 
     // Default (punctuation, whitespace)
     return (
-      <span key={i} className="text-neutral-400">
+      <span key={i} className="text-neutral-300">
         {part}
       </span>
     );

@@ -73,23 +73,6 @@ export const PaykeyCard: React.FC<PaykeyCardProps> = ({
 
   return (
     <CommandCard isOpen={isOpen} onClose={onClose} title={title}>
-      {/* Image Placeholder */}
-      <div className="flex items-center justify-center h-24 bg-white border-2 border-primary/20 rounded-pixel mb-4 overflow-hidden">
-        {type === 'plaid' ? (
-          <img
-            src="https://img.logo.dev/chase.com?token=pk_CLM39wkpRgSIYbu6L-lzNw&format=webp&retina=true"
-            alt="Chase"
-            className="h-16 object-contain"
-          />
-        ) : (
-          <img
-            src="https://img.logo.dev/name/citizens%20bank?token=pk_CLM39wkpRgSIYbu6L-lzNw&format=webp&retina=true"
-            alt="Citizens Bank"
-            className="h-16 object-contain"
-          />
-        )}
-      </div>
-
       {/* Form Fields */}
       <div className="space-y-3">
         {/* Customer ID */}

@@ -32,7 +32,6 @@ describe('PaykeyCard (Dashboard)', () => {
       },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      ownership_verified: true,
     });
 
     render(<PaykeyCard />);

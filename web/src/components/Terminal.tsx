@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { RetroHeading } from '@/components/ui/retro-components';
 import { cn } from '@/components/ui/utils';
 import { useDemoStore, type TerminalLine } from '@/lib/state';
 import { executeCommand, COMMAND_REGISTRY, type CommandInfo } from '@/lib/commands';
@@ -682,10 +681,10 @@ export const Terminal: React.FC = () => {
           <div
             key={i}
             style={{ paddingLeft: `${paddingLeft}rem` }}
-            className="flex gap-2 font-mono text-xs leading-relaxed"
+            className="flex gap-2 font-mono text-sm leading-relaxed"
           >
-            <span className="text-secondary font-semibold">{key}:</span>
-            <span className="text-neutral-300">{value}</span>
+            <span className="text-primary font-semibold">{key}:</span>
+            <span className="text-gold font-normal">{value}</span>
           </div>
         );
       }
@@ -695,12 +694,13 @@ export const Terminal: React.FC = () => {
           key={i}
           style={{ paddingLeft: `${paddingLeft}rem` }}
           className={cn(
-            'font-mono text-xs leading-relaxed',
+            'font-mono text-xs font-medium leading-relaxed',
             isBullet && "before:content-['▸'] before:mr-2 before:text-primary",
             isNumbered && 'text-gold',
             isSuccess && 'text-accent-green',
             isError && 'text-accent-red',
-            isInfo && 'text-secondary'
+            isInfo && 'text-secondary',
+            !isNumbered && !isSuccess && !isError && !isInfo && 'text-neutral-100'
           )}
         >
           {line.replace(/^\s+/, '')}
@@ -720,12 +720,12 @@ export const Terminal: React.FC = () => {
         {/* Terminal Line */}
         <div
           className={cn('leading-relaxed transition-colors duration-150', {
-            'text-neutral-300 font-mono text-xs': line.type === 'output',
+            'text-neutral-100 font-mono text-xs font-semibold': line.type === 'output',
             'text-primary font-display text-sm font-bold tracking-wide': line.type === 'input',
-            'text-accent-green font-mono text-xs': line.type === 'success',
-            'text-accent-red font-mono text-xs': line.type === 'error',
-            'text-secondary font-mono text-xs': line.type === 'info' && !line.source,
-            'text-blue-400 italic font-mono text-xs':
+            'text-emerald-400 font-mono text-sm font-bold': line.type === 'success',
+            'text-accent-red font-mono text-xs font-semibold': line.type === 'error',
+            'text-secondary font-mono text-xs font-semibold': line.type === 'info' && !line.source,
+            'text-blue-400 italic font-mono text-xs font-semibold':
               line.type === 'info' && line.source === 'ui-action',
           })}
           data-type={line.type}
@@ -751,42 +751,68 @@ export const Terminal: React.FC = () => {
     <div className="h-full flex flex-col bg-background-dark p-2">
       {/* Header */}
       <div className="mb-2 pb-2 border-b border-primary/20">
-        <RetroHeading level={4} variant="primary" className="text-xs leading-tight tracking-wider">
-          STRADDLE TERMINAL v1.0
-        </RetroHeading>
-        <div className="text-[10px] text-neutral-500 font-mono mt-0.5">Type /help for commands</div>
+        <div className="text-primary font-pixel text-xs leading-tight tracking-wider">
+          STRADDLE TERMINAL
+        </div>
+        <div className="text-[10px] text-neutral-500 font-mono font-medium mt-0.5">Type /help for commands</div>
       </div>
 
       {/* Output Area - shrinks when menu opens */}
       <div
         ref={outputRef}
-        className="flex-1 overflow-y-auto scrollbar-retro font-body text-xs space-y-0 min-h-0 px-1 transition-all duration-300"
+        className="flex-1 overflow-y-auto scrollbar-retro font-body text-xs space-y-0 min-h-0 px-1 transition-all duration-300 relative"
         style={{
           scrollBehavior: 'smooth',
           background: 'linear-gradient(180deg, rgba(10,14,26,0) 0%, rgba(10,14,26,0.3) 100%)',
           maxHeight: isMenuOpen ? 'calc(100% - 16rem)' : '100%',
         }}
       >
-        {terminalHistory.map((line) => renderLine(line))}
-        {isExecuting && (
-          <div className="flex items-center gap-2 text-primary animate-pulse font-mono text-xs my-2">
-            <div className="flex gap-1">
-              <span
-                className="inline-block w-1 h-3 bg-primary animate-pulse"
-                style={{ animationDelay: '0ms' }}
-              ></span>
-              <span
-                className="inline-block w-1 h-3 bg-primary animate-pulse"
-                style={{ animationDelay: '150ms' }}
-              ></span>
-              <span
-                className="inline-block w-1 h-3 bg-primary animate-pulse"
-                style={{ animationDelay: '300ms' }}
-              ></span>
+        {/* NerdCon Logo Watermark */}
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{
+            zIndex: 0,
+          }}
+        >
+          <img
+            src="/assets/nerdcon-logo.avif"
+            alt="NerdCon Miami"
+            className="object-contain"
+            style={{
+              width: '85%',
+              height: '85%',
+              maxWidth: '600px',
+              maxHeight: '600px',
+              opacity: 0.12,
+              mixBlendMode: 'screen',
+              filter: 'contrast(1.3) brightness(1.1) saturate(1.2)',
+            }}
+          />
+        </div>
+
+        {/* Terminal Content - positioned above watermark */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {terminalHistory.map((line) => renderLine(line))}
+          {isExecuting && (
+            <div className="flex items-center gap-2 text-primary animate-pulse font-mono text-xs my-2">
+              <div className="flex gap-1">
+                <span
+                  className="inline-block w-1 h-3 bg-primary animate-pulse"
+                  style={{ animationDelay: '0ms' }}
+                ></span>
+                <span
+                  className="inline-block w-1 h-3 bg-primary animate-pulse"
+                  style={{ animationDelay: '150ms' }}
+                ></span>
+                <span
+                  className="inline-block w-1 h-3 bg-primary animate-pulse"
+                  style={{ animationDelay: '300ms' }}
+                ></span>
+              </div>
+              <span>Processing...</span>
             </div>
-            <span>Processing...</span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Input Area */}

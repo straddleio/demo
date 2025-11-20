@@ -16,13 +16,11 @@ describe('handleCreatePaykey with review data', () => {
       id: 'cust_123',
       name: 'Test Customer',
     };
-    useDemoStore.setState({
-      customer: mockCustomer as Customer,
-      paykey: null,
-      charge: null,
-      showPaykeyGenerator: false,
-      generatorData: null,
-    });
+    // Use individual setters to work with the mocked store
+    useDemoStore.getState().setCustomer(mockCustomer as Customer);
+    useDemoStore.getState().setPaykey(null);
+    useDemoStore.getState().setCharge(null);
+    useDemoStore.getState().clearGeneratorData();
   });
 
   it('should create paykey with review data included in response', async () => {
@@ -58,10 +56,15 @@ describe('handleCreatePaykey with review data', () => {
     };
 
     // Mock API call - server returns paykey with review data already attached
-    vi.spyOn(api, 'createPaykey').mockResolvedValueOnce(mockPaykey as Paykey);
+    vi.mocked(api.createPaykey).mockResolvedValueOnce(mockPaykey as Paykey);
 
     // Execute the command
     const result = await executeCommand('/create-paykey bank --outcome active');
+
+    // Log result for debugging
+    if (!result.success) {
+      console.log('Command failed:', result.message);
+    }
 
     // Verify only createPaykey was called (review fetch happens server-side)
     expect(api.createPaykey).toHaveBeenCalledTimes(1);
@@ -123,7 +126,7 @@ describe('handleCreatePaykey with review data', () => {
     };
 
     // Mock paykey creation
-    vi.spyOn(api, 'createPaykey').mockResolvedValueOnce(mockPaykey as Paykey);
+    vi.mocked(api.createPaykey).mockResolvedValueOnce(mockPaykey as Paykey);
 
     // Execute the command
     const result = await executeCommand('/create-paykey plaid --outcome active');
@@ -180,7 +183,7 @@ describe('handleCreatePaykey with review data', () => {
     };
 
     // Mock paykey creation
-    vi.spyOn(api, 'createPaykey').mockResolvedValueOnce(mockPaykey as Paykey);
+    vi.mocked(api.createPaykey).mockResolvedValueOnce(mockPaykey as Paykey);
 
     // Execute the command
     const result = await executeCommand('/create-paykey plaid --outcome active');
@@ -208,12 +211,12 @@ describe('handleCreatePaykey with review data', () => {
     };
 
     // Mock API calls
-    vi.spyOn(api, 'createCustomer').mockResolvedValueOnce({
+    vi.mocked(api.createCustomer).mockResolvedValueOnce({
       id: 'cust_demo',
       name: 'Demo User',
     } as Customer);
-    vi.spyOn(api, 'createPaykey').mockResolvedValueOnce(mockPaykey as Paykey);
-    vi.spyOn(api, 'createCharge').mockResolvedValueOnce({
+    vi.mocked(api.createPaykey).mockResolvedValueOnce(mockPaykey as Paykey);
+    vi.mocked(api.createCharge).mockResolvedValueOnce({
       id: 'ch_demo',
       status: 'paid',
       amount: 5000,

@@ -8,6 +8,7 @@ import { useDemoStore } from '../state';
 vi.mock('../sounds', () => ({
   playReviewAlertSound: vi.fn().mockResolvedValue(true),
   playChargeStatusSound: vi.fn().mockResolvedValue(true),
+  playCustomerVerifiedSound: vi.fn().mockResolvedValue(true),
 }));
 
 describe('useSSE review alert audio', () => {

@@ -21,8 +21,11 @@ vi.mock('../lib/api');
 describe('Business Customer Flow - End-to-End Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset store state
-    useDemoStore.getState().reset();
+    // Reset store state - call the actual reset method
+    const store = useDemoStore.getState();
+    if (store && typeof store.reset === 'function') {
+      store.reset();
+    }
   });
 
   afterEach(() => {
@@ -90,7 +93,7 @@ describe('Business Customer Flow - End-to-End Integration', () => {
       expect.objectContaining({
         type: 'business',
         name: 'The Bluth Company',
-        email: 'tobias@bluemyself.com',
+        email: expect.stringMatching(/^tobias\.\d+@bluemyself\.com$/),
         phone: '+15558675309',
         address: expect.objectContaining({
           address1: '1234 Sandbox Street',
@@ -285,8 +288,13 @@ describe('Business Customer Flow - End-to-End Integration', () => {
     vi.mocked(api.createCustomer).mockResolvedValue(mockCustomer);
     vi.mocked(api.createPaykey).mockRejectedValue(new Error('Invalid customer'));
 
-    // First create customer (succeeds)
-    await executeCommand('/create-business --outcome verified');
+    // First create customer (succeeds) - this will update the store
+    const customerResult = await executeCommand('/create-business --outcome verified');
+    expect(customerResult.success).toBe(true);
+
+    // Verify customer is in state
+    const state = useDemoStore.getState();
+    expect(state.customer).toBeTruthy();
 
     // Then try to create paykey (fails)
     const result = await executeCommand('/create-paykey bank --outcome active');
@@ -318,10 +326,10 @@ describe('Business Customer Flow - End-to-End Integration', () => {
 
     // Create customer and paykey
     await executeCommand('/create-business --outcome verified');
-    await executeCommand('/create-paykey bank --outcome active');
 
-    // Manually set paykey in state (simulates SSE update)
-    useDemoStore.getState().setPaykey(mockPaykey);
+    // Manually set paykey in state (simulates SSE update from paykey creation)
+    const store = useDemoStore.getState();
+    store.setPaykey(mockPaykey);
 
     // Try to create charge (fails)
     const result = await executeCommand('/create-charge --amount 5000 --outcome paid');
@@ -359,12 +367,12 @@ describe('Business Customer Flow - End-to-End Integration', () => {
     vi.mocked(api.createPaykey).mockResolvedValue(mockPaykey);
     vi.mocked(api.createCharge).mockResolvedValue(mockCharge);
 
-    // Create customer and paykey
+    // Create customer
     await executeCommand('/create-business --outcome verified');
-    await executeCommand('/create-paykey bank --outcome active');
 
     // Manually set paykey in state (simulates SSE update)
-    useDemoStore.getState().setPaykey(mockPaykey);
+    const store = useDemoStore.getState();
+    store.setPaykey(mockPaykey);
 
     // Create charge with custom amount
     const result = await executeCommand('/create-charge --amount 10000 --outcome paid');
@@ -399,12 +407,12 @@ describe('Business Customer Flow - End-to-End Integration', () => {
     vi.mocked(api.createCustomer).mockResolvedValue(mockCustomer);
     vi.mocked(api.createPaykey).mockResolvedValue(mockPaykey);
 
-    // Create customer and paykey
+    // Create customer
     await executeCommand('/create-business --outcome verified');
-    await executeCommand('/create-paykey bank --outcome active');
 
     // Manually set paykey in state (simulates SSE update)
-    useDemoStore.getState().setPaykey(mockPaykey);
+    const store = useDemoStore.getState();
+    store.setPaykey(mockPaykey);
 
     // Try to create charge with invalid amount
     const result = await executeCommand('/create-charge --amount invalid --outcome paid');
@@ -433,8 +441,13 @@ describe('Business Customer Flow - End-to-End Integration', () => {
 
     vi.mocked(api.createCustomer).mockResolvedValue(mockCustomer);
 
-    // Create customer first
-    await executeCommand('/create-business --outcome verified');
+    // Create customer first - this will update the store
+    const customerResult = await executeCommand('/create-business --outcome verified');
+    expect(customerResult.success).toBe(true);
+
+    // Verify customer is in state
+    const state = useDemoStore.getState();
+    expect(state.customer).toBeTruthy();
 
     // Try to create paykey with invalid outcome
     const result = await executeCommand('/create-paykey bank --outcome invalid_outcome');
@@ -472,12 +485,12 @@ describe('Business Customer Flow - End-to-End Integration', () => {
     vi.mocked(api.createPaykey).mockResolvedValue(mockPaykey);
     vi.mocked(api.createCharge).mockResolvedValue(mockCharge);
 
-    // Create customer and paykey
+    // Create customer
     await executeCommand('/create-business --outcome verified');
-    await executeCommand('/create-paykey bank --outcome active');
 
     // Manually set paykey in state (simulates SSE update)
-    useDemoStore.getState().setPaykey(mockPaykey);
+    const store = useDemoStore.getState();
+    store.setPaykey(mockPaykey);
 
     // Create charge with fractional dollar amount
     const result = await executeCommand('/create-charge --amount 999 --outcome paid');

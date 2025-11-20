@@ -41,7 +41,8 @@ describe('CommandMenu', () => {
 
       expect(screen.getByText('Customers')).toBeInTheDocument();
       expect(screen.getByText('Create Customer')).toBeInTheDocument();
-      expect(screen.getByText('Customer KYC')).toBeInTheDocument();
+      expect(screen.getByText('Create Customer (KYC)')).toBeInTheDocument();
+      expect(screen.getByText('Create Business')).toBeInTheDocument();
     });
 
     it('should render all paykey commands', () => {
@@ -50,7 +51,9 @@ describe('CommandMenu', () => {
       render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
       expect(screen.getByText('Paykeys')).toBeInTheDocument();
-      expect(screen.getByText('Plaid Link')).toBeInTheDocument();
+      expect(screen.getByText('Straddle')).toBeInTheDocument();
+      expect(screen.getByText('Plaid')).toBeInTheDocument();
+      expect(screen.getByText('Quiltt')).toBeInTheDocument();
       expect(screen.getByText('Bank Account')).toBeInTheDocument();
     });
 
@@ -92,19 +95,19 @@ describe('CommandMenu', () => {
 
       render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
-      const kycBtn = screen.getByText('Customer KYC');
+      const kycBtn = screen.getByText('Create Customer (KYC)');
       fireEvent.click(kycBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('customer-kyc');
       // Menu stays open - no auto-close
     });
 
-    it('should call onCommandSelect when Plaid Link is clicked (menu stays open)', () => {
+    it('should call onCommandSelect when Plaid is clicked (menu stays open)', () => {
       const mockSelect = vi.fn();
 
       render(<CommandMenu onCommandSelect={mockSelect} isOpen={true} />);
 
-      const plaidBtn = screen.getByText('Plaid Link');
+      const plaidBtn = screen.getByText('Plaid');
       fireEvent.click(plaidBtn);
 
       expect(mockSelect).toHaveBeenCalledWith('paykey-plaid');

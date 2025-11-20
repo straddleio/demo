@@ -11,11 +11,6 @@ export default {
       'ts-jest',
       {
         useESM: true,
-        tsconfig: {
-          esModuleInterop: true,
-          allowSyntheticDefaultImports: true,
-        },
-        isolatedModules: true,
       },
     ],
   },
@@ -25,9 +20,4 @@ export default {
     '!src/**/*.d.ts',
     '!src/**/__tests__/**',
   ],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
 };

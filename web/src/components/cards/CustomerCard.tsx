@@ -96,41 +96,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
   }, [mode, isOpen]);
 
   const handleSubmit = (outcome: 'standard' | 'verified' | 'review' | 'rejected'): void => {
-    // Auto-fill address based on outcome for business customers
-    if (formData.type === 'business') {
-      let address = formData.address;
-      if (outcome === 'review') {
-        address = {
-          address1: '1234 Sandbox Street',
-          address2: 'PO Box I304',
-          city: 'Mock City',
-          state: 'CA',
-          zip: '94105',
-        };
-      } else if (outcome === 'verified') {
-        address = {
-          address1: '1234 Sandbox Street',
-          address2: 'PO Box I301',
-          city: 'Mock City',
-          state: 'CA',
-          zip: '94105',
-        };
-      } else if (outcome === 'rejected') {
-        address = {
-          address1: '1234 Sandbox Street',
-          address2: 'PO Box I103',
-          city: 'Mock City',
-          state: 'CA',
-          zip: '94105',
-        };
-      }
-
-      // Update form data with specific address before submitting
-      const dataToSubmit = { ...formData, address };
-      onSubmit(dataToSubmit, outcome);
-    } else {
-      onSubmit(formData, outcome);
-    }
+    onSubmit(formData, outcome);
     onClose();
   };
 
@@ -154,97 +120,15 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
   return (
     <CommandCard isOpen={isOpen} onClose={onClose} title="CREATE CUSTOMER">
       {/* Form Fields */}
-      <div className="space-y-3">
-        {/* Type Selection */}
-        <div className="flex justify-center mb-2">
-          <div className="flex bg-background-dark rounded-lg p-1 border border-primary/30">
-            <button
-              onClick={() => updateField('type', 'individual')}
-              className={cn(
-                'px-3 py-1 text-xs font-pixel rounded transition-all',
-                formData.type === 'individual'
-                  ? 'bg-primary text-background'
-                  : 'text-neutral-400 hover:text-neutral-200'
-              )}
-            >
-              Individual
-            </button>
-            <button
-              onClick={() => {
-                updateField('type', 'business');
-                // Set default business values if switching to business
-                if (formData.type !== 'business') {
-                  setFormData((prev) => ({
-                    ...prev,
-                    type: 'business',
-                    first_name: 'The Bluth Company', // Using first_name as name holder
-                    last_name: '',
-                    email: 'tobias@bluemyself.com',
-                    phone: '+15558675309',
-                    compliance_profile: {
-                      ...prev.compliance_profile,
-                      ssn: prev.compliance_profile?.ssn || '',
-                      dob: prev.compliance_profile?.dob || '',
-                      ein: '12-3456789',
-                      legal_business_name: 'The Bluth Company',
-                      website: 'thebananastand.com',
-                    },
-                  }));
-                }
-              }}
-              className={cn(
-                'px-3 py-1 text-xs font-pixel rounded transition-all',
-                formData.type === 'business'
-                  ? 'bg-primary text-background'
-                  : 'text-neutral-400 hover:text-neutral-200'
-              )}
-            >
-              Business
-            </button>
-          </div>
-        </div>
-
-        {formData.type === 'individual' ? (
-          /* Individual Name Fields */
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">First Name</label>
-              <input
-                type="text"
-                value={formData.first_name}
-                onChange={(e) => updateField('first_name', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">Last Name</label>
-              <input
-                type="text"
-                value={formData.last_name}
-                onChange={(e) => updateField('last_name', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
-              />
-            </div>
-          </div>
-        ) : (
-          /* Business Name Field */
+      <div className="space-y-2">
+        {/* Individual Name Fields */}
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs font-pixel text-primary mb-1">Business Name</label>
+            <label className="block text-xs font-pixel text-primary mb-0.5">First Name</label>
             <input
               type="text"
-              value={formData.compliance_profile?.legal_business_name || formData.first_name}
-              onChange={(e) => {
-                updateField('first_name', e.target.value);
-                updateNestedField('compliance_profile', 'legal_business_name', e.target.value);
-              }}
+              value={formData.first_name}
+              onChange={(e) => updateField('first_name', e.target.value)}
               className={cn(
                 'w-full px-2 py-1 bg-background-dark border border-primary/30',
                 'rounded text-neutral-200 font-body text-sm',
@@ -252,11 +136,24 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
               )}
             />
           </div>
-        )}
+          <div>
+            <label className="block text-xs font-pixel text-primary mb-0.5">Last Name</label>
+            <input
+              type="text"
+              value={formData.last_name}
+              onChange={(e) => updateField('last_name', e.target.value)}
+              className={cn(
+                'w-full px-2 py-1 bg-background-dark border border-primary/30',
+                'rounded text-neutral-200 font-body text-sm',
+                'focus:border-primary focus:outline-none'
+              )}
+            />
+          </div>
+        </div>
 
         {/* Email */}
         <div>
-          <label className="block text-xs font-pixel text-primary mb-1">Email</label>
+          <label className="block text-xs font-pixel text-primary mb-0.5">Email</label>
           <input
             type="email"
             value={formData.email}
@@ -271,7 +168,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
 
         {/* Phone */}
         <div>
-          <label className="block text-xs font-pixel text-primary mb-1">Phone</label>
+          <label className="block text-xs font-pixel text-primary mb-0.5">Phone</label>
           <input
             type="tel"
             value={formData.phone}
@@ -284,48 +181,17 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           />
         </div>
 
-        {/* Business Specific Fields */}
-        {formData.type === 'business' && (
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">EIN</label>
-              <input
-                type="text"
-                value={formData.compliance_profile?.ein || ''}
-                onChange={(e) => updateNestedField('compliance_profile', 'ein', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-pixel text-primary mb-1">Website</label>
-              <input
-                type="text"
-                value={formData.compliance_profile?.website || ''}
-                onChange={(e) => updateNestedField('compliance_profile', 'website', e.target.value)}
-                className={cn(
-                  'w-full px-2 py-1 bg-background-dark border border-primary/30',
-                  'rounded text-neutral-200 font-body text-sm',
-                  'focus:border-primary focus:outline-none'
-                )}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Address */}
         <div>
-          <label className="block text-xs font-pixel text-primary mb-1">Address</label>
+          <label className="block text-xs font-pixel text-primary mb-0.5">Address</label>
           <input
             type="text"
             value={formData.address?.address1 || ''}
             onChange={(e) => updateNestedField('address', 'address1', e.target.value)}
             className={cn(
               'w-full px-2 py-1 bg-background-dark border border-primary/30',
-              'rounded text-neutral-200 font-body text-sm mb-2',
+              'rounded text-neutral-200 font-body text-sm mb-1.5',
               'focus:border-primary focus:outline-none'
             )}
             placeholder="Street Address"
@@ -372,7 +238,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           <>
             {/* SSN */}
             <div>
-              <label className="block text-xs font-pixel text-primary mb-1">SSN</label>
+              <label className="block text-xs font-pixel text-primary mb-0.5">SSN</label>
               <input
                 type="text"
                 value={formData.compliance_profile?.ssn || ''}
@@ -387,7 +253,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
 
             {/* DOB */}
             <div>
-              <label className="block text-xs font-pixel text-primary mb-1">Date of Birth</label>
+              <label className="block text-xs font-pixel text-primary mb-0.5">Date of Birth</label>
               <input
                 type="date"
                 value={formData.compliance_profile?.dob || ''}
@@ -404,7 +270,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
 
         {/* IP Address */}
         <div>
-          <label className="block text-xs font-pixel text-primary mb-1">IP Address</label>
+          <label className="block text-xs font-pixel text-primary mb-0.5">IP Address</label>
           <input
             type="text"
             value={formData.device.ip_address}
@@ -419,13 +285,13 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
       </div>
 
       {/* Sandbox Outcome Buttons - Street Fighter Style */}
-      <div className="mt-6 pt-4 border-t-2 border-primary/20">
-        <p className="text-xs font-pixel text-secondary mb-3">SANDBOX OUTCOME</p>
-        <div className="grid grid-cols-2 gap-3">
+      <div className="mt-4 pt-3 border-t-2 border-primary/20">
+        <p className="text-xs font-pixel text-secondary mb-2">SANDBOX OUTCOME</p>
+        <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => handleSubmit('standard')}
             className={cn(
-              'px-4 py-3 rounded-pixel font-pixel text-sm',
+              'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-secondary/20 border-2 border-secondary text-secondary',
               'hover:bg-secondary/30 hover:shadow-[0_0_15px_rgba(0,102,255,0.5)]',
               'transition-all duration-200 uppercase'
@@ -436,7 +302,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           <button
             onClick={() => handleSubmit('verified')}
             className={cn(
-              'px-4 py-3 rounded-pixel font-pixel text-sm',
+              'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-accent-green/20 border-2 border-accent-green text-accent-green',
               'hover:bg-accent-green/30 hover:shadow-[0_0_15px_rgba(57,255,20,0.5)]',
               'transition-all duration-200 uppercase'
@@ -447,7 +313,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           <button
             onClick={() => handleSubmit('review')}
             className={cn(
-              'px-4 py-3 rounded-pixel font-pixel text-sm',
+              'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-gold/20 border-2 border-gold text-gold',
               'hover:bg-gold/30 hover:shadow-[0_0_15px_rgba(255,195,0,0.5)]',
               'transition-all duration-200 uppercase'
@@ -458,7 +324,7 @@ export const CustomerCard: React.FC<CustomerCardProps> = ({
           <button
             onClick={() => handleSubmit('rejected')}
             className={cn(
-              'px-4 py-3 rounded-pixel font-pixel text-sm',
+              'px-3 py-2 rounded-pixel font-pixel text-sm',
               'bg-accent-red/20 border-2 border-accent-red text-accent-red',
               'hover:bg-accent-red/30 hover:shadow-[0_0_15px_rgba(255,0,64,0.5)]',
               'transition-all duration-200 uppercase'

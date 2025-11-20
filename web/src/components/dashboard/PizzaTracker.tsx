@@ -138,7 +138,7 @@ export const PizzaTracker: React.FC = () => {
 
                   {/* Timestamp */}
                   <p className="text-xs text-neutral-500 font-mono mt-1 text-center">
-                    {formatTimestamp(entry.changed_at)}
+                    {formatTimestamp(entry.timestamp)}
                   </p>
 
                   {/* Message */}

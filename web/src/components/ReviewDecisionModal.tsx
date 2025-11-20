@@ -15,6 +15,39 @@ type CustomerReviewData = {
   website?: string;
   ein?: string;
   codes?: string[];
+  kyc?: {
+    decision: string;
+    codes?: string[];
+    validations?: Record<string, boolean>;
+  };
+  watchlist?: {
+    decision: string;
+    codes?: string[];
+    matches?: Array<{
+      correlation: string;
+      list_name: string;
+      match_fields: string[];
+      urls: string[];
+    }>;
+  };
+  networkIntelligence?: {
+    decision: string;
+    codes?: string[];
+    insights?: {
+      ach_fraud_transactions_count?: number;
+      ach_fraud_transactions_total_amount?: number;
+      ach_returned_transactions_count?: number;
+      ach_returned_transactions_total_amount?: number;
+      card_fraud_transactions_count?: number;
+      card_fraud_transactions_total_amount?: number;
+      card_disputed_transactions_count?: number;
+      card_disputed_transactions_total_amount?: number;
+      accounts_count?: number;
+      accounts_active_count?: number;
+      accounts_fraud_count?: number;
+      applications_count?: number;
+    };
+  };
 };
 
 type PaykeyReviewData = {
@@ -126,11 +159,11 @@ export const ReviewDecisionModal: React.FC<ReviewDecisionModalProps> = ({
             </h2>
           </div>
 
-          {/* Content */}
-          <div className="px-6 py-6 space-y-4">
+          {/* Content - Scrollable with max height */}
+          <div className="px-6 py-4 space-y-3 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-background-dark">
             {data.type === 'customer' ? (
               <>
-                <div className="text-center mb-4">
+                <div className="text-center mb-3">
                   <p className="text-xl font-body text-neutral-100">{data.name}</p>
                   <p className="text-sm text-neutral-400">{data.email}</p>
                   <p className="text-sm text-neutral-400">{data.phone}</p>
@@ -192,6 +225,158 @@ export const ReviewDecisionModal: React.FC<ReviewDecisionModalProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* KYC Validation */}
+                {data.kyc && data.kyc.validations && (
+                  <div className="border border-primary/20 rounded-pixel bg-background-dark/50 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-neutral-400 font-body">KYC Validation</p>
+                      <span
+                        className={cn(
+                          'text-xs font-pixel px-2 py-0.5 rounded',
+                          data.kyc.decision === 'accept'
+                            ? 'bg-green-500/20 text-green-500'
+                            : data.kyc.decision === 'review'
+                              ? 'bg-gold/20 text-gold'
+                              : 'bg-accent-red/20 text-accent-red'
+                        )}
+                      >
+                        {data.kyc.decision.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-xs">
+                      {Object.entries(data.kyc.validations).map(([field, isValid]) => (
+                        <div key={field} className="flex items-center gap-1">
+                          <span className={isValid ? 'text-green-500' : 'text-accent-red'}>
+                            {isValid ? '✓' : '✗'}
+                          </span>
+                          <span className="text-neutral-300 capitalize">
+                            {field.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {data.kyc.codes && data.kyc.codes.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {data.kyc.codes.map((code) => (
+                          <span
+                            key={code}
+                            className="text-xs font-pixel px-1.5 py-0.5 bg-background rounded border border-white/10 text-neutral-400"
+                          >
+                            {code}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Watchlist Matches */}
+                {data.watchlist && data.watchlist.matches && data.watchlist.matches.length > 0 && (
+                  <div className="border border-primary/20 rounded-pixel bg-background-dark/50 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-neutral-400 font-body">Watchlist Matches</p>
+                      <span
+                        className={cn(
+                          'text-xs font-pixel px-2 py-0.5 rounded',
+                          data.watchlist.decision === 'accept'
+                            ? 'bg-green-500/20 text-green-500'
+                            : data.watchlist.decision === 'review'
+                              ? 'bg-gold/20 text-gold'
+                              : 'bg-accent-red/20 text-accent-red'
+                        )}
+                      >
+                        {data.watchlist.decision.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {data.watchlist.matches.map((match, idx) => (
+                        <div key={idx} className="text-xs bg-background/50 p-2 rounded">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-neutral-100 font-semibold">{match.list_name}</span>
+                            <span className="text-gold text-[10px] font-pixel">
+                              {match.correlation}
+                            </span>
+                          </div>
+                          <div className="text-neutral-400 text-[10px]">
+                            Fields: {match.match_fields.join(', ')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Reputation */}
+                {data.networkIntelligence && data.networkIntelligence.insights && (
+                  <div className="border border-primary/20 rounded-pixel bg-background-dark/50 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-neutral-400 font-body">Reputation</p>
+                      <span
+                        className={cn(
+                          'text-xs font-pixel px-2 py-0.5 rounded',
+                          data.networkIntelligence.decision === 'accept'
+                            ? 'bg-green-500/20 text-green-500'
+                            : data.networkIntelligence.decision === 'review'
+                              ? 'bg-gold/20 text-gold'
+                              : 'bg-accent-red/20 text-accent-red'
+                        )}
+                      >
+                        {data.networkIntelligence.decision.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {data.networkIntelligence.insights.ach_fraud_transactions_count !== undefined && (
+                        <div>
+                          <span className="text-neutral-500">ACH Fraud:</span>
+                          <span className="ml-1 text-accent-red font-semibold">
+                            {data.networkIntelligence.insights.ach_fraud_transactions_count}
+                          </span>
+                        </div>
+                      )}
+                      {data.networkIntelligence.insights.ach_returned_transactions_count !== undefined && (
+                        <div>
+                          <span className="text-neutral-500">ACH Returns:</span>
+                          <span className="ml-1 text-gold font-semibold">
+                            {data.networkIntelligence.insights.ach_returned_transactions_count}
+                          </span>
+                        </div>
+                      )}
+                      {data.networkIntelligence.insights.card_fraud_transactions_count !== undefined && (
+                        <div>
+                          <span className="text-neutral-500">Card Fraud:</span>
+                          <span className="ml-1 text-accent-red font-semibold">
+                            {data.networkIntelligence.insights.card_fraud_transactions_count}
+                          </span>
+                        </div>
+                      )}
+                      {data.networkIntelligence.insights.accounts_fraud_count !== undefined && (
+                        <div>
+                          <span className="text-neutral-500">Fraud Accounts:</span>
+                          <span className="ml-1 text-accent-red font-semibold">
+                            {data.networkIntelligence.insights.accounts_fraud_count}
+                          </span>
+                        </div>
+                      )}
+                      {data.networkIntelligence.insights.accounts_count !== undefined && (
+                        <div>
+                          <span className="text-neutral-500">Total Accounts:</span>
+                          <span className="ml-1 text-neutral-100 font-semibold">
+                            {data.networkIntelligence.insights.accounts_count}
+                          </span>
+                        </div>
+                      )}
+                      {data.networkIntelligence.insights.accounts_active_count !== undefined && (
+                        <div>
+                          <span className="text-neutral-500">Active Accounts:</span>
+                          <span className="ml-1 text-green-500 font-semibold">
+                            {data.networkIntelligence.insights.accounts_active_count}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -228,8 +413,8 @@ export const ReviewDecisionModal: React.FC<ReviewDecisionModalProps> = ({
               </>
             )}
 
-            <div className="pt-4 border-t border-primary/20">
-              <p className="text-center text-sm text-neutral-400 font-body mb-4">
+            <div className="pt-3 border-t border-primary/20">
+              <p className="text-center text-sm text-neutral-400 font-body mb-3">
                 RENDER YOUR VERDICT
               </p>
 

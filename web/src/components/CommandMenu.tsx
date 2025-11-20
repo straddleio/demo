@@ -61,9 +61,9 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
       {isOpen && (
         <motion.div
           id="command-menu-panel"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
+          initial={{ maxHeight: 0, opacity: 0, overflow: 'hidden' }}
+          animate={{ maxHeight: 1000, opacity: 1 }}
+          exit={{ maxHeight: 0, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           className={cn(
             'bg-gradient-to-br from-background-elevated to-background-card',
@@ -87,16 +87,16 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   }}
                 />
                 <CommandButton
-                  label="Create Business"
+                  label="Create Customer (KYC)"
                   onClick={() => {
-                    onCommandSelect('customer-business');
+                    onCommandSelect('customer-kyc');
                     // Menu stays open until user toggles button
                   }}
                 />
                 <CommandButton
-                  label="Customer KYC"
+                  label="Create Business"
                   onClick={() => {
-                    onCommandSelect('customer-kyc');
+                    onCommandSelect('customer-business');
                     // Menu stays open until user toggles button
                   }}
                 />
@@ -108,7 +108,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
               <h3 className="font-pixel text-secondary text-xs mb-2 uppercase">Paykeys</h3>
               <div className="space-y-2">
                 <CommandButton
-                  label="Straddle Bridge"
+                  label="Straddle"
                   onClick={() => {
                     onCommandSelect('paykey-bridge');
                     // Menu stays open until user toggles button
@@ -116,16 +116,9 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   variant="primary"
                 />
                 <CommandButton
-                  label="Plaid Link"
+                  label="Plaid"
                   onClick={() => {
                     onCommandSelect('paykey-plaid');
-                    // Menu stays open until user toggles button
-                  }}
-                />
-                <CommandButton
-                  label="Bank Account"
-                  onClick={() => {
-                    onCommandSelect('paykey-bank');
                     // Menu stays open until user toggles button
                   }}
                 />
@@ -133,6 +126,13 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   label="Quiltt"
                   onClick={() => {
                     // Placeholder - no action
+                  }}
+                />
+                <CommandButton
+                  label="Bank Account"
+                  onClick={() => {
+                    onCommandSelect('paykey-bank');
+                    // Menu stays open until user toggles button
                   }}
                 />
               </div>

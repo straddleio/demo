@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDemoStore } from '@/lib/state';
 
 /**
- * Connection status indicator (top-right corner)
+ * Connection status indicator with theme toggle (top-right corner)
  */
 export const ConnectionStatus: React.FC = () => {
-  const isConnected = useDemoStore((state) => state.isConnected);
-  const connectionError = useDemoStore((state) => state.connectionError);
+  const { isConnected, connectionError } = useDemoStore((state) => ({
+    isConnected: state.isConnected,
+    connectionError: state.connectionError,
+  }));
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    const stored = localStorage.getItem('straddle_theme');
+    return (stored as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('straddle_theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
       <div className="flex items-center gap-2 px-3 py-1.5 rounded bg-background-dark/80 border border-primary/30 backdrop-blur-sm">
         <div
           className={`w-2 h-2 rounded-full ${
@@ -20,6 +36,16 @@ export const ConnectionStatus: React.FC = () => {
           {isConnected ? 'LIVE' : connectionError || 'OFFLINE'}
         </span>
       </div>
+
+      <button
+        onClick={toggleTheme}
+        className="flex items-center justify-center w-8 h-8 rounded bg-background-dark/80 border border-primary/30 backdrop-blur-sm hover:border-primary/60 transition-all theme-toggle-btn"
+        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        <span className="text-sm">
+          {theme === 'dark' ? '🌙' : '☀️'}
+        </span>
+      </button>
     </div>
   );
 };

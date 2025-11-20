@@ -250,6 +250,8 @@ describe('Demo Store', () => {
     expect(state.paykey).toBeNull();
     expect(state.charge).toBeNull();
     expect(state.isExecuting).toBe(false);
+    expect(state.showPaykeyGenerator).toBe(false);
+    expect(state.generatorData).toBeNull();
     expect(state.apiLogs).toEqual([]);
     expect(state.connectionError).toBeNull();
     expect(state.terminalHistory).toHaveLength(1);

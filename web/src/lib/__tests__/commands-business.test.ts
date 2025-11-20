@@ -54,7 +54,7 @@ describe('commands - Business Customer (/create-business)', () => {
         expect.objectContaining({
           type: 'business',
           name: 'The Bluth Company',
-          email: 'tobias@bluemyself.com',
+          email: expect.stringMatching(/^tobias\.\d+@bluemyself\.com$/),
           phone: '+15558675309',
           outcome: 'verified',
         })
@@ -220,7 +220,7 @@ describe('commands - Business Customer (/create-business)', () => {
         expect.objectContaining({
           type: 'business',
           name: 'The Bluth Company',
-          email: 'tobias@bluemyself.com',
+          email: expect.stringMatching(/^tobias\.\d+@bluemyself\.com$/),
           phone: '+15558675309',
         })
       );

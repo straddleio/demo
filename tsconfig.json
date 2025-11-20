@@ -11,6 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": [],
+  "include": ["playwright*.ts"],
   "exclude": ["node_modules", "dist"]
 }

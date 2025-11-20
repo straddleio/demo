@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDemoStore } from './state';
 import type { Customer, Paykey, Charge } from './api';
 import { API_BASE_URL } from './api';
-import { playReviewAlertSound, playChargeStatusSound } from './sounds';
+import { playReviewAlertSound, playChargeStatusSound, playCustomerVerifiedSound } from './sounds';
 
 /**
  * SSE event types from backend
@@ -171,6 +171,16 @@ export function useSSE(url: string = DEFAULT_SSE_URL): void {
           // Play review alert if status changed TO review
           if (parsed.verification_status === 'review' && previousStatus !== 'review') {
             void playReviewAlertSound();
+          }
+
+          // Play verified sound if status changed TO verified from non-review state
+          // (review -> verified plays approve sound in ReviewDecisionModal)
+          if (
+            parsed.verification_status === 'verified' &&
+            previousStatus !== 'verified' &&
+            previousStatus !== 'review'
+          ) {
+            void playCustomerVerifiedSound();
           }
 
           setCustomer(parsed);

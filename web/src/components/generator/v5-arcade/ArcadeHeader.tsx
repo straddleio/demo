@@ -18,7 +18,7 @@ export const ArcadeHeader: React.FC = () => {
         background: 'linear-gradient(90deg, #000000 0%, #00FFFF 50%, #000000 100%)',
         backgroundSize: '200% 100%',
         border: '4px solid #00FFFF',
-        padding: '16px 0',
+        padding: '8px 0',
         textAlign: 'center',
         boxShadow: '0 0 20px rgba(0, 255, 255, 0.6), inset 0 2px 4px rgba(0, 0, 0, 0.4)',
         animation: 'gradientShift 4s ease-in-out infinite, flicker 3s ease-in-out infinite',
@@ -40,14 +40,14 @@ export const ArcadeHeader: React.FC = () => {
       <h1
         style={{
           fontFamily: '"Press Start 2P", monospace',
-          fontSize: '24px',
+          fontSize: '18px',
           color: '#FFFFFF',
           textShadow: '0 0 12px #00FFFF, 0 0 24px rgba(0, 255, 255, 0.4)',
           margin: 0,
-          letterSpacing: '3px',
+          letterSpacing: '2px',
         }}
       >
-        ▓▓▓▓▓▓▓ PAYKEY GENERATOR V5 ▓▓▓▓▓▓▓
+        ▓▓▓ PAYKEY GENERATOR V5 ▓▓▓
       </h1>
     </div>
   );

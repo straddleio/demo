@@ -6,7 +6,7 @@ Built on LSTM-based natural language processing algorithms and deployed through 
 
 ## Overview
 
-WALDO stands for **W**eighted **A**lgorithm for **L**egitimate **D**ata **O**wnership. It is Straddle's proprietary identity matching algorithm designed to securely and accurately verify that a customer's identity matches the ownership details of their bank account.
+WALDO stands for **W**eighted **A**lgorithm for **L**egnitimate **D**ata **O**wnership. It is Straddle's proprietary identity matching algorithm designed to securely and accurately verify that a customer's identity matches the ownership details of their bank account.
 
 Determining if two name strings refer to the same individual is deceptively complex. Traditional string comparison methods often fail to capture the multidimensional nature of name representation, resulting in high rates of false positives or false negatives.
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/components/ui/utils';
+import { setSoundEnabled as setSoundEnabledGlobal } from '@/lib/sounds';
 
 /**
  * Sound Effects Toggle
@@ -15,14 +16,18 @@ import { cn } from '@/components/ui/utils';
  */
 export const SoundToggle: React.FC = () => {
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    // Load from localStorage on mount
+    // Load from localStorage on mount, default to true if not set
     const stored = localStorage.getItem('straddle_sound_enabled');
-    return stored === 'true';
+    const initialValue = stored === null ? true : stored === 'true';
+    // Sync with global sound system
+    setSoundEnabledGlobal(initialValue);
+    return initialValue;
   });
 
   useEffect(() => {
-    // Persist to localStorage on change
+    // Persist to localStorage and sync with global sound system
     localStorage.setItem('straddle_sound_enabled', String(soundEnabled));
+    setSoundEnabledGlobal(soundEnabled);
   }, [soundEnabled]);
 
   return (

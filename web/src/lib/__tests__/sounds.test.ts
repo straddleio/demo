@@ -15,13 +15,14 @@ import {
 
 describe('Sound System', () => {
   beforeEach(() => {
-    // Mock HTMLAudioElement
-    global.Audio = vi.fn().mockImplementation(() => ({
-      play: vi.fn().mockResolvedValue(undefined),
-      pause: vi.fn(),
-      load: vi.fn(),
-      volume: 0,
-    })) as unknown as typeof Audio;
+    // Mock HTMLAudioElement with proper constructor pattern
+    const AudioMock = vi.fn().mockImplementation(function (this: any) {
+      this.play = vi.fn().mockResolvedValue(undefined);
+      this.pause = vi.fn();
+      this.load = vi.fn();
+      this.volume = 0;
+    });
+    global.Audio = AudioMock as any;
 
     // Enable sound for tests
     setSoundEnabled(true);
@@ -50,11 +51,11 @@ describe('Sound System', () => {
 
     it('should play the audio', async () => {
       const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const result = await playReviewAlertSound();
 
@@ -73,11 +74,11 @@ describe('Sound System', () => {
 
     it('should handle errors gracefully', async () => {
       const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -95,22 +96,43 @@ describe('Sound System', () => {
 
   describe('playEndDemoSound', () => {
     it('should create audio element with correct path', async () => {
+      // Mock Audio with onended event simulation
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = vi.fn().mockResolvedValue(undefined);
+        this.pause = vi.fn();
+        // Simulate onended event immediately after play
+        this.play = vi.fn().mockImplementation(() => {
+          setTimeout(() => {
+            if (this.onended) this.onended();
+          }, 0);
+          return Promise.resolve();
+        });
+      }) as any;
+
       await playEndDemoSound();
 
       expect(global.Audio).toHaveBeenCalledWith('/sounds/end_demo.mp3');
     });
 
     it('should play the audio', async () => {
-      const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      const playCallCount = { count: 0 };
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.pause = vi.fn();
+        // Simulate onended event immediately after play
+        this.play = vi.fn().mockImplementation(() => {
+          playCallCount.count++;
+          setTimeout(() => {
+            if (this.onended) this.onended();
+          }, 0);
+          return Promise.resolve();
+        });
+      }) as any;
 
       const result = await playEndDemoSound();
 
-      expect(mockPlay).toHaveBeenCalled();
+      expect(playCallCount.count).toBeGreaterThan(0);
       expect(result).toBe(true);
     });
 
@@ -133,11 +155,11 @@ describe('Sound System', () => {
 
     it('should play the audio', async () => {
       const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const result = await playChargeStatusSound();
 
@@ -156,11 +178,11 @@ describe('Sound System', () => {
 
     it('should handle errors gracefully', async () => {
       const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -185,11 +207,11 @@ describe('Sound System', () => {
 
     it('should play the audio', async () => {
       const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const result = await playAutoAttackSound();
 
@@ -208,11 +230,11 @@ describe('Sound System', () => {
 
     it('should handle errors gracefully', async () => {
       const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -237,11 +259,11 @@ describe('Sound System', () => {
 
     it('should play the audio', async () => {
       const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const result = await playBridgeOpenedSound();
 
@@ -260,11 +282,11 @@ describe('Sound System', () => {
 
     it('should handle errors gracefully', async () => {
       const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -289,11 +311,11 @@ describe('Sound System', () => {
 
     it('should play the audio', async () => {
       const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const result = await playMenuOpenedSound();
 
@@ -312,11 +334,11 @@ describe('Sound System', () => {
 
     it('should handle errors gracefully', async () => {
       const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -341,11 +363,11 @@ describe('Sound System', () => {
 
     it('should play the audio', async () => {
       const mockPlay = vi.fn().mockResolvedValue(undefined);
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const result = await playMenuClosedSound();
 
@@ -364,11 +386,11 @@ describe('Sound System', () => {
 
     it('should handle errors gracefully', async () => {
       const mockPlay = vi.fn().mockRejectedValue(new Error('Play failed'));
-      global.Audio = class {
-        volume = 1;
-        play = mockPlay;
-        pause(): void {}
-      } as unknown as typeof Audio;
+      global.Audio = vi.fn().mockImplementation(function (this: any) {
+        this.volume = 1;
+        this.play = mockPlay;
+        this.pause = vi.fn();
+      }) as any;
 
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 

@@ -8,12 +8,16 @@ import * as api from '@/lib/api';
 vi.mock('@/lib/state', () => {
   const mockAddAPILogEntry = vi.fn();
   const mockAddTerminalLine = vi.fn();
+  const mockSetReviewModalData = vi.fn();
+  const mockSetReviewModalOpen = vi.fn();
 
   return {
     useDemoStore: Object.assign(
       vi.fn((selector: ((state: unknown) => unknown) | undefined) => {
         const mockState = {
           customer: null,
+          reviewModalData: null,
+          isReviewModalOpen: false,
         };
         if (!selector) {
           return mockState;
@@ -24,6 +28,8 @@ vi.mock('@/lib/state', () => {
         getState: vi.fn(() => ({
           addAPILogEntry: mockAddAPILogEntry,
           addTerminalLine: mockAddTerminalLine,
+          setReviewModalData: mockSetReviewModalData,
+          setReviewModalOpen: mockSetReviewModalOpen,
         })),
       }
     ),
@@ -379,59 +385,103 @@ describe('CustomerCard - Review Modal Integration', () => {
     );
   });
 
-  it('should open modal when review button clicked', () => {
-    render(<CustomerCard />);
+  it('should call setReviewModalData when review button clicked', () => {
+    const mockSetReviewModalData = vi.fn();
 
-    // Modal should not be visible initially
-    expect(screen.queryByText('⚔️ COMPLIANCE CHALLENGE ⚔️')).not.toBeInTheDocument();
+    // Override the mock to track the setReviewModalData call
+    (useDemoStore.getState as ReturnType<typeof vi.fn>).mockReturnValue({
+      addAPILogEntry: vi.fn(),
+      addTerminalLine: vi.fn(),
+      setReviewModalData: mockSetReviewModalData,
+      setReviewModalOpen: vi.fn(),
+    });
+
+    render(<CustomerCard />);
 
     // Click review button
     const reviewButton = screen.getByText('REVIEW');
     fireEvent.click(reviewButton);
 
-    // Modal should appear
-    expect(screen.getByText('⚔️ COMPLIANCE CHALLENGE ⚔️')).toBeInTheDocument();
+    // Should call setReviewModalData with customer data
+    expect(mockSetReviewModalData).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'customer',
+        id: 'cust_123',
+        data: expect.objectContaining({
+          type: 'customer',
+          id: 'cust_123',
+          name: 'John Doe',
+        }),
+      })
+    );
   });
 
-  it('should call API on approve', async () => {
-    const mockCustomerReviewDecision = vi.fn().mockResolvedValue({
-      id: 'cust_123',
-      status: 'verified',
-    });
+  it('should pass correct customer data to modal', () => {
+    const mockSetReviewModalData = vi.fn();
 
-    vi.spyOn(api, 'customerReviewDecision').mockImplementation(mockCustomerReviewDecision);
+    (useDemoStore.getState as ReturnType<typeof vi.fn>).mockReturnValue({
+      addAPILogEntry: vi.fn(),
+      addTerminalLine: vi.fn(),
+      setReviewModalData: mockSetReviewModalData,
+      setReviewModalOpen: vi.fn(),
+    });
 
     render(<CustomerCard />);
 
-    // Open modal
+    // Click review button
     fireEvent.click(screen.getByText('REVIEW'));
 
-    // Click approve
-    fireEvent.click(screen.getByText('APPROVE'));
-
-    await waitFor(() => {
-      expect(mockCustomerReviewDecision).toHaveBeenCalledWith('cust_123', 'verified');
+    // Verify the customer data passed includes review information
+    expect(mockSetReviewModalData).toHaveBeenCalledWith({
+      type: 'customer',
+      id: 'cust_123',
+      data: expect.objectContaining({
+        type: 'customer',
+        id: 'cust_123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        phone: '+12125550123',
+        status: 'review', // Note: transformed from verification_status to status
+      }),
     });
   });
 
-  it('should call API on reject', async () => {
-    const mockCustomerReviewDecision = vi.fn().mockResolvedValue({
-      id: 'cust_123',
-      status: 'rejected',
-    });
+  it('should only show review button when status is review', () => {
+    // First render with review status
+    (useDemoStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: ((state: { customer: typeof mockCustomer }) => unknown) | undefined) => {
+        const state = {
+          customer: mockCustomer,
+        };
+        if (!selector) {
+          return state;
+        }
+        return selector(state);
+      }
+    );
 
-    vi.spyOn(api, 'customerReviewDecision').mockImplementation(mockCustomerReviewDecision);
+    const { rerender } = render(<CustomerCard />);
 
-    render(<CustomerCard />);
+    // Should show review button
+    expect(screen.getByText('REVIEW')).toBeInTheDocument();
 
-    // Open modal
-    fireEvent.click(screen.getByText('REVIEW'));
+    // Now update to verified status
+    const verifiedCustomer = { ...mockCustomer, verification_status: 'verified' };
+    (useDemoStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: ((state: { customer: typeof verifiedCustomer }) => unknown) | undefined) => {
+        const state = {
+          customer: verifiedCustomer,
+        };
+        if (!selector) {
+          return state;
+        }
+        return selector(state);
+      }
+    );
 
-    // Click reject
-    fireEvent.click(screen.getByText('REJECT'));
+    rerender(<CustomerCard />);
 
-    await waitFor(() => {
-      expect(mockCustomerReviewDecision).toHaveBeenCalledWith('cust_123', 'rejected');
-    });
+    // Should not show review button
+    expect(screen.queryByText('REVIEW')).not.toBeInTheDocument();
   });
 });

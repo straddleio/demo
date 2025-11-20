@@ -203,3 +203,41 @@ export async function playMenuClosedSound(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Play paykey generator completion sound (when arcade animation ends)
+ */
+export async function playPaykeyGeneratorEndSound(): Promise<boolean> {
+  if (!soundEnabled) {
+    return false;
+  }
+
+  try {
+    const audio = new Audio('/sounds/paykey_generator_app_end.mp3');
+    audio.volume = 0.5;
+    await audio.play();
+    return true;
+  } catch (error) {
+    console.warn('Paykey generator end sound failed to play:', error);
+    return false;
+  }
+}
+
+/**
+ * Play customer verified sound (when customer verification status changes to verified)
+ */
+export async function playCustomerVerifiedSound(): Promise<boolean> {
+  if (!soundEnabled) {
+    return false;
+  }
+
+  try {
+    const audio = new Audio('/sounds/new_customer_verified.mp3');
+    audio.volume = 0.5;
+    await audio.play();
+    return true;
+  } catch (error) {
+    console.warn('Customer verified sound failed to play:', error);
+    return false;
+  }
+}

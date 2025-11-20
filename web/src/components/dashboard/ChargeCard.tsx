@@ -143,33 +143,34 @@ export const ChargeCard: React.FC = () => {
 
         {/* Amount */}
         <div>
-          <p className="text-xs text-neutral-400 font-body mb-1">Amount</p>
-          <div className="flex items-center gap-3">
-            <p className="text-4xl text-neutral-100 font-pixel">
-              ${(charge.amount / 100).toFixed(2)}
-            </p>
-            {/* Enhanced Embedded Paykey CTA - Inline with Amount */}
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-neutral-400 font-body">Amount</p>
+            {/* Enhanced Embedded Paykey CTA - Aligned with CREATED badge */}
             {isPaykeyEmbedded && paykey && (
               <button
                 onClick={() => setPaykeyExpanded(!paykeyExpanded)}
                 className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-pixel transition-all',
+                  'inline-flex items-center justify-center gap-1 px-3 py-1 rounded-pixel transition-all',
                   'bg-green-500/10 border border-green-500/40 text-green-500',
                   'hover:bg-green-500/20 hover:border-green-500/60 hover:scale-105',
                   'shadow-glow-green',
-                  'text-sm font-body font-semibold'
+                  'text-xs font-pixel whitespace-nowrap'
                 )}
                 aria-label="Toggle paykey details"
               >
-                <FiKey className="w-4 h-4 animate-pulse" />
-                <span>Paykey</span>
+                <FiKey className="w-3 h-3" />
                 {paykeyExpanded ? (
-                  <FiChevronUp className="w-4 h-4" />
+                  <FiChevronUp className="w-3 h-3" />
                 ) : (
-                  <FiChevronDown className="w-4 h-4" />
+                  <FiChevronDown className="w-3 h-3" />
                 )}
               </button>
             )}
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="text-4xl text-neutral-100 font-pixel">
+              ${(charge.amount / 100).toFixed(2)}
+            </p>
           </div>
         </div>
 
@@ -189,24 +190,36 @@ export const ChargeCard: React.FC = () => {
           </div>
         </div>
 
-        {/* Description */}
-        <div>
-          <p className="text-xs text-neutral-400 font-body mb-1">Description</p>
-          <p className="text-xs text-neutral-100 font-body">{charge.description || 'Payment'}</p>
+        {/* Description and Bank Account */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs text-neutral-400 font-body mb-1">Description</p>
+            <p className="text-xs text-neutral-100 font-body">{charge.description || 'Payment'}</p>
+          </div>
+          {isPaykeyEmbedded && paykey && (
+            <div>
+              <p className="text-xs text-neutral-400 font-body mb-1">Bank Account</p>
+              <p className="text-xs text-neutral-100 font-body">
+                {truncateBankName(paykey.institution_name || paykey.label)} <span className="font-mono">•••{last4}</span>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Balance Check - Only show for Plaid/Straddle paykeys (not bank_account) */}
         {hasBalanceData && (
           <div className="pt-2 border-t border-accent/20">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-xs text-neutral-400 font-body">Balance Check</p>
-              <p
-                className={`text-xs font-pixel ${balanceCheckPassed ? 'text-primary' : 'text-accent'}`}
-              >
-                {balanceCheckPassed ? 'PASSED' : 'FAILED'}
-              </p>
-            </div>
             <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <p className="text-neutral-400 font-body mb-1">Balance Check</p>
+              </div>
+              <div>
+                <p
+                  className={`text-xs font-pixel mb-1 ${balanceCheckPassed ? 'text-primary' : 'text-accent'}`}
+                >
+                  {balanceCheckPassed ? 'PASSED' : 'FAILED'}
+                </p>
+              </div>
               <div>
                 <p className="text-neutral-500 font-body mb-1">Before</p>
                 <p className="text-neutral-300 font-body">${balanceBefore.toFixed(2)}</p>
@@ -221,9 +234,15 @@ export const ChargeCard: React.FC = () => {
 
         {/* Consent Type */}
         <div className="pt-2 border-t border-accent/20">
-          <div className="flex justify-between items-center">
-            <p className="text-xs text-neutral-400 font-body">Consent Type</p>
-            <p className="text-xs text-neutral-300 font-body capitalize">{consentType}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs text-neutral-400 font-body">Consent Type</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-300 font-body font-semibold capitalize" style={{ textShadow: '0 0 8px rgba(255, 255, 255, 0.3)' }}>
+                {consentType}
+              </p>
+            </div>
           </div>
         </div>
       </RetroCardContent>

@@ -122,6 +122,13 @@ export const BridgeModal: React.FC = () => {
     return null;
   }
 
+  // Determine theme-aware colors
+  const isDarkMode = document.documentElement.getAttribute('data-theme') !== 'light';
+  const borderColor = isDarkMode ? '#FF0099' : '#F2AE49'; // Magenta for dark, Gold for light
+  const glowColor = isDarkMode
+    ? 'rgba(255, 0, 153, 0.5)'
+    : 'rgba(242, 174, 73, 0.4)';
+
   return (
     <>
       {/* Backdrop */}
@@ -151,12 +158,12 @@ export const BridgeModal: React.FC = () => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '600px',
-            height: '800px',
+            width: '335px',
+            height: '656px',
             zIndex: 2147483647,
-            border: '3px solid #00FFFF',
+            border: `3px solid ${borderColor}`,
             borderRadius: '12px',
-            boxShadow: '0 0 30px rgba(0, 255, 255, 0.5)',
+            boxShadow: `0 0 30px ${glowColor}`,
           }}
         />
       )}

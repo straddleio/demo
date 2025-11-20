@@ -27,8 +27,8 @@ describe('Terminal autocomplete', () => {
     fireEvent.keyDown(input, { key: 'Tab', code: 'Tab' });
 
     // Should autocomplete to the first match (highlighted by default at index 0)
-    // First match in COMMAND_REGISTRY is /customer-create
-    expect((input as HTMLInputElement).value).toBe('/customer-create');
+    // First match in COMMAND_REGISTRY that starts with /customer is /customer-KYC
+    expect((input as HTMLInputElement).value).toBe('/customer-KYC');
   });
 
   it('should fully autocomplete when there is a single match', () => {
@@ -58,8 +58,8 @@ describe('Terminal autocomplete', () => {
     fireEvent.change(input, { target: { value: 'cus' } });
     fireEvent.keyDown(input, { key: 'Tab', code: 'Tab' });
 
-    // Should autocomplete to /customer-create (with slash)
-    expect(input).toHaveValue('/customer-create');
+    // Should autocomplete to /customer-KYC (first match with /cus*, with slash)
+    expect(input).toHaveValue('/customer-KYC');
   });
 
   it('should show same suggestions for "help" and "/help"', () => {

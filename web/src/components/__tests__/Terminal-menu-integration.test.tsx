@@ -119,7 +119,7 @@ describe('Terminal - CommandMenu Integration', () => {
       const menuButton = screen.getByRole('button', { name: /toggle command menu/i });
       fireEvent.click(menuButton);
 
-      const kycBtn = screen.getByText('Customer KYC');
+      const kycBtn = screen.getByText('Create Customer (KYC)');
       fireEvent.click(kycBtn);
 
       // CustomerCard should be visible - look for Address label which is in the form

@@ -4,16 +4,17 @@ import { cn } from '@/components/ui/utils';
 interface RightPanelProps {
   demoView: React.ReactNode;
   logsView?: React.ReactNode;
+  generatorView?: React.ReactNode;
 }
 
-type TabId = 'demo' | 'logs';
+type TabId = 'demo' | 'logs' | 'generator';
 
 /**
  * Right panel with tabs: Demo (active) and Logs (placeholder)
  * Tab 1: Demo - Shows dashboard cards and pizza tracker
  * Tab 2: Logs - Placeholder for raw request/response + webhooks (Phase 3D)
  */
-export const RightPanel: React.FC<RightPanelProps> = ({ demoView, logsView }) => {
+export const RightPanel: React.FC<RightPanelProps> = ({ demoView, logsView, generatorView }) => {
   const [activeTab, setActiveTab] = useState<TabId>('demo');
 
   return (
@@ -42,6 +43,17 @@ export const RightPanel: React.FC<RightPanelProps> = ({ demoView, logsView }) =>
         >
           LOGS
         </button>
+        <button
+          onClick={() => setActiveTab('generator')}
+          className={cn(
+            'px-6 py-3 font-pixel text-xs transition-colors border-b-2',
+            activeTab === 'generator'
+              ? 'text-primary border-primary bg-background-card'
+              : 'text-neutral-500 border-transparent hover:text-neutral-300'
+          )}
+        >
+          GENERATOR
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -61,6 +73,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({ demoView, logsView }) =>
             )}
           </div>
         )}
+        {activeTab === 'generator' && <div className="h-full overflow-y-auto scrollbar-retro">{generatorView}</div>}
       </div>
     </div>
   );

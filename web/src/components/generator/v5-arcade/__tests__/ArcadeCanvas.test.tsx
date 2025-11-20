@@ -13,7 +13,7 @@ describe('ArcadeCanvas', () => {
 
   it('should initialize with black background', () => {
     render(<ArcadeCanvas />);
-    const canvas = screen.getByRole('img', { hidden: true });
+    const canvas = screen.getByRole('img', { hidden: true }) as HTMLCanvasElement;
 
     // Canvas should exist and be configured
     expect(canvas).toBeInstanceOf(HTMLCanvasElement);

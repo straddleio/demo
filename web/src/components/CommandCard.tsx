@@ -58,29 +58,29 @@ export const CommandCard: React.FC<CommandCardProps> = ({
             }}
             className={cn(
               "fixed top-1/2 left-1/2 z-[70]",
-              "w-[500px] max-h-[80vh] overflow-y-auto",
+              "w-[500px] max-h-[85vh] overflow-y-auto",
               "bg-gradient-to-br from-background-elevated via-background-card to-background-dark",
               "border-4 border-primary rounded-pixel",
               "shadow-neon-primary-lg",
-              "p-6"
+              "p-4"
             )}
             style={{ transformStyle: 'preserve-3d' }}
           >
             {/* Header */}
-            <div className="mb-6 pb-4 border-b-2 border-primary/30">
+            <div className="mb-4 pb-3 border-b-2 border-primary/30">
               <h2 className="font-pixel text-primary text-xl text-glow-primary uppercase">
                 {title}
               </h2>
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 text-accent hover:text-accent/80 font-pixel text-lg"
+                className="absolute top-3 right-3 text-accent hover:text-accent/80 font-pixel text-lg"
               >
                 ✕
               </button>
             </div>
 
             {/* Content */}
-            <div className="space-y-4">
+            <div className="space-y-3">
               {children}
             </div>
           </motion.div>

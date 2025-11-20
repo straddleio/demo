@@ -8,9 +8,14 @@
     "web"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\" \"npm run dev:generator\"",
     "dev:server": "npm run dev --workspace=server",
     "dev:web": "npm run dev --workspace=web",
+    "dev:generator": "python3 paykey-generator/server.py",
+    "start:all": "concurrently \"npm run start:server\" \"npm run start:web\" \"npm run start:generator\"",
+    "start:server": "npm run start --workspace=server",
+    "start:web": "npm run start --workspace=web",
+    "start:generator": "python3 paykey-generator/server.py",
     "build": "npm run build --workspaces",
     "build:server": "npm run build --workspace=server",
     "build:web": "npm run build --workspace=web",

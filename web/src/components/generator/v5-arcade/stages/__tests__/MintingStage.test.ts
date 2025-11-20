@@ -1,6 +1,12 @@
 // web/src/components/generator/v5-arcade/stages/__tests__/MintingStage.test.ts
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { MintingStage } from '../MintingStage';
+import * as sounds from '@/lib/sounds';
+
+// Mock the sounds module
+vi.mock('@/lib/sounds', () => ({
+  playPaykeyGeneratorEndSound: vi.fn().mockResolvedValue(undefined),
+}));
 
 // Mock AudioContext
 const mockOscillator = {
@@ -144,16 +150,15 @@ describe('MintingStage', () => {
 
   describe('Phase 4: Final Score (2.5-3.0s)', () => {
     it('should play fanfare sound at 2.5s', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const soundManagerSpy = vi.spyOn((stage as any).soundManager, 'play');
+      vi.clearAllMocks();
 
       stage.update(2.4);
       stage.render();
-      expect(soundManagerSpy).not.toHaveBeenCalledWith('fanfare');
+      expect(sounds.playPaykeyGeneratorEndSound).not.toHaveBeenCalled();
 
       stage.update(0.2); // Now at 2.6s total
       stage.render();
-      expect(soundManagerSpy).toHaveBeenCalledWith('fanfare');
+      expect(sounds.playPaykeyGeneratorEndSound).toHaveBeenCalledTimes(1);
     });
 
     it('should display final score of +25,000', () => {

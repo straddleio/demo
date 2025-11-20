@@ -2,6 +2,7 @@
 import { SpriteEngine } from '../core/SpriteEngine';
 import { SoundManager } from '../audio/SoundManager';
 import { SPRITE_CONFIG } from '../utils/sprites';
+import { playPaykeyGeneratorEndSound } from '@/lib/sounds';
 
 interface MintingStageConfig {
   tokenId: string; // e.g., "758c519d.02.c16f91"
@@ -107,9 +108,9 @@ export class MintingStage {
     if (this.stageTime >= 2.5) {
       this.scoreAlpha = Math.min(1.0, (this.stageTime - 2.5) / 0.5);
 
-      // Play fanfare sound once at 2.5s
+      // Play paykey generator end sound once at 2.5s
       if (!this.fanfarePlayed) {
-        this.soundManager.play('fanfare');
+        void playPaykeyGeneratorEndSound();
         this.fanfarePlayed = true;
       }
     }

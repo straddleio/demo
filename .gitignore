@@ -7,6 +7,9 @@ node_modules/
 coverage/
 *.lcov
 .nyc_output/
+test-results/
+playwright-report/
+e2e/
 
 # Production builds
 dist/
@@ -44,3 +47,27 @@ Thumbs.db
 # Git worktrees
 .worktrees/
 .claude/settings.local.json
+
+# Development/debugging scripts
+check_production_site.py
+inspect_production.py
+debug-*.js
+inspect_*.js
+
+# Documentation artifacts
+docs/plans/
+docs/*REPORT.md
+docs/*TEST.md
+docs/*FIX.md
+docs/*IMPLEMENTATION.md
+docs/test*.sh
+docs/test*.py
+docs/debug-*.js
+docs/inspect_*.js
+docs/test-results.txt
+
+# Design debug scripts
+design/debug-*.js
+
+# Old/deprecated config files
+render.yaml

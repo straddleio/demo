@@ -6,7 +6,7 @@ describe('ArcadeHeader', () => {
     render(<ArcadeHeader />);
     const header = screen.getByText(/PAYKEY GENERATOR V5/i);
     expect(header).toBeInTheDocument();
-    expect(header.textContent).toContain('▓▓▓▓▓▓▓');
+    expect(header.textContent).toContain('▓▓▓');
   });
 
   it('should have cyan border styling', () => {

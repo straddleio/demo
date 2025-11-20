@@ -21,8 +21,7 @@ export interface CommandInfo {
 
 export const COMMAND_REGISTRY: CommandInfo[] = [
   { id: '/help', description: 'Show available commands' },
-  { id: '/customer-create', description: 'Create customer with identity verification' },
-  { id: '/create-customer', description: 'Alias for /customer-create' },
+  { id: '/create-customer', description: 'Create customer with identity verification' },
   { id: '/create-business', description: 'Create business customer' },
   { id: '/customer-KYC', description: 'Create KYC test customer (Jane Doe)' },
   { id: '/create-paykey', description: 'Link bank account' },
