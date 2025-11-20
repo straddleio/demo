@@ -89,7 +89,7 @@ describe('Webhooks Routes', () => {
     };
   };
 
-  const postWebhook = (payload: unknown) =>
+  const postWebhook = (payload: string | object) =>
     request(app).post('/api/webhooks/straddle').set(signPayload(payload)).send(payload);
 
   beforeEach(() => {

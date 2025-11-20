@@ -9,7 +9,7 @@ import { config } from '../config.js';
 
 const router = Router();
 
-interface RawWebhookRequest extends Request {
+export interface RawWebhookRequest extends Request {
   rawBody?: string;
 }
 
@@ -119,7 +119,7 @@ router.post('/straddle', (req: Request, res: Response): void => {
       const verifier = new Webhook(config.webhook.secret);
       verifier.verify(rawPayload, svixHeaders);
     } catch (err) {
-      logger.warn('Invalid webhook signature', err);
+      logger.error('Invalid webhook signature', err);
       res.status(401).json({ error: 'Invalid webhook signature' });
       return;
     }
