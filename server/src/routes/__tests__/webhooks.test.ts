@@ -19,7 +19,7 @@ jest.mock('../../config.js', () => ({
       corsOrigin: 'http://localhost:5173',
     },
     webhook: {
-      secret: 'whsec_test_secret',
+      secret: 'whsec_dGVzdF9zZWNyZXQ=',
       ngrokUrl: '',
     },
     plaid: {
@@ -64,13 +64,13 @@ jest.mock('../../domain/events.js', () => ({
 }));
 
 // Import modules after mocking
-import webhooksRouter from '../webhooks.js';
+import webhooksRouter, { type RawWebhookRequest } from '../webhooks.js';
 import { stateManager } from '../../domain/state.js';
 import { eventBroadcaster } from '../../domain/events.js';
 
 describe('Webhooks Routes', () => {
   let app: express.Application;
-  const secret = 'whsec_test_secret';
+  const secret = 'whsec_dGVzdF9zZWNyZXQ=';
 
   const signPayload = (payload: unknown): Record<string, string> => {
     const payloadString = typeof payload === 'string' ? payload : JSON.stringify(payload);
@@ -94,7 +94,13 @@ describe('Webhooks Routes', () => {
 
   beforeEach(() => {
     app = express();
-    app.use(express.json());
+    app.use(
+      express.json({
+        verify: (req, _res, buf) => {
+          (req as RawWebhookRequest).rawBody = buf.toString('utf8');
+        },
+      })
+    );
     app.use('/api/webhooks', webhooksRouter);
     jest.clearAllMocks();
 
@@ -616,7 +622,7 @@ describe('Webhooks Routes', () => {
         .send(invalidPayload)
         .expect(400);
 
-      expect(response.body).toEqual({ error: 'Invalid webhook payload' });
+      expect(response.body).toEqual({ error: 'Missing webhook signature headers' });
     });
 
     it('should handle errors during webhook processing', async () => {

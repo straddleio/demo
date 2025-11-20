@@ -43,6 +43,12 @@
   },
   "overrides": [
     {
+      "files": ["web/**/*.ts", "web/**/*.tsx"],
+      "parserOptions": {
+        "project": "web/tsconfig.eslint.json"
+      }
+    },
+    {
       "files": ["**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "warn",

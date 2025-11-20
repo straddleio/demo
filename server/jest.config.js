@@ -5,6 +5,8 @@ export default {
   setupFiles: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^supertest$': '<rootDir>/test-utils/in-memory-supertest.js',
+    '^svix$': '<rootDir>/test-utils/mock-svix.js',
   },
   transform: {
     '^.+\\.ts$': [

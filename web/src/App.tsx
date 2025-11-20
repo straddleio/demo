@@ -4,7 +4,6 @@ import { RightPanel } from './layout/RightPanel';
 import { Terminal } from './components/Terminal';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { LogsTab } from './components/LogsTab';
-import { GeneratorTab } from './components/GeneratorTab';
 import { SoundToggle } from './components/settings/SoundToggle';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { PaykeyGeneratorModal } from './components/PaykeyGeneratorModal';
@@ -36,7 +35,6 @@ function App(): React.ReactElement {
     addAPILogEntry,
     addTerminalLine,
     setFeatureFlags,
-    setGeneratorUrl,
   } = useDemoStore();
 
   useEffect(() => {
@@ -47,7 +45,6 @@ function App(): React.ReactElement {
           throw new Error('Config fetch failed');
         }
         const data = (await response.json()) as {
-          generatorUrl?: string;
           features?: { enableUnmask?: boolean; enableLogStream?: boolean };
         };
         if (data.features) {
@@ -56,25 +53,13 @@ function App(): React.ReactElement {
             enableLogStream: !!data.features.enableLogStream,
           });
         }
-        const candidate = data.generatorUrl || '/api/generator';
-        const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
-        const isHttpCandidate = candidate.startsWith('http://');
-        const sameOrigin =
-          typeof window !== 'undefined' &&
-          isHttpCandidate &&
-          candidate.includes(window.location.hostname);
-
-        // Avoid mixed content on HTTPS pages; fall back to proxy unless it's same-origin
-        const safeUrl =
-          protocol === 'https:' && isHttpCandidate && !sameOrigin ? '/api/generator' : candidate;
-        setGeneratorUrl(safeUrl);
       } catch (error) {
         console.warn('Failed to load server config', error);
       }
     };
 
     void fetchConfig();
-  }, [setFeatureFlags, setGeneratorUrl]);
+  }, [setFeatureFlags]);
 
   const handleReviewDecision = async (
     decision: 'verified' | 'rejected' | 'approved'
@@ -120,13 +105,7 @@ function App(): React.ReactElement {
       <ConnectionStatus />
       <SplitView
         left={<LeftPanel terminal={<Terminal />} />}
-        right={
-          <RightPanel
-            demoView={<DashboardView />}
-            logsView={<LogsTab />}
-            generatorView={<GeneratorTab />}
-          />
-        }
+        right={<RightPanel demoView={<DashboardView />} logsView={<LogsTab />} />}
       />
       <SoundToggle />
       <PaykeyGeneratorModal />

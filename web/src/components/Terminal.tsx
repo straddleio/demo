@@ -312,6 +312,37 @@ export const Terminal: React.FC = () => {
       case 'paykey-bank':
         setSelectedCommand('paykey-bank');
         break;
+      case 'paykey-review':
+      case 'paykey-decision':
+      case 'info':
+      case 'outcomes':
+      case 'help':
+      case 'clear':
+        void (async (): Promise<void> => {
+          setIsMenuOpen(false);
+          const commandText = `/${command.replace(/-/g, '-')}`;
+          const commandId = addTerminalLine({ text: `> ${commandText}`, type: 'input' });
+          setLastCommandId(commandId);
+          setExecuting(true);
+
+          try {
+            const result = await executeCommand(commandText);
+            if (result.message) {
+              addTerminalLine({
+                text: result.message,
+                type: result.success ? 'success' : 'error',
+              });
+            }
+          } catch (error) {
+            addTerminalLine({
+              text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              type: 'error',
+            });
+          } finally {
+            setExecuting(false);
+          }
+        })();
+        break;
       case 'charge':
         setSelectedCommand('charge');
         break;

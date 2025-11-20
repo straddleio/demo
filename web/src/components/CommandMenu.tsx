@@ -9,10 +9,16 @@ export type CommandType =
   | 'paykey-plaid'
   | 'paykey-bank'
   | 'paykey-bridge'
+  | 'paykey-decision'
+  | 'paykey-review'
   | 'charge'
   | 'payout'
   | 'demo'
+  | 'info'
+  | 'outcomes'
   | 'reset'
+  | 'clear'
+  | 'help'
   | 'end';
 
 interface CommandButtonProps {
@@ -144,6 +150,22 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   }}
                   variant="secondary"
                 />
+                <CommandButton
+                  label="Review Details"
+                  onClick={() => {
+                    onCommandSelect('paykey-review');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="secondary"
+                />
+                <CommandButton
+                  label="Approve/Reject"
+                  onClick={() => {
+                    onCommandSelect('paykey-decision');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="secondary"
+                />
               </div>
             </div>
 
@@ -171,13 +193,52 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
               </div>
             </div>
 
+            {/* INFO & HELP */}
+            <div>
+              <h3 className="font-pixel text-accent text-xs mb-2 uppercase">Info & Help</h3>
+              <div className="space-y-2">
+                <CommandButton
+                  label="Show State"
+                  onClick={() => {
+                    onCommandSelect('info');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="secondary"
+                />
+                <CommandButton
+                  label="Show Outcomes"
+                  onClick={() => {
+                    onCommandSelect('outcomes');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="secondary"
+                />
+                <CommandButton
+                  label="Help"
+                  onClick={() => {
+                    onCommandSelect('help');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="secondary"
+                />
+              </div>
+            </div>
+
             {/* UTILITIES */}
             <div className="pt-2 border-t border-primary/20">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 <CommandButton
                   label="DEMO"
                   onClick={() => {
                     onCommandSelect('demo');
+                    // Menu stays open until user toggles button
+                  }}
+                  variant="utility"
+                />
+                <CommandButton
+                  label="CLEAR"
+                  onClick={() => {
+                    onCommandSelect('clear');
                     // Menu stays open until user toggles button
                   }}
                   variant="utility"
@@ -191,7 +252,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ onCommandSelect, isOpe
                   variant="utility"
                 />
                 <CommandButton
-                  label="END DEMO"
+                  label="END"
                   onClick={() => {
                     onCommandSelect('end');
                     // Menu stays open until user toggles button

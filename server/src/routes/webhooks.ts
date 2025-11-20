@@ -94,12 +94,16 @@ router.post('/straddle', (req: Request, res: Response): void => {
     }
 
     const svixHeaders = {
-      'svix-id': req.header('webhook-id') || '',
-      'svix-timestamp': req.header('webhook-timestamp') || '',
-      'svix-signature': req.header('webhook-signature') || '',
+      'svix-id': req.header('webhook-id') || req.header('svix-id') || '',
+      'svix-timestamp': req.header('webhook-timestamp') || req.header('svix-timestamp') || '',
+      'svix-signature': req.header('webhook-signature') || req.header('svix-signature') || '',
     };
 
-    if (!svixHeaders['svix-id'] || !svixHeaders['svix-timestamp'] || !svixHeaders['svix-signature']) {
+    if (
+      !svixHeaders['svix-id'] ||
+      !svixHeaders['svix-timestamp'] ||
+      !svixHeaders['svix-signature']
+    ) {
       res.status(400).json({ error: 'Missing webhook signature headers' });
       return;
     }
