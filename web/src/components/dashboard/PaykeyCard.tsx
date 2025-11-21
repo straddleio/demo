@@ -27,12 +27,13 @@ export const PaykeyCard: React.FC = () => {
   const paykey = useDemoStore((state) => state.paykey);
   const customer = useDemoStore((state) => state.customer);
 
-  const [isExpanded, setIsExpanded] = useState(true); // Default to expanded (HIDE button shown)
+  const [isExpanded, setIsExpanded] = useState(false); // Default to collapsed (SHOW button shown)
   const [showInfoMode, setShowInfoMode] = useState(false);
 
   // Reset states when paykey changes
   useEffect(() => {
-    setIsExpanded(true); // Keep expanded when paykey changes
+    // Default collapsed when paykey changes so tests and UX start minimized
+    setIsExpanded(false);
     setShowInfoMode(false);
   }, [paykey?.id]);
 

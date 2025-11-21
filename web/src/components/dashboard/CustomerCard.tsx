@@ -45,7 +45,7 @@ export const CustomerCard: React.FC = () => {
   const [infoMode, setInfoMode] = useState(false);
   const [unmaskError, setUnmaskError] = useState<string | null>(null);
   const customer = useDemoStore((state) => state.customer);
-  const enableUnmask = useDemoStore((state) => state.featureFlags.enableUnmask);
+  const enableUnmask = useDemoStore((state) => state.featureFlags?.enableUnmask ?? false);
 
   // Determine if customer is business or individual
   const customerType = customer?.type || 'individual';

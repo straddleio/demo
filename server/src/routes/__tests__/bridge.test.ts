@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import request from 'supertest';
-import express from 'express';
+import type { Request, Response } from 'express';
 
 // Set environment variables before importing config
 process.env.STRADDLE_API_KEY = 'test_api_key';
@@ -84,18 +83,66 @@ jest.mock('../../lib/logger.js', () => ({
 import bridgeRouter from '../bridge.js';
 import straddleClient from '../../sdk.js';
 
-describe('Bridge Routes', () => {
-  let app: express.Application;
+const handle = async (
+  method: string,
+  path: string,
+  body?: Record<string, unknown>
+): Promise<{ status: number; body: any }> =>
+  await new Promise((resolve, reject) => {
+    const normalizedPath = path.replace(/^\/api\/bridge/, '') || '/';
+    const req = {
+      method: method.toUpperCase(),
+      url: normalizedPath,
+      body,
+      ip: '127.0.0.1',
+      requestId: 'test-request-id',
+      correlationId: 'test-correlation-id',
+    } as unknown as Request;
 
-  beforeEach(() => {
-    app = express();
-    app.use(express.json());
-    app.use((req, _res, next) => {
-      req.requestId = 'test-request-id';
-      req.correlationId = 'test-correlation-id';
-      next();
+    const res = {
+      statusCode: 200,
+      headers: {} as Record<string, unknown>,
+      status(code: number) {
+        this.statusCode = code;
+        return this;
+      },
+      json(payload: unknown) {
+        resolve({ status: this.statusCode, body: payload });
+        return this;
+      },
+      send(payload: unknown) {
+        resolve({ status: this.statusCode, body: payload });
+        return this;
+      },
+      setHeader(name: string, value: unknown) {
+        this.headers[name] = value;
+      },
+    } as unknown as Response;
+
+    bridgeRouter.handle(req, res, (err?: any) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ status: (res as any).statusCode, body: (res as any).body });
+      }
     });
-    app.use('/api/bridge', bridgeRouter);
+  });
+
+// Lightweight request wrapper to mirror supertest API used in tests
+const request = (_app?: unknown) => ({
+  post: (path: string) => ({
+    send: (payload?: Record<string, unknown>) => handle('POST', path, payload),
+  }),
+  get: (path: string) => ({
+    send: () => handle('GET', path),
+  }),
+});
+
+// Legacy variable to match existing test call signature
+const app = {};
+
+describe('Bridge Routes', () => {
+  beforeEach(() => {
     jest.clearAllMocks();
     mockSetPaykey.mockClear();
   });
@@ -643,6 +690,7 @@ describe('Bridge Routes', () => {
       it('should use env variable PLAID_PROCESSOR_TOKEN as fallback', async () => {
         jest.spyOn(straddleClient.bridge.link, 'plaid').mockResolvedValue(mockPlaidPaykeyResponse as any);
         jest.spyOn(straddleClient.paykeys.review, 'get').mockResolvedValue(mockReviewResponse as any);
+        process.env.PLAID_PROCESSOR_TOKEN = 'processor-sandbox-fallback-token';
 
         const response = await request(app).post('/api/bridge/plaid').send({
           customer_id: 'cust_123',
@@ -817,6 +865,8 @@ describe('Bridge Routes', () => {
         const { config } = await import('../../config.js');
         const originalToken = config.plaid.processorToken;
         (config.plaid as any).processorToken = '';
+        const originalEnv = process.env.PLAID_PROCESSOR_TOKEN;
+        delete process.env.PLAID_PROCESSOR_TOKEN;
 
         const response = await request(app).post('/api/bridge/plaid').send({
           customer_id: 'cust_123',
@@ -828,6 +878,9 @@ describe('Bridge Routes', () => {
 
         // Restore
         (config.plaid as any).processorToken = originalToken;
+        if (originalEnv !== undefined) {
+          process.env.PLAID_PROCESSOR_TOKEN = originalEnv;
+        }
       });
 
       it('should return 400 for invalid outcome', async () => {

@@ -303,8 +303,9 @@ router.post('/plaid', (req: Request, res: Response): void => {
   const plaid_token = isString(body.plaid_token) ? body.plaid_token : undefined;
   const outcome = isString(body.outcome) ? body.outcome : undefined;
 
-  // Use provided token or fall back to configured token
-  const tokenToUse = plaid_token || config.plaid.processorToken;
+  // Use provided token or fall back to env/config each request (allows tests to set env dynamically)
+  const envFallback = process.env.PLAID_PROCESSOR_TOKEN;
+  const tokenToUse = plaid_token || envFallback || config.plaid.processorToken;
 
   if (!tokenToUse) {
     res.status(400).json({

@@ -91,6 +91,17 @@ export const DashboardView: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* Layout: Tracker Featured - emphasize lifecycle tracker only */}
+      {displayState.layout === 'tracker-featured' && (
+        <div
+          className="animate-pixel-fade-in"
+          data-component="pizza-tracker"
+          style={{ animationDelay: '0.05s' }}
+        >
+          <PizzaTracker />
+        </div>
+      )}
     </div>
   );
 };

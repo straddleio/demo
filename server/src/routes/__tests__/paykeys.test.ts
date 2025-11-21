@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import request from 'supertest';
-import express from 'express';
+import type { Request, Response } from 'express';
 
 // Mock dependencies BEFORE importing modules that use them
 jest.mock('../../sdk.js', () => ({
@@ -36,18 +35,52 @@ jest.mock('../../lib/logger.js', () => ({
 import paykeyRouter from '../paykeys.js';
 import straddleClient from '../../sdk.js';
 
-describe('Paykey Routes', () => {
-  let app: express.Application;
+const handle = async (
+  method: string,
+  url: string,
+  body?: Record<string, unknown>
+): Promise<{ status: number; body: any }> =>
+  await new Promise((resolve, reject) => {
+    const req = {
+      method: method.toUpperCase(),
+      url,
+      body,
+      ip: '127.0.0.1',
+      requestId: 'test-request-id',
+      correlationId: 'test-correlation-id',
+    } as unknown as Request;
 
-  beforeEach(() => {
-    app = express();
-    app.use(express.json());
-    app.use((req, _res, next) => {
-      req.requestId = 'test-request-id';
-      req.correlationId = 'test-correlation-id';
-      next();
+    const res = {
+      statusCode: 200,
+      headers: {} as Record<string, unknown>,
+      status(code: number) {
+        this.statusCode = code;
+        return this;
+      },
+      json(payload: unknown) {
+        resolve({ status: this.statusCode, body: payload });
+        return this;
+      },
+      send(payload: unknown) {
+        resolve({ status: this.statusCode, body: payload });
+        return this;
+      },
+      setHeader(name: string, value: unknown) {
+        this.headers[name] = value;
+      },
+    } as unknown as Response;
+
+    paykeyRouter.handle(req, res, (err?: any) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ status: (res as any).statusCode, body: (res as any).body });
+      }
     });
-    app.use('/api/paykeys', paykeyRouter);
+  });
+
+describe('Paykey Routes', () => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -80,7 +113,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys, 'get').mockResolvedValue(mockPaykeyResponse as any);
 
-      const response = await request(app).get('/api/paykeys/paykey_123');
+      const response = await handle('GET', '/paykey_123');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', 'paykey_123');
@@ -108,7 +141,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys, 'get').mockResolvedValue(mockPaykeyResponse as any);
 
-      const response = await request(app).get('/api/paykeys/paykey_456');
+      const response = await handle('GET', '/paykey_456');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', 'paykey_456');
@@ -128,7 +161,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys, 'get').mockRejectedValue(mockError as any);
 
-      const response = await request(app).get('/api/paykeys/paykey_nonexistent');
+      const response = await handle('GET', '/paykey_nonexistent');
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
@@ -153,7 +186,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys, 'cancel').mockResolvedValue(mockCancelResponse as any);
 
-      const response = await request(app).post('/api/paykeys/paykey_123/cancel');
+      const response = await handle('POST', '/paykey_123/cancel');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'cancelled');
@@ -172,7 +205,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys, 'cancel').mockRejectedValue(mockError as any);
 
-      const response = await request(app).post('/api/paykeys/paykey_123/cancel');
+      const response = await handle('POST', '/paykey_123/cancel');
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
@@ -204,7 +237,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys.review, 'get').mockResolvedValue(mockReviewResponse as any);
 
-      const response = await request(app).get('/api/paykeys/paykey_123/review');
+      const response = await handle('GET', '/paykey_123/review');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('review_status', 'pending');
@@ -224,7 +257,7 @@ describe('Paykey Routes', () => {
 
       jest.spyOn(straddleClient.paykeys.review, 'get').mockRejectedValue(mockError as any);
 
-      const response = await request(app).get('/api/paykeys/paykey_123/review');
+      const response = await handle('GET', '/paykey_123/review');
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
@@ -246,9 +279,7 @@ describe('Paykey Routes', () => {
         .spyOn(straddleClient.paykeys.review, 'decision')
         .mockResolvedValue(mockUpdateResponse as any);
 
-      const response = await request(app).patch('/api/paykeys/paykey_123/review').send({
-        decision: 'approved',
-      });
+      const response = await handle('PATCH', '/paykey_123/review', { decision: 'approved' });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('review_status', 'approved');
@@ -272,9 +303,7 @@ describe('Paykey Routes', () => {
         .spyOn(straddleClient.paykeys.review, 'decision')
         .mockResolvedValue(mockUpdateResponse as any);
 
-      const response = await request(app).patch('/api/paykeys/paykey_123/review').send({
-        decision: 'rejected',
-      });
+      const response = await handle('PATCH', '/paykey_123/review', { decision: 'rejected' });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('review_status', 'rejected');
@@ -284,7 +313,7 @@ describe('Paykey Routes', () => {
     });
 
     it('should handle missing decision field', async () => {
-      const response = await request(app).patch('/api/paykeys/paykey_123/review').send({});
+      const response = await handle('PATCH', '/paykey_123/review', {});
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');
@@ -292,9 +321,7 @@ describe('Paykey Routes', () => {
     });
 
     it('should handle invalid decision values', async () => {
-      const response = await request(app).patch('/api/paykeys/paykey_123/review').send({
-        decision: 'invalid',
-      });
+      const response = await handle('PATCH', '/paykey_123/review', { decision: 'invalid' });
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');

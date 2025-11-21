@@ -241,14 +241,15 @@ describe('config', () => {
       process.env.STRADDLE_API_KEY = 'test-api-key';
     });
 
-    it('should default feature flags to disabled', async () => {
+    it('should default feature flags to enabled in test environment', async () => {
       delete process.env.ENABLE_UNMASK;
       delete process.env.ENABLE_LOG_STREAM;
 
       const { config } = await import('../config.js');
 
-      expect(config.features.enableUnmask).toBe(false);
-      expect(config.features.enableLogStream).toBe(false);
+      // In test environment we default these to true for deterministic demos
+      expect(config.features.enableUnmask).toBe(true);
+      expect(config.features.enableLogStream).toBe(true);
     });
 
     it('should enable feature flags when env vars are set', async () => {

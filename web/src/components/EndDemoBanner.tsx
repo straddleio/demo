@@ -53,7 +53,8 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
               'fixed inset-x-0 top-0 z-[9999]',
               'flex items-center justify-center',
               'min-h-[60vh] py-16',
-              'border-y-4 border-accent/70 ring-2 ring-primary/30',
+              'border-y-8 border-primary ring-2 ring-primary/30',
+              'bg-gradient-to-b from-[#0a0a14] via-[#1a1a2e] to-[#0a0a14]',
               'shadow-[0_0_50px_rgb(var(--color-primary-rgb)/0.2)]'
             )}
             style={{
@@ -102,9 +103,9 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                 {/* Main text with logo-inspired gradient + pixel outline */}
                 <h1
                   className={cn(
-                    'relative font-pixel text-4xl md:text-5xl',
+                    'relative font-display text-4xl md:text-5xl uppercase',
                     'text-transparent bg-clip-text bg-gradient-to-br from-primary via-accent to-secondary',
-                    'tracking-[0.35em] uppercase',
+                    'tracking-[0.35em]',
                     'drop-shadow-[2px_2px_0_rgba(0,0,0,0.45)]'
                   )}
                   style={{
@@ -116,7 +117,7 @@ export const EndDemoBanner: React.FC<EndDemoBannerProps> = ({ isVisible, onClose
                     `,
                   }}
                 >
-                  THANKS NERDS!
+                  Thanks Nerds!
                 </h1>
 
                 {/* Pixel decorations */}

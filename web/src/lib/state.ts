@@ -91,7 +91,7 @@ export interface DemoState {
     enableUnmask: boolean;
     enableLogStream: boolean;
   };
-  generatorUrl: string;
+
 
   // Terminal
   terminalHistory: TerminalLine[];
@@ -113,7 +113,7 @@ export interface DemoState {
   setPaykey: (paykey: Paykey | null) => void;
   setCharge: (charge: Charge | null) => void;
   setFeatureFlags: (flags: Partial<DemoState['featureFlags']>) => void;
-  setGeneratorUrl: (url: string) => void;
+
 
   addTerminalLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => string;
   addAPILogEntry: (entry: { type: 'ui-action'; text: string }) => string;
@@ -170,7 +170,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     enableUnmask: false,
     enableLogStream: true, // Always enabled - never show "disabled" message
   },
-  generatorUrl: '/api/generator',
+
   terminalHistory: [
     {
       id: uuid(),
@@ -201,7 +201,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     set((state) => ({
       featureFlags: { ...state.featureFlags, ...flags },
     })),
-  setGeneratorUrl: (url) => set({ generatorUrl: url }),
+
 
   addTerminalLine: (line) => {
     const id = uuid();
@@ -258,8 +258,11 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     }),
 
   setApiLogs: (apiLogs) =>
-    set({
-      apiLogs: apiLogs.slice(0, MAX_API_LOGS),
+    set(() => {
+      // Guard against bad input and ensure we never hold more than MAX_API_LOGS
+      const limit = Number.isFinite(MAX_API_LOGS) ? MAX_API_LOGS : 200;
+      const nextLogs = Array.isArray(apiLogs) ? apiLogs.slice(-limit) : [];
+      return { apiLogs: nextLogs };
     }),
   setConnected: (isConnected) => set({ isConnected }),
   setConnectionError: (connectionError) => set({ connectionError }),
@@ -324,9 +327,24 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       };
     }
 
-    // Customer + Charge - paykey embedded in charge card
-    // Show this layout for ALL charge states (created, scheduled, pending, paid, etc.)
-    // The PizzaTracker below will show the sequential progress
+    // Customer + Charge
+    const isTrackerState =
+      'status' in charge &&
+      typeof charge.status === 'string' &&
+      ['scheduled', 'pending', 'paid'].includes(charge.status);
+
+    if (isTrackerState) {
+      return {
+        layout: 'tracker-featured' as const,
+        customerWidth: 'compact' as const,
+        paykeyVisible: false,
+        paykeyMode: 'in-tracker' as const,
+        chargeMode: 'hidden' as const,
+        showCircularTracker: true,
+      };
+    }
+
+    // Default charge display - paykey embedded in charge card
     return {
       layout: 'customer-charge' as const,
       customerWidth: '50' as const,
@@ -348,7 +366,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
         enableUnmask: false,
         enableLogStream: true, // Always enabled - never show "disabled" message
       },
-      generatorUrl: '/api/generator',
+
       terminalHistory: [
         {
           id: uuid(),

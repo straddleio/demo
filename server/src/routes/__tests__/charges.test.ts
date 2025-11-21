@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import request from 'supertest';
-import express from 'express';
+import type { Request, Response } from 'express';
 
 // Mock dependencies BEFORE importing modules that use them
 jest.mock('../../sdk.js', () => ({
@@ -42,18 +41,52 @@ jest.mock('../../lib/logger.js', () => ({
 import chargeRouter from '../charges.js';
 import straddleClient from '../../sdk.js';
 
-describe('Charge Routes', () => {
-  let app: express.Application;
+const handle = async (
+  method: string,
+  url: string,
+  body?: Record<string, unknown>
+): Promise<{ status: number; body: any }> =>
+  await new Promise((resolve, reject) => {
+    const req = {
+      method: method.toUpperCase(),
+      url,
+      body,
+      ip: '127.0.0.1',
+      requestId: 'test-request-id',
+      correlationId: 'test-correlation-id',
+    } as unknown as Request;
 
-  beforeEach(() => {
-    app = express();
-    app.use(express.json());
-    app.use((req, _res, next) => {
-      req.requestId = 'test-request-id';
-      req.correlationId = 'test-correlation-id';
-      next();
+    const res = {
+      statusCode: 200,
+      headers: {} as Record<string, unknown>,
+      status(code: number) {
+        this.statusCode = code;
+        return this;
+      },
+      json(payload: unknown) {
+        resolve({ status: this.statusCode, body: payload });
+        return this;
+      },
+      send(payload: unknown) {
+        resolve({ status: this.statusCode, body: payload });
+        return this;
+      },
+      setHeader(name: string, value: unknown) {
+        this.headers[name] = value;
+      },
+    } as unknown as Response;
+
+    chargeRouter.handle(req, res, (err?: any) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve({ status: (res as any).statusCode, body: (res as any).body });
+      }
     });
-    app.use('/api/charges', chargeRouter);
+  });
+
+describe('Charge Routes', () => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -77,8 +110,9 @@ describe('Charge Routes', () => {
       };
 
       jest.spyOn(straddleClient.charges, 'create').mockResolvedValue(mockChargeResponse as any);
+      jest.spyOn(straddleClient.charges, 'get').mockResolvedValue(mockChargeResponse as any);
 
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         paykey: 'token_abc123',
         amount: 5000,
         description: 'Test charge',
@@ -102,7 +136,7 @@ describe('Charge Routes', () => {
     });
 
     it('should require paykey field', async () => {
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         amount: 5000,
         description: 'Test charge',
       });
@@ -131,8 +165,9 @@ describe('Charge Routes', () => {
       };
 
       jest.spyOn(straddleClient.charges, 'create').mockResolvedValue(mockChargeResponse as any);
+      jest.spyOn(straddleClient.charges, 'get').mockResolvedValue(mockChargeResponse as any);
 
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         paykey: 'token_def456',
       });
 
@@ -167,8 +202,9 @@ describe('Charge Routes', () => {
       };
 
       jest.spyOn(straddleClient.charges, 'create').mockResolvedValue(mockChargeResponse as any);
+      jest.spyOn(straddleClient.charges, 'get').mockResolvedValue(mockChargeResponse as any);
 
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         paykey: 'token_ghi789',
         amount: 5000,
         outcome: 'failed',
@@ -212,8 +248,9 @@ describe('Charge Routes', () => {
         };
 
         jest.spyOn(straddleClient.charges, 'create').mockResolvedValue(mockChargeResponse as any);
+        jest.spyOn(straddleClient.charges, 'get').mockResolvedValue(mockChargeResponse as any);
 
-        const response = await request(app).post('/api/charges').send({
+        const response = await handle('POST', '/', {
           paykey: 'token_test',
           amount: 5000,
           outcome,
@@ -249,8 +286,9 @@ describe('Charge Routes', () => {
       };
 
       jest.spyOn(straddleClient.charges, 'create').mockResolvedValue(mockChargeResponse as any);
+      jest.spyOn(straddleClient.charges, 'get').mockResolvedValue(mockChargeResponse as any);
 
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         paykey: 'token_test',
         amount: 5000,
       });
@@ -276,8 +314,9 @@ describe('Charge Routes', () => {
       };
 
       jest.spyOn(straddleClient.charges, 'create').mockRejectedValue(mockError as any);
+      jest.spyOn(straddleClient.charges, 'get').mockResolvedValue({ data: {} } as any);
 
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         paykey: 'invalid_token',
         amount: 5000,
       });
@@ -306,7 +345,7 @@ describe('Charge Routes', () => {
 
       jest.spyOn(straddleClient.charges, 'create').mockResolvedValue(mockChargeResponse as any);
 
-      const response = await request(app).post('/api/charges').send({
+      const response = await handle('POST', '/', {
         paykey: 'token_test',
         amount: 5000,
       });
@@ -357,7 +396,7 @@ describe('Charge Routes', () => {
 
       jest.spyOn(straddleClient.charges, 'get').mockResolvedValue(mockChargeResponse as any);
 
-      const response = await request(app).get('/api/charges/charge_123');
+      const response = await handle('GET', '/charge_123');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', 'charge_123');
@@ -378,7 +417,7 @@ describe('Charge Routes', () => {
 
       jest.spyOn(straddleClient.charges, 'get').mockRejectedValue(mockError as any);
 
-      const response = await request(app).get('/api/charges/charge_nonexistent');
+      const response = await handle('GET', '/charge_nonexistent');
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error');
@@ -406,7 +445,7 @@ describe('Charge Routes', () => {
 
       jest.spyOn(straddleClient.charges, 'cancel').mockResolvedValue(mockCancelResponse as any);
 
-      const response = await request(app).post('/api/charges/charge_123/cancel');
+      const response = await handle('POST', '/charge_123/cancel');
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('status', 'cancelled');
@@ -425,7 +464,7 @@ describe('Charge Routes', () => {
 
       jest.spyOn(straddleClient.charges, 'cancel').mockRejectedValue(mockError as any);
 
-      const response = await request(app).post('/api/charges/charge_123/cancel');
+      const response = await handle('POST', '/charge_123/cancel');
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('error');

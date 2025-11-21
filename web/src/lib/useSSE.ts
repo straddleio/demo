@@ -196,15 +196,12 @@ export function useSSE(url: string = DEFAULT_SSE_URL): void {
         if (isPaykey(parsed)) {
           console.info('[SSE] Paykey updated:', parsed);
 
-          // Get previous status before updating
-          // const previousPaykey = useDemoStore.getState().paykey; // DISABLED: no longer used
-          // const previousStatus = previousPaykey?.status; // DISABLED: no longer used
-
           // Play review alert if status changed TO review
-          // DISABLED: Paykey review alert sound
-          // if (parsed.status === 'review' && previousStatus !== 'review') {
-          //   void playReviewAlertSound();
-          // }
+          const previousPaykey = useDemoStore.getState().paykey;
+          const previousStatus = previousPaykey?.status;
+          if (parsed.status === 'review' && previousStatus !== 'review') {
+            void playReviewAlertSound();
+          }
 
           setPaykey(parsed);
         }

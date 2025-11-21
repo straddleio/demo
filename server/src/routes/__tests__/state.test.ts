@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, beforeAll, jest } from '@jest/globals';
 import request from 'supertest';
 import express from 'express';
 import type { Response } from 'express';
@@ -9,8 +9,8 @@ import type { LogStreamEntry } from '../../domain/log-stream.js';
 // Set environment variables before importing config
 process.env.STRADDLE_API_KEY = 'test_api_key';
 
-// Mock dependencies BEFORE importing modules that use them
-jest.mock('../../config.js', () => ({
+// Mock dependencies using unstable_mockModule for ESM support
+jest.unstable_mockModule('../../config.js', () => ({
   config: {
     straddle: {
       apiKey: 'test_api_key',
@@ -32,18 +32,46 @@ jest.mock('../../config.js', () => ({
       url: 'http://localhost:8081',
     },
     features: {
-      enableUnmask: true,
+      enableUnmask: false,
       enableLogStream: true,
     },
   },
 }));
 
-jest.mock('../../domain/state.js');
-jest.mock('../../domain/logs.js');
-jest.mock('../../domain/log-stream.js');
-jest.mock('../../domain/events.js');
+const mockStateManager = {
+  getState: jest.fn(),
+  reset: jest.fn(),
+  on: jest.fn(),
+};
 
-jest.mock('../../lib/logger.js', () => ({
+jest.unstable_mockModule('../../domain/state.js', () => ({
+  stateManager: mockStateManager,
+}));
+
+const mockLogs = {
+  getRequestLogs: jest.fn(),
+  clearRequestLogs: jest.fn(),
+};
+
+jest.unstable_mockModule('../../domain/logs.js', () => mockLogs);
+
+const mockLogStream = {
+  getLogStream: jest.fn(),
+  clearLogStream: jest.fn(),
+};
+
+jest.unstable_mockModule('../../domain/log-stream.js', () => mockLogStream);
+
+const mockEventBroadcaster = {
+  broadcast: jest.fn(),
+  addClient: jest.fn(),
+};
+
+jest.unstable_mockModule('../../domain/events.js', () => ({
+  eventBroadcaster: mockEventBroadcaster,
+}));
+
+jest.unstable_mockModule('../../lib/logger.js', () => ({
   logger: {
     debug: jest.fn(),
     info: jest.fn(),
@@ -51,24 +79,23 @@ jest.mock('../../lib/logger.js', () => ({
   },
 }));
 
-jest.mock('uuid', () => ({
+jest.unstable_mockModule('uuid', () => ({
   v4: jest.fn(() => 'test-uuid-1234'),
 }));
 
-// Import modules after mocks
-import stateRouter from '../state.js';
-import { stateManager } from '../../domain/state.js';
-import { getRequestLogs, clearRequestLogs } from '../../domain/logs.js';
-import { getLogStream, clearLogStream } from '../../domain/log-stream.js';
-import { eventBroadcaster } from '../../domain/events.js';
-
 describe('State Routes', () => {
   let app: express.Application;
+  let stateRouter: any;
+
+  beforeAll(async () => {
+    const module = await import('../state.js');
+    stateRouter = module.default;
+  });
 
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.use((req, _res, next) => {
+    app.use((req: any, _res, next) => {
       req.requestId = 'test-request-id';
       req.correlationId = 'test-correlation-id';
       next();
@@ -114,12 +141,12 @@ describe('State Routes', () => {
         },
       };
 
-      (stateManager.getState as jest.Mock).mockReturnValue(mockState);
+      mockStateManager.getState.mockReturnValue(mockState);
 
       const response = await request(app).get('/api/state').expect(200);
 
       expect(response.body).toEqual(mockState);
-      expect(stateManager.getState).toHaveBeenCalledTimes(1);
+      expect(mockStateManager.getState).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty state when no data exists', async () => {
@@ -129,12 +156,12 @@ describe('State Routes', () => {
         charge: null,
       };
 
-      (stateManager.getState as jest.Mock).mockReturnValue(emptyState);
+      mockStateManager.getState.mockReturnValue(emptyState);
 
       const response = await request(app).get('/api/state').expect(200);
 
       expect(response.body).toEqual(emptyState);
-      expect(stateManager.getState).toHaveBeenCalledTimes(1);
+      expect(mockStateManager.getState).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -146,16 +173,16 @@ describe('State Routes', () => {
         success: true,
         message: 'Demo state reset',
       });
-      expect(stateManager.reset).toHaveBeenCalledTimes(1);
-      expect(clearRequestLogs).toHaveBeenCalledTimes(1);
-      expect(clearLogStream).toHaveBeenCalledTimes(1);
-      expect(eventBroadcaster.broadcast).toHaveBeenCalledWith('state:reset', {});
+      expect(mockStateManager.reset).toHaveBeenCalledTimes(1);
+      expect(mockLogs.clearRequestLogs).toHaveBeenCalledTimes(1);
+      expect(mockLogStream.clearLogStream).toHaveBeenCalledTimes(1);
+      expect(mockEventBroadcaster.broadcast).toHaveBeenCalledWith('state:reset', {});
     });
 
     it('should broadcast reset event to SSE clients', async () => {
       await request(app).post('/api/reset').expect(200);
 
-      expect(eventBroadcaster.broadcast).toHaveBeenCalledWith('state:reset', {});
+      expect(mockEventBroadcaster.broadcast).toHaveBeenCalledWith('state:reset', {});
     });
   });
 
@@ -165,9 +192,8 @@ describe('State Routes', () => {
 
       expect(response.body).toEqual({
         environment: 'sandbox',
-        generatorUrl: 'http://localhost:8081',
         features: {
-          enableUnmask: true,
+          enableUnmask: false,
           enableLogStream: true,
         },
       });
@@ -184,13 +210,13 @@ describe('State Routes', () => {
       expect(response.body).not.toHaveProperty('processorToken');
 
       // Only safe fields should be present
-      expect(Object.keys(response.body)).toEqual(['environment', 'generatorUrl', 'features']);
+      expect(Object.keys(response.body)).toEqual(['environment', 'features']);
     });
   });
 
   describe('GET /api/logs', () => {
     it('should return request logs', async () => {
-      const mockLogs: RequestLog[] = [
+      const mockLogEntries: RequestLog[] = [
         {
           requestId: 'req_123',
           correlationId: 'corr_123',
@@ -215,27 +241,27 @@ describe('State Routes', () => {
         },
       ];
 
-      (getRequestLogs as jest.Mock).mockReturnValue(mockLogs);
+      mockLogs.getRequestLogs.mockReturnValue(mockLogEntries);
 
       const response = await request(app).get('/api/logs').expect(200);
 
-      expect(response.body).toEqual(mockLogs);
-      expect(getRequestLogs).toHaveBeenCalledTimes(1);
+      expect(response.body).toEqual(mockLogEntries);
+      expect(mockLogs.getRequestLogs).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty array when no logs exist', async () => {
-      (getRequestLogs as jest.Mock).mockReturnValue([]);
+      mockLogs.getRequestLogs.mockReturnValue([]);
 
       const response = await request(app).get('/api/logs').expect(200);
 
       expect(response.body).toEqual([]);
-      expect(getRequestLogs).toHaveBeenCalledTimes(1);
+      expect(mockLogs.getRequestLogs).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('GET /api/log-stream', () => {
     it('should return filtered log stream (only Straddle API and webhook entries)', async () => {
-      const mockLogStream: LogStreamEntry[] = [
+      const mockLogStreamEntries: LogStreamEntry[] = [
         {
           id: 'log_1',
           timestamp: '2025-11-19T10:00:00Z',
@@ -279,7 +305,7 @@ describe('State Routes', () => {
         },
       ];
 
-      (getLogStream as jest.Mock).mockReturnValue(mockLogStream);
+      mockLogStream.getLogStream.mockReturnValue(mockLogStreamEntries);
 
       const response = await request(app).get('/api/log-stream').expect(200);
 
@@ -288,11 +314,11 @@ describe('State Routes', () => {
       expect(response.body[0].type).toBe('straddle-req');
       expect(response.body[1].type).toBe('straddle-res');
       expect(response.body[2].type).toBe('webhook');
-      expect(getLogStream).toHaveBeenCalledTimes(1);
+      expect(mockLogStream.getLogStream).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty array when no Straddle/webhook logs exist', async () => {
-      const mockLogStream: LogStreamEntry[] = [
+      const mockLogStreamEntries: LogStreamEntry[] = [
         {
           id: 'log_1',
           timestamp: '2025-11-19T10:00:00Z',
@@ -308,12 +334,12 @@ describe('State Routes', () => {
         },
       ];
 
-      (getLogStream as jest.Mock).mockReturnValue(mockLogStream);
+      mockLogStream.getLogStream.mockReturnValue(mockLogStreamEntries);
 
       const response = await request(app).get('/api/log-stream').expect(200);
 
       expect(response.body).toEqual([]);
-      expect(getLogStream).toHaveBeenCalledTimes(1);
+      expect(mockLogStream.getLogStream).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -364,30 +390,29 @@ describe('State Routes', () => {
 
   describe('GET /api/events/stream', () => {
     it('should call addClient when SSE connection is established', async () => {
-      (stateManager.getState as jest.Mock).mockReturnValue({
+      mockStateManager.getState.mockReturnValue({
         customer: null,
         paykey: null,
         charge: null,
       });
 
-      // Start the request but don't wait for it to finish (it won't finish)
-      const req = request(app).get('/api/events/stream');
+      // Mock addClient to close the response immediately so the request finishes
+      mockEventBroadcaster.addClient.mockImplementation((_id: any, res: any) => {
+        res.end();
+      });
 
-      // Give it a moment to process
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      // Make request and await it
+      await request(app).get('/api/events/stream');
 
       // Verify that addClient and getState were called
-      expect(eventBroadcaster.addClient).toHaveBeenCalled();
-      expect(stateManager.getState).toHaveBeenCalled();
-
-      // Clean up: abort the request
-      void req.abort();
+      expect(mockEventBroadcaster.addClient).toHaveBeenCalled();
+      expect(mockStateManager.getState).toHaveBeenCalled();
     });
 
     it('should call broadcast when resetting state', async () => {
       await request(app).post('/api/reset').expect(200);
 
-      expect(eventBroadcaster.broadcast).toHaveBeenCalledWith('state:reset', {});
+      expect(mockEventBroadcaster.broadcast).toHaveBeenCalledWith('state:reset', {});
     });
   });
 
