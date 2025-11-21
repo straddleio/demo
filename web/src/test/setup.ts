@@ -88,7 +88,6 @@ vi.mock('@/lib/state', () => {
       enableUnmask: false,
       enableLogStream: false,
     },
-    generatorUrl: 'http://localhost:8081',
     terminalHistory: [],
     isExecuting: false,
     apiLogs: [],
@@ -138,7 +137,6 @@ vi.mock('@/lib/state', () => {
       enableUnmask: false,
       enableLogStream: false,
     };
-    sharedState.generatorUrl = 'http://localhost:8081';
     sharedState.terminalHistory = [
       {
         id: `mock-reset-${Date.now()}`,
@@ -153,7 +151,19 @@ vi.mock('@/lib/state', () => {
     sharedState.isExecuting = false;
     sharedState.connectionError = null;
   });
-  const mockSetState = vi.fn();
+  const mockSetState = vi.fn((partial: unknown) => {
+    if (typeof partial === 'function') {
+      // @ts-expect-error allow functional updates for tests
+      const next = partial(sharedState);
+      if (next && typeof next === 'object') {
+        Object.assign(sharedState, next);
+      }
+      return;
+    }
+    if (partial && typeof partial === 'object') {
+      Object.assign(sharedState, partial as object);
+    }
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockSetCustomer = vi.fn((customer: any) => {
     sharedState.customer = customer;
@@ -228,9 +238,6 @@ vi.mock('@/lib/state', () => {
         ...flags,
       })
   );
-  const mockSetGeneratorUrl = vi.fn((url: string) => {
-    sharedState.generatorUrl = url;
-  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockGetCardDisplayState = vi.fn((): any => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -319,7 +326,6 @@ vi.mock('@/lib/state', () => {
           setReviewModalData: mockSetReviewModalData,
           setReviewModalOpen: mockSetReviewModalOpen,
           setFeatureFlags: mockSetFeatureFlags,
-          setGeneratorUrl: mockSetGeneratorUrl,
           setExecuting: mockSetExecuting,
           associateAPILogsWithCommand: mockAssociateAPILogsWithCommand,
           clearTerminalHistory: mockClearTerminalHistory,
@@ -345,7 +351,6 @@ vi.mock('@/lib/state', () => {
           setGeneratorData: mockSetGeneratorData,
           clearGeneratorData: mockClearGeneratorData,
           setFeatureFlags: mockSetFeatureFlags,
-          setGeneratorUrl: mockSetGeneratorUrl,
           addAPILogEntry: mockAddAPILogEntry,
           addTerminalLine: mockAddTerminalLine,
           setReviewModalData: mockSetReviewModalData,

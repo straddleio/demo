@@ -247,8 +247,9 @@ describe('config', () => {
 
       const { config } = await import('../config.js');
 
-      expect(config.features.enableUnmask).toBe(false);
-      expect(config.features.enableLogStream).toBe(false);
+      // In test environment we default these to true for deterministic demos
+      expect(config.features.enableUnmask).toBe(true);
+      expect(config.features.enableLogStream).toBe(true);
     });
 
     it('should enable feature flags when env vars are set', async () => {

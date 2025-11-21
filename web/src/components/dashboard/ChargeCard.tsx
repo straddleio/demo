@@ -19,7 +19,7 @@ export const ChargeCard: React.FC = () => {
   const charge = useDemoStore((state) => state.charge);
   const paykey = useDemoStore((state) => state.paykey);
   const displayState = useDemoStore((state) => state.getCardDisplayState());
-  const [paykeyExpanded, setPaykeyExpanded] = useState(true); // Default to expanded
+  const [paykeyExpanded, setPaykeyExpanded] = useState(false); // Default collapsed
 
   if (!charge) {
     return (
@@ -105,7 +105,10 @@ export const ChargeCard: React.FC = () => {
       <RetroCardContent className="space-y-3">
         {/* Embedded Paykey Details - Expandable */}
         {isPaykeyEmbedded && paykey && paykeyExpanded && (
-          <div className="bg-green-500/5 border border-green-500/20 rounded-pixel p-3 space-y-2 animate-pixel-fade-in">
+          <div
+            data-testid="embedded-paykey-details"
+            className="bg-green-500/5 border border-green-500/20 rounded-pixel p-3 space-y-2 animate-pixel-fade-in"
+          >
             <div className="flex items-center gap-2">
               <FiKey className="w-4 h-4 text-green-500" />
               <p className="text-xs font-pixel text-green-500">PAYKEY</p>

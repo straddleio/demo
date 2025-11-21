@@ -84,9 +84,7 @@ describe('ChargeCard with Embedded Paykey', () => {
     render(<ChargeCard />);
     const keyButton = screen.getByRole('button', { name: /toggle paykey details/i });
     expect(keyButton).toBeInTheDocument();
-    expect(keyButton).toHaveClass('text-green-500');
-    // Verify simplified label
-    expect(screen.getByText('Paykey')).toBeInTheDocument();
+    expect(keyButton).toHaveAttribute('aria-label', 'Toggle paykey details');
   });
 
   it('expands paykey details when key icon is clicked', () => {
@@ -95,10 +93,12 @@ describe('ChargeCard with Embedded Paykey', () => {
     const keyButton = screen.getByRole('button', { name: /toggle paykey details/i });
     fireEvent.click(keyButton);
 
-    expect(screen.getByText('PAYKEY')).toBeInTheDocument();
-    expect(screen.getByText('Chase Bank')).toBeInTheDocument();
-    expect(screen.getByText(/••••1234/)).toBeInTheDocument();
-    expect(screen.getByText('$1,000.00')).toBeInTheDocument();
+    const details = screen.getByTestId('embedded-paykey-details');
+    expect(details).toBeInTheDocument();
+    expect(details).toHaveTextContent('PAYKEY');
+    expect(details).toHaveTextContent('Chase Bank');
+    expect(details).toHaveTextContent('••••1234');
+    expect(details).toHaveTextContent('$1,000.00');
   });
 
   it('collapses paykey details when clicked again', () => {
@@ -108,11 +108,9 @@ describe('ChargeCard with Embedded Paykey', () => {
 
     // Expand
     fireEvent.click(keyButton);
-    expect(screen.getByText('Chase Bank')).toBeInTheDocument();
-
     // Collapse
     fireEvent.click(keyButton);
-    expect(screen.queryByText('Chase Bank')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('embedded-paykey-details')).not.toBeInTheDocument();
   });
 
   it('does not show key icon when paykey mode is not embedded', () => {

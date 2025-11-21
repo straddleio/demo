@@ -13,7 +13,6 @@ describe('Paykey Generator State Management', () => {
         enableUnmask: false,
         enableLogStream: false,
       },
-      generatorUrl: 'http://localhost:8081',
       terminalHistory: [],
       isExecuting: false,
       apiLogs: [],

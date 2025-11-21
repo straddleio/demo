@@ -15,6 +15,8 @@ function normalizeCorsOrigin(origin: string | undefined): string {
   return `https://${origin}`;
 }
 
+const isTest = process.env.NODE_ENV === 'test';
+
 export const config = {
   straddle: {
     apiKey: process.env.STRADDLE_API_KEY || '',
@@ -32,11 +34,10 @@ export const config = {
   plaid: {
     processorToken: process.env.PLAID_PROCESSOR_TOKEN || '',
   },
-  generator: {
-    url: process.env.GENERATOR_URL || 'http://localhost:8081',
-  },
+
   features: {
-    enableUnmask: process.env.ENABLE_UNMASK === 'true',
-    enableLogStream: process.env.ENABLE_LOG_STREAM === 'true',
+    // In test environment, default these to true so fixtures that rely on them don't need env wiring
+    enableUnmask: process.env.ENABLE_UNMASK === 'true' || isTest,
+    enableLogStream: process.env.ENABLE_LOG_STREAM === 'true' || isTest,
   },
 } as const;

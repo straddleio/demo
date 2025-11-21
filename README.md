@@ -27,11 +27,6 @@ Cryptographically-linked tokens ("paykeys") that marry identity to open banking,
 
 - Node.js ≥ 18.0.0
 - npm ≥ 9.0.0
-- Python 3.x (for paykey generator service)
-- `b3sum` (BLAKE3 command-line tool)
-  - Arch Linux: `sudo pacman -S b3sum` or `yay -S b3sum`
-  - macOS: `brew install b3sum`
-  - Ubuntu/Debian: `cargo install b3sum` (requires Rust)
 - Straddle sandbox API key ([sign up here](https://dashboard.straddle.com))
 
 ### Installation
@@ -61,7 +56,6 @@ STRADDLE_ENV=sandbox
 # Optional - defaults shown
 PORT=3001
 CORS_ORIGIN=http://localhost:5173
-GENERATOR_URL=http://localhost:8081
 
 # Webhook configuration (optional for local dev)
 WEBHOOK_SECRET=your_webhook_secret_here
@@ -79,10 +73,9 @@ cd ..
 npm run dev
 ```
 
-This starts three services concurrently:
+This starts two services concurrently:
 - Express backend (port 3001)
 - React frontend (port 5173)
-- Paykey generator service (port 8081)
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
@@ -214,7 +207,6 @@ nerdcon-demo/
 │       ├── components/  # Terminal, dashboard cards, UI components
 │       ├── lib/         # Commands parser, state, API client
 │       └── __tests__/   # Vitest tests with >80% coverage
-├── paykey-generator/    # Python service for generating paykeys
 └── design/              # Design system and retro components
 ```
 
